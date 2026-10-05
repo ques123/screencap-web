@@ -21,9 +21,18 @@ notarize() { xcrun notarytool submit "$1" --key "$APPLE_API_KEY_PATH" --key-id "
 for T in $TARGETS; do
   case "$T" in aarch64-apple-darwin) A=aarch64; P=darwin-aarch64 ;; x86_64-apple-darwin) A=x64; P=darwin-x86_64 ;; *) echo "bad target $T"; exit 2 ;; esac
   if [ $SKIP_BUILD = 0 ]; then
-    RUST_TARGET_TRIPLE=$T bun run cap-setup
+    # cap-setup reuses an extracted native-deps folder whatever its architecture, so clear it per target;
+    # RUST_TARGET_TRIPLE must also reach tauri:build, or the sidecars are built for this Mac's CPU.
+    rm -rf target/native-deps target/Frameworks
+    export RUST_TARGET_TRIPLE=$T
+    bun run cap-setup
     bun run tauri:build -- --target "$T"
   fi
+  for f in "target/$T/release/bundle/macos/Screencap.app/Contents/MacOS/"* \
+           "target/$T/release/bundle/macos/Screencap.app/Contents/Frameworks/Spacedrive.framework/Libraries/"*.dylib; do
+    [ -f "$f" ] || continue
+    [ "$(lipo -archs "$f")" = "$([ $A = x64 ] && echo x86_64 || echo arm64)" ] || { echo "wrong architecture: $f"; exit 1; }
+  done
   B="target/$T/release/bundle"
   DMG=$(ls "$B"/dmg/*.dmg | head -1); APP_TGZ="$B/macos/Screencap.app.tar.gz"
   [ -f "$DMG" ] && [ -f "$APP_TGZ" ] && [ -f "$APP_TGZ.sig" ] || { echo "missing build artifacts in $B"; exit 1; }
