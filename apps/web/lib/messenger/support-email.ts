@@ -9,7 +9,7 @@ import type { User } from "@cap/web-domain";
 import { and, count, eq, gte } from "drizzle-orm";
 
 const SUPPORT_EMAIL_TO = "hello@cap.so";
-const SUPPORT_EMAIL_FROM = "Cap Support <richie@send.cap.so>";
+const SUPPORT_EMAIL_FROM = "Screencap Support <richie@send.cap.so>";
 export const MESSENGER_SUPPORT_EMAIL_DAILY_LIMIT = 2;
 
 type MessengerSupportUser = {

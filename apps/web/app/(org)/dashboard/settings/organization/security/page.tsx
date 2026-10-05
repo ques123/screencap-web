@@ -7,7 +7,7 @@ import { ComplianceCard } from "../components/ComplianceCard";
 import { SsoCard } from "../components/SsoCard";
 
 export const metadata: Metadata = {
-	title: "Security & Compliance — Cap",
+	title: "Security & Compliance — Screencap",
 };
 
 export default async function OrganizationSecurityPage({
@@ -34,7 +34,7 @@ export default async function OrganizationSecurityPage({
 							Choose the organization you were setting up from the organization
 							switcher, then reload this page to refresh its payment and SSO
 							status. If you are already in the correct organization, contact
-							Cap support.
+							Screencap support.
 						</CardDescription>
 					</CardHeader>
 				</Card>
@@ -55,8 +55,8 @@ export default async function OrganizationSecurityPage({
 						<CardDescription>
 							Unable to load SAML SSO settings. Reload this page to try again.
 							If the problem continues, contact{" "}
-							<a className="underline" href="mailto:hello@cap.so">
-								hello@cap.so
+							<a className="underline" href="mailto:email@screencap.co">
+								email@screencap.co
 							</a>{" "}
 							for help.
 						</CardDescription>

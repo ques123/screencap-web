@@ -33,20 +33,20 @@ const failure = (error: unknown) => ({
 				error instanceof Error &&
 				/^(Invalid cursor|Search must|Query must)/.test(error.message)
 					? error.message
-					: "Cap could not complete this request",
+					: "Screencap could not complete this request",
 		},
 	],
 	isError: true,
 });
 
 export const createCapMcpServer = (userId: User.UserId) => {
-	const server = new McpServer({ name: "Cap", version: "1.0.0" });
+	const server = new McpServer({ name: "Screencap", version: "1.0.0" });
 	server.registerTool(
 		"caps_list",
 		{
-			title: "List Cap recordings",
+			title: "List recordings",
 			description:
-				"Find recordings in your owned Cap library by title. Returns up to 20 recordings and a cursor for the next page.",
+				"Find recordings in your owned Screencap library by title. Returns up to 20 recordings and a cursor for the next page.",
 			inputSchema: fromJsonSchema<{ search?: string; cursor?: string }>({
 				type: "object",
 				properties: {
@@ -55,7 +55,7 @@ export const createCapMcpServer = (userId: User.UserId) => {
 				},
 				additionalProperties: false,
 			}),
-			annotations: { ...readOnly, title: "List Cap recordings" },
+			annotations: { ...readOnly, title: "List recordings" },
 		},
 		async (input) => {
 			try {
@@ -69,7 +69,7 @@ export const createCapMcpServer = (userId: User.UserId) => {
 	server.registerTool(
 		"caps_get",
 		{
-			title: "Get a Cap recording",
+			title: "Get a recording",
 			description:
 				"Get title, duration, status, and share URL for one recording you own.",
 			inputSchema: fromJsonSchema<{ id: string }>({
@@ -78,13 +78,13 @@ export const createCapMcpServer = (userId: User.UserId) => {
 				required: ["id"],
 				additionalProperties: false,
 			}),
-			annotations: { ...readOnly, title: "Get a Cap recording" },
+			annotations: { ...readOnly, title: "Get a recording" },
 		},
 		async ({ id }) => {
 			try {
 				const { getMcpCap } = await import("./mcp-data");
 				const cap = await getMcpCap(userId, id);
-				return cap ? result(cap) : failure(new Error("Cap not found"));
+				return cap ? result(cap) : failure(new Error("Recording not found"));
 			} catch (error) {
 				return failure(error);
 			}
@@ -94,7 +94,7 @@ export const createCapMcpServer = (userId: User.UserId) => {
 		server,
 		"caps_context",
 		{
-			title: "Read a Cap recording",
+			title: "Read a recording",
 			description:
 				"Read the summary and up to 30 timestamped transcript cues from one recording you own. Optional query filters cues in that recording.",
 			inputSchema: fromJsonSchema<{ id: string; query?: string }>({
@@ -106,20 +106,20 @@ export const createCapMcpServer = (userId: User.UserId) => {
 				required: ["id"],
 				additionalProperties: false,
 			}),
-			annotations: { ...readOnly, title: "Read a Cap recording" },
+			annotations: { ...readOnly, title: "Read a recording" },
 			_meta: { ui: { resourceUri: cardUri }, "openai/outputTemplate": cardUri },
 		},
 		async ({ id, query }) => {
 			try {
 				const { getMcpCapContext } = await import("./mcp-data");
 				const context = await getMcpCapContext(userId, id, query);
-				return context ? result(context) : failure(new Error("Cap not found"));
+				return context ? result(context) : failure(new Error("Recording not found"));
 			} catch (error) {
 				return failure(error);
 			}
 		},
 	);
-	registerAppResource(server, "Cap recording card", cardUri, {}, async () => {
+	registerAppResource(server, "Recording card", cardUri, {}, async () => {
 		const { default: card } = await import("./mcp-card-html.json");
 		return {
 			contents: [
@@ -133,7 +133,7 @@ export const createCapMcpServer = (userId: User.UserId) => {
 export const capMcpHandler = createMcpHandler(
 	({ authInfo }) => {
 		const userId = authInfo?.extra?.userId;
-		if (typeof userId !== "string") throw new Error("Missing Cap user");
+		if (typeof userId !== "string") throw new Error("Missing Screencap user");
 		return createCapMcpServer(userId as User.UserId);
 	},
 	{ maxSubscriptions: 0 },

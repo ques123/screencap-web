@@ -48,7 +48,7 @@ export const MigratePromoBadge = ({
 				<Tag className="size-3.5" strokeWidth={2} />
 			</span>
 			<span className="text-[14px] leading-none text-[#111111]">
-				<span className="font-medium">20% off Cap Pro</span>
+				<span className="font-medium">20% off Pro</span>
 				<span className="text-[rgba(17,17,17,0.6)]"> with code</span>
 			</span>
 			<button

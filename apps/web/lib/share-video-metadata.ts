@@ -86,8 +86,8 @@ export const buildShareVideoMetadata = ({
 		webUrl,
 		canonicalWebUrl,
 	});
-	const title = `${name} | Cap Recording`;
-	const description = "Watch this video on Cap";
+	const title = `${name} | Screencap Recording`;
+	const description = "Watch this video on Screencap";
 
 	return {
 		title,
@@ -120,7 +120,7 @@ export const buildShareVideoMetadata = ({
 		openGraph: {
 			type: "video.other",
 			url: urls.shareUrl,
-			siteName: "Cap",
+			siteName: "Screencap",
 			title,
 			description,
 			ttl: 300,

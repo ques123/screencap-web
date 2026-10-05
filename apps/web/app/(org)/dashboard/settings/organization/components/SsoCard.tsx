@@ -218,7 +218,7 @@ export function SsoCard({
 					<CardHeader>
 						<CardTitle>SAML SSO</CardTitle>
 						<CardDescription className="max-w-xl">
-							Let your team sign in to Cap with your organization's identity
+							Let your team sign in to Screencap with your organization's identity
 							provider, including Okta, Microsoft Entra ID, and Google
 							Workspace.
 						</CardDescription>
@@ -239,14 +239,14 @@ export function SsoCard({
 					<span className="font-medium text-gray-12">
 						{settings.organizationName}
 					</span>{" "}
-					as members. Cap Pro seats are billed separately from this add-on.
+					as members. Pro seats are billed separately from this add-on.
 				</p>
 
 				{!settings.ssoAvailable && (
 					<p className="rounded-xl border border-gray-4 bg-gray-2 p-3 text-sm text-gray-11">
 						SSO setup is currently unavailable. Contact{" "}
-						<a className="underline" href="mailto:hello@cap.so">
-							hello@cap.so
+						<a className="underline" href="mailto:email@screencap.co">
+							email@screencap.co
 						</a>{" "}
 						for help.
 					</p>
@@ -350,8 +350,8 @@ export function SsoCard({
 							<p className="text-sm text-gray-11">
 								Your SSO subscription needs attention before setup is available.
 								Contact{" "}
-								<a className="underline" href="mailto:hello@cap.so">
-									hello@cap.so
+								<a className="underline" href="mailto:email@screencap.co">
+									email@screencap.co
 								</a>{" "}
 								for help with the existing subscription; you don't need to
 								purchase it again.

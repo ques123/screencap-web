@@ -13,8 +13,8 @@ import {
 import type { User, Video } from "@cap/web-domain";
 import { and, eq, or } from "drizzle-orm";
 
-const ACCOUNT_DELETION_EMAIL_TO = "hello@cap.so";
-const ACCOUNT_DELETION_EMAIL_FROM = "Cap Support <richie@send.cap.so>";
+const ACCOUNT_DELETION_EMAIL_TO = "email@screencap.co";
+const ACCOUNT_DELETION_EMAIL_FROM = "Screencap Support <richie@send.cap.so>";
 export const ACCOUNT_DELETION_PENDING_SUBJECT =
 	"[PENDING] Account deletion request";
 export const MOBILE_CONTENT_REPORT_PENDING_SUBJECT =
@@ -28,13 +28,13 @@ type AccountDeletionUser = {
 
 const createRequestMessage = (user: AccountDeletionUser, now: Date) =>
 	[
-		"An account deletion request was initiated and confirmed inside the Cap mobile app.",
+		"An account deletion request was initiated and confirmed inside the Screencap mobile app.",
 		"",
 		`User ID: ${user.id}`,
 		`Email: ${user.email}`,
 		`Requested at: ${now.toISOString()}`,
 		"",
-		"Complete permanent deletion of the account and associated personal data, Caps, videos, comments, profile data, and organizations owned solely by this user within 30 days. Cancel any direct Cap subscription that remains active. Confirm completion to the user by email, then change this request subject from [PENDING] to [COMPLETED].",
+		"Complete permanent deletion of the account and associated personal data, recordings, videos, comments, profile data, and organizations owned solely by this user within 30 days. Cancel any direct Screencap subscription that remains active. Confirm completion to the user by email, then change this request subject from [PENDING] to [COMPLETED].",
 	].join("\n");
 
 export const hasPendingAccountDeletion = async ({
@@ -194,18 +194,18 @@ export const createMobileContentReport = async ({
 		email: reporter.email.trim().toLowerCase(),
 	};
 	const message = [
-		"A signed-in user reported a Cap from the iOS app.",
+		"A signed-in user reported a recording from the iOS app.",
 		"",
 		`Reporter user ID: ${normalizedReporter.id}`,
 		`Reporter email: ${normalizedReporter.email}`,
-		`Cap ID: ${content.id}`,
-		`Cap title: ${content.title}`,
-		`Cap owner ID: ${content.ownerId}`,
+		`Recording ID: ${content.id}`,
+		`Recording title: ${content.title}`,
+		`Recording owner ID: ${content.ownerId}`,
 		`Reason: ${reason}`,
 		`Reported at: ${now.toISOString()}`,
 		`Cap URL: https://cap.so/s/${content.id}`,
 		"",
-		"Review the content promptly, remove it if it violates Cap policies, respond to the reporter when appropriate, and change this request subject from [PENDING] to [COMPLETED].",
+		"Review the content promptly, remove it if it violates Screencap policies, respond to the reporter when appropriate, and change this request subject from [PENDING] to [COMPLETED].",
 	].join("\n");
 	const request = await db().transaction(async (tx) => {
 		const [lockedUser] = await tx

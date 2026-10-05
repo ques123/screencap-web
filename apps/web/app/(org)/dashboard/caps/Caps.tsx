@@ -134,14 +134,14 @@ export const Caps = ({
 			} else {
 				return yield* Effect.fail(
 					new Error(
-						`Failed to delete ${errorCount} cap${errorCount === 1 ? "" : "s"}`,
+						`Failed to delete ${errorCount} recording${errorCount === 1 ? "" : "s"}`,
 					),
 				);
 			}
 		}),
 		onMutate: (ids: Video.VideoId[]) => {
 			toast.loading(
-				`Deleting ${ids.length} cap${ids.length === 1 ? "" : "s"}...`,
+				`Deleting ${ids.length} recording${ids.length === 1 ? "" : "s"}...`,
 			);
 		},
 		onSuccess: (data: { success: number; error?: number }) => {
@@ -167,7 +167,7 @@ export const Caps = ({
 			const message =
 				error instanceof Error
 					? error.message
-					: "An error occurred while deleting caps";
+					: "An error occurred while deleting recordings";
 			toast.error(message);
 		},
 	});
@@ -177,10 +177,10 @@ export const Caps = ({
 			yield* rpc.VideoDelete(id);
 		}),
 		onSuccess: () => {
-			toast.success("Cap deleted successfully");
+			toast.success("Recording deleted successfully");
 			router.refresh();
 		},
-		onError: (_error: unknown) => toast.error("Failed to delete cap"),
+		onError: (_error: unknown) => toast.error("Failed to delete recording"),
 	});
 
 	useEffect(() => {
@@ -276,7 +276,7 @@ export const Caps = ({
 				scope="personal"
 				folders={folders}
 				canMove
-				moveRootLabel="My Caps"
+				moveRootLabel="My Recordings"
 			/>
 			{visibleVideos.length > 0 && (
 				<>
@@ -311,7 +311,7 @@ export const Caps = ({
 									onSelectToggle={() => handleCapSelection(video.id)}
 									canMove
 									moveLocation={moveLocation}
-									moveRootLabel="My Caps"
+									moveRootLabel="My Recordings"
 								/>
 							);
 						})}
@@ -329,7 +329,7 @@ export const Caps = ({
 				deleteSelectedCaps={() => deleteCaps(selectedCaps)}
 				isDeleting={isDeletingCaps || isDeletingCap}
 				moveLocation={moveLocation}
-				moveRootLabel="My Caps"
+				moveRootLabel="My Recordings"
 			/>
 			{isDraggingCap && (
 				<div className="fixed inset-0 z-50 pointer-events-none">

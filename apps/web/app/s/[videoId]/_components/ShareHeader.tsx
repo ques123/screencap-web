@@ -138,7 +138,7 @@ const SIGNED_OUT_LINKS = [
 const TITLE_TEXT_CLASS =
 	"text-xl leading-7 font-normal sm:text-2xl sm:leading-8";
 
-const TITLE_PLACEHOLDER = "Cap title";
+const TITLE_PLACEHOLDER = "Recording title";
 
 const ACTION_BAR_BUTTON_CLASS =
 	"h-10 min-w-0 gap-1.5 rounded-full px-3 text-[13px] sm:h-8 sm:px-2.5 sm:text-xs";
@@ -462,7 +462,7 @@ export const ShareHeader = ({
 	const copyShareLink = (url: string) =>
 		copyRichVideoLink({
 			url,
-			title: displayTitle || "Cap Recording",
+			title: displayTitle || "Screencap Recording",
 			previewImageUrl: videoPreviewImageUrl(webUrl, data.id),
 		});
 
@@ -572,7 +572,7 @@ export const ShareHeader = ({
 			className={clsx("gap-1.5 px-3", className)}
 			size="xs"
 			variant="blue"
-			aria-label="Share this Cap"
+			aria-label="Share this recording"
 			onClick={openShareLinkDialog}
 			onPointerEnter={() => {
 				void importShareLinkDialog();
@@ -675,11 +675,11 @@ export const ShareHeader = ({
 
 		try {
 			await hideShareableLinkCapLogo(data.orgId);
-			toast.success("Cap logo hidden");
+			toast.success("Screencap logo hidden");
 			refresh();
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to hide Cap logo",
+				error instanceof Error ? error.message : "Failed to hide Screencap logo",
 			);
 		} finally {
 			setIsHidingBranding(false);
@@ -717,11 +717,13 @@ export const ShareHeader = ({
 	 * the branding has bought the right not to be advertised at.
 	 */
 	const renderSignedOutNav = () => {
+		// Self-hosted instances have no public sign-up or marketing pages to point at.
+		if (buildEnv.NEXT_PUBLIC_IS_CAP !== "true") return null;
 		if (user !== null || branding?.type !== "cap") return null;
 
 		return (
 			<nav
-				aria-label="Cap"
+				aria-label="Screencap"
 				className="flex shrink-0 flex-wrap items-center justify-end gap-x-5 gap-y-2"
 			>
 				<div className="hidden items-center gap-5 md:flex">
@@ -748,7 +750,7 @@ export const ShareHeader = ({
 						href={`/signup?ref=video_${data.id}`}
 						className="h-8 rounded-full px-3 text-xs"
 					>
-						Get Cap free
+						Get Screencap free
 					</Button>
 				</div>
 			</nav>
@@ -778,7 +780,7 @@ export const ShareHeader = ({
 								<Button
 									variant="gray"
 									size="xs"
-									aria-label="Hide Cap logo"
+									aria-label="Hide Screencap logo"
 									className="h-7 gap-1 whitespace-nowrap rounded-full px-2 text-[11px]"
 									disabled={isHidingBranding}
 									onClick={handleHideBranding}
@@ -828,7 +830,7 @@ export const ShareHeader = ({
 						size="sm"
 						variant="blue"
 					>
-						Upgrade to Cap Pro
+						Upgrade to Pro
 					</Button>
 				</div>
 			)}
@@ -972,7 +974,7 @@ export const ShareHeader = ({
 											maxLength={255}
 											spellCheck={false}
 											autoComplete="off"
-											aria-label="Cap title"
+											aria-label="Recording title"
 											placeholder={TITLE_PLACEHOLDER}
 											onChange={(e) => setEditValue(e.target.value)}
 											onBlur={handleTitleBlur}
@@ -1118,7 +1120,7 @@ export const ShareHeader = ({
 													<Button
 														variant="dark"
 														size="xs"
-														aria-label="Manage Cap"
+														aria-label="Manage recording"
 														className={clsx(ACTION_BAR_BUTTON_CLASS, "sm:px-3")}
 													>
 														<FontAwesomeIcon
@@ -1126,7 +1128,7 @@ export const ShareHeader = ({
 															icon={faEllipsis}
 														/>
 														<span className="truncate sm:hidden">Manage</span>
-														<span className="hidden sm:inline">Manage Cap</span>
+														<span className="hidden sm:inline">Manage recording</span>
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent
@@ -1269,7 +1271,7 @@ export const ShareHeader = ({
 															className="size-3"
 															icon={faTrash}
 														/>
-														<p className="text-sm text-inherit">Delete Cap</p>
+														<p className="text-sm text-inherit">Delete recording</p>
 													</DropdownMenuItem>
 												</DropdownMenuContent>
 											</DropdownMenu>

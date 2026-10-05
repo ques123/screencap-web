@@ -6,12 +6,12 @@ export default function NotFound() {
 				Oops, we couldn't find this page
 			</p>
 			<p className="text-gray-400 text-lg md:text-xl">
-				Please contact the Cap team if this seems like a mistake:{" "}
+				Please contact the Screencap team if this seems like a mistake:{" "}
 				<a
-					href="mailto:hello@cap.so"
+					href="mailto:email@screencap.co"
 					className="font-medium text-gray-500 text-lg md:text-xl hover:underline"
 				>
-					hello@cap.so
+					email@screencap.co
 				</a>
 			</p>
 		</div>

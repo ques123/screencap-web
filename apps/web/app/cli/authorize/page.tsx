@@ -17,17 +17,17 @@ export const dynamic = "force-dynamic";
 type AuthorizeSearchParams = Record<string, string | string[] | undefined>;
 
 const scopeDescriptions: Record<string, string> = {
-	"caps:read": "Read Caps, transcripts, and activity",
+	"caps:read": "Read recordings, transcripts, and activity",
 	"caps:comment": "Post comments and reactions",
-	"caps:write": "Change Cap titles, visibility, and settings",
-	"profile:read": "Read your Cap profile",
-	"profile:write": "Update your Cap profile",
+	"caps:write": "Change recording titles, visibility, and settings",
+	"profile:read": "Read your Screencap profile",
+	"profile:write": "Update your Screencap profile",
 	"caps:upload": "Upload recordings and imported media",
 	"caps:process": "Start paid transcription, AI, translation, and edits",
-	"caps:delete": "Delete Caps after explicit confirmation",
+	"caps:delete": "Delete recordings after explicit confirmation",
 	"library:read": "Read folders, spaces, and sharing state",
 	"library:write": "Manage folders, spaces, and sharing",
-	"analytics:read": "Read Cap and workspace analytics",
+	"analytics:read": "Read recording and workspace analytics",
 	"organizations:read": "Read your organizations and members",
 	"organizations:manage": "Manage organization settings",
 	"organizations:members": "Invite and manage organization members",
@@ -131,10 +131,10 @@ export default async function CliAuthorizePage(props: {
 			<section className="w-full max-w-md rounded-2xl border border-gray-4 bg-white p-8 shadow-sm">
 				<Logo className="mb-8 h-8 w-auto" />
 				<h1 className="text-xl font-semibold text-gray-12">
-					Authorize Cap CLI
+					Authorize Screencap CLI
 				</h1>
 				<p className="mt-3 text-sm leading-6 text-gray-10">
-					The CLI will be able to access your Cap library with the following
+					The CLI will be able to access your Screencap library with the following
 					permissions:
 				</p>
 				<ul className="mt-5 space-y-3 text-sm text-gray-11">

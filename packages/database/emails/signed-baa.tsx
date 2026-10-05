@@ -26,7 +26,7 @@ export function SignedBaa({
 		<Html>
 			<Head />
 			<Preview>
-				Your Business Associate Agreement with Cap is signed and active
+				Your Business Associate Agreement with Screencap is signed and active
 			</Preview>
 			<Tailwind>
 				<Body className="mx-auto my-auto bg-gray-1 font-sans">
@@ -36,7 +36,7 @@ export function SignedBaa({
 								src={CAP_LOGO_URL}
 								width="40"
 								height="40"
-								alt="Cap"
+								alt="Screencap"
 								className="mx-auto my-0"
 							/>
 						</Section>
@@ -44,8 +44,8 @@ export function SignedBaa({
 							Your signed BAA is attached
 						</Heading>
 						<Text className="text-sm leading-6 text-black">
-							The Business Associate Agreement between {entityName} and Cap
-							Software, Inc. has been executed, effective {effectiveDate}. A
+							The Business Associate Agreement between {entityName} and Screencap
+							has been executed, effective {effectiveDate}. A
 							fully signed copy is attached to this email as a PDF for your
 							records.
 						</Text>

@@ -188,7 +188,7 @@ export async function generateSignedBaaPdf(
 
 	// Copies in circulation can be checked against Cap's execution records
 	// (the signed_baas row and its Stripe subscription) via this identifier.
-	const stamp = `Executed via Cap dashboard — Execution ID ${details.executionId} — ${dateText}`;
+	const stamp = `Executed via Screencap dashboard — Execution ID ${details.executionId} — ${dateText}`;
 	for (const page of pages) {
 		page.drawText(stamp, {
 			x: 72,

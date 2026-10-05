@@ -264,7 +264,7 @@ app.post(
 
 		try {
 			await sendEmail({
-				email: "hello@cap.so",
+				email: "email@screencap.co",
 				subject: `New Feedback from ${userEmail}`,
 				react: Feedback({
 					userEmail,

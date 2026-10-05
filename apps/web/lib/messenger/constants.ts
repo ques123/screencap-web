@@ -8,7 +8,7 @@ export const MESSENGER_SUGGESTED_PROMPTS = [
 	"How do I record my screen?",
 	"How do I share a recording?",
 	"I'm having a technical issue",
-	"What can Cap do?",
+	"What can Screencap do?",
 ];
 
 export const MESSENGER_AGENT: {

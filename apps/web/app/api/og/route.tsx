@@ -16,9 +16,9 @@ import {
 	titleFontSize,
 } from "@/lib/og/template";
 
-const DEFAULT_TITLE = "Beautiful screen recordings, owned by you";
+const DEFAULT_TITLE = "Screen recordings, one link away";
 const DEFAULT_DESCRIPTION =
-	"The open source Loom alternative. Record and share in seconds.";
+	"Record your screen and share it with a link.";
 
 // Strip control characters and collapse whitespace so arbitrary query input
 // can't distort the layout.

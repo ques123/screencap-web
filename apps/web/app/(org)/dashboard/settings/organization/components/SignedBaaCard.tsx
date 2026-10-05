@@ -290,7 +290,7 @@ function SignedBaaCardContent() {
 			<CardHeader>
 				<CardTitle>Signed BAA</CardTitle>
 				<CardDescription>
-					HIPAA Business Associate Agreement between your organization and Cap
+					HIPAA Business Associate Agreement between your organization and Screencap
 					Software, Inc.
 				</CardDescription>
 			</CardHeader>
@@ -387,7 +387,7 @@ function SignedBaaCardContent() {
 							</span>
 							{!canPurchase && (
 								<span className="text-xs text-gray-10">
-									Requires an active Cap Pro subscription with a card on file.
+									Requires an active Pro subscription with a card on file.
 								</span>
 							)}
 						</div>
@@ -415,7 +415,7 @@ function SignedBaaCardContent() {
 						icon={
 							<FontAwesomeIcon icon={faFileSignature} className="size-3.5" />
 						}
-						description="Execute a HIPAA Business Associate Agreement with Cap Software, Inc."
+						description="Execute a HIPAA Business Associate Agreement with Screencap"
 					>
 						<DialogTitle>Signed BAA</DialogTitle>
 					</DialogHeader>
@@ -461,15 +461,15 @@ function SignedBaaCardContent() {
 					<div className="flex flex-col gap-4 p-5 border-t border-gray-4">
 						<p className="text-xs leading-5 text-gray-11">
 							{isPaid ? (
-								"Payment has already been received. Signing completes your Business Associate Agreement with no additional charge. Your existing $99/month BAA subscription continues on its current billing schedule, separately from Cap Pro."
+								"Payment has already been received. Signing completes your Business Associate Agreement with no additional charge. Your existing $99/month BAA subscription continues on its current billing schedule, separately from Pro."
 							) : (
 								<>
 									By signing, you execute the Business Associate Agreement and
-									authorize Cap to charge the card on file{" "}
+									authorize Screencap to charge the card on file{" "}
 									<span className="font-medium text-gray-12">$99/month</span>{" "}
-									starting today. This is a separate subscription from Cap Pro
+									starting today. This is a separate subscription from Pro
 									and is not prorated. Once purchased, the Signed BAA can't be
-									disabled; it ends automatically if your Cap Pro subscription
+									disabled; it ends automatically if your Pro subscription
 									is canceled.
 								</>
 							)}{" "}

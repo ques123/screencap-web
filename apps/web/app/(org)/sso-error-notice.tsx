@@ -10,10 +10,10 @@ export function SsoErrorNotice({
 				className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900"
 			>
 				<h2 className="mb-2 font-semibold">
-					Interested in Cap? We're open source.
+					Interested in Screencap? We're open source.
 				</h2>
 				<p>
-					If you're a competitor and interested in signing up to Cap, we're open
+					If you're a competitor and interested in signing up to Screencap, we're open
 					source. I'm very flattered that you want to snoop around. Feel free to
 					check out our codebase on{" "}
 					<a

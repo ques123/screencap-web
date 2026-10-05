@@ -157,29 +157,29 @@ const settingOptions: {
 	{
 		label: "Enable comments",
 		value: "disableComments",
-		description: "Allow viewers to comment on caps in this space",
+		description: "Allow viewers to comment on recordings in this space",
 	},
 	{
 		label: "Enable summary",
 		value: "disableSummary",
-		description: "Show AI-generated summary for caps in this space",
+		description: "Show AI-generated summary for recordings in this space",
 		pro: true,
 	},
 	{
 		label: "Enable captions",
 		value: "disableCaptions",
-		description: "Allow viewers to use captions for caps in this space",
+		description: "Allow viewers to use captions for recordings in this space",
 	},
 	{
 		label: "Enable chapters",
 		value: "disableChapters",
-		description: "Show AI-generated chapters for caps in this space",
+		description: "Show AI-generated chapters for recordings in this space",
 		pro: true,
 	},
 	{
 		label: "Enable reactions",
 		value: "disableReactions",
-		description: "Allow viewers to react to caps in this space",
+		description: "Allow viewers to react to recordings in this space",
 	},
 	{
 		label: "Enable transcript",
@@ -527,7 +527,7 @@ export const NewSpaceForm: React.FC<NewSpaceFormProps> = (props) => {
 					<section className="space-y-3">
 						<SectionLabel
 							title="Viewer permissions"
-							description="These apply to every cap shared in this space."
+							description="These apply to every recording shared in this space."
 						/>
 						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
 							{settingOptions.map((option) => {
