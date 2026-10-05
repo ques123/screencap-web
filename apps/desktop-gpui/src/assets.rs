@@ -229,7 +229,6 @@ const ONBOARDING: &[(&str, &[u8])] = &[
     ("onboarding/cloud-2.png", include_bytes!("../../desktop/src/assets/illustrations/cloud-2.png")),
     ("onboarding/cloud-3.png", include_bytes!("../../desktop/src/assets/illustrations/cloud-3.png")),
     ("onboarding/logo.svg", include_bytes!("../../../packages/ui-solid/icons/logo.svg")),
-    ("onboarding/music.mp3", include_bytes!("../../desktop/src/assets/tears-and-fireflies-adi-goldstein.mp3")),
     ("onboarding/cursor-macos.svg", include_bytes!("../../../packages/ui-solid/icons/cursor-macos.svg")),
     ("onboarding/cursor-windows.svg", include_bytes!("../../../packages/ui-solid/icons/cursor-windows.svg")),
     ("onboarding/volume-2.svg", include_bytes!("../assets/icons/volume-2.svg")),
