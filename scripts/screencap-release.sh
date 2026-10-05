@@ -16,7 +16,21 @@ VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' apps/desktop/src-tauri/Cargo.toml 
 TAG="screencap-v$VERSION"; OUT="target/screencap-release/$VERSION"; mkdir -p "$OUT"
 echo "Screencap $VERSION for: $TARGETS"
 
-notarize() { xcrun notarytool submit "$1" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" --wait --timeout 12h; }
+# Submit, then poll. notarytool's own --wait gives up on a single network timeout, and a team's first
+# submissions can sit "In Progress" for hours.
+notarize() {
+  local auth=(--key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER") id status
+  id=$(xcrun notarytool submit "$1" "${auth[@]}" --output-format json | python3 -c 'import sys,json;print(json.load(sys.stdin)["id"])')
+  echo "notarization $id submitted for $(basename "$1")"
+  while true; do
+    status=$(xcrun notarytool info "$id" "${auth[@]}" --output-format json 2>/dev/null | python3 -c 'import sys,json;print(json.load(sys.stdin)["status"])' 2>/dev/null || echo "poll failed")
+    case "$status" in
+      Accepted) echo "notarization $id accepted"; return 0 ;;
+      Invalid|Rejected) xcrun notarytool log "$id" "${auth[@]}" || true; echo "notarization $id: $status"; return 1 ;;
+    esac
+    sleep 60
+  done
+}
 
 for T in $TARGETS; do
   case "$T" in aarch64-apple-darwin) A=aarch64; P=darwin-aarch64 ;; x86_64-apple-darwin) A=x64; P=darwin-x86_64 ;; *) echo "bad target $T"; exit 2 ;; esac
