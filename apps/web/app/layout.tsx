@@ -2,15 +2,12 @@ import "@/app/globals.css";
 import { buildEnv } from "@cap/env";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import Script from "next/script";
 import type { PropsWithChildren } from "react";
 
-const defaultFont = Geist({
-	subsets: ["latin"],
-	weight: ["300", "400", "500", "600", "700"],
-	display: "swap",
-});
+// Geist (OFL), bundled by the `geist` package as local font files: no build-time fetch from Google.
+const defaultFont = GeistSans;
 
 const SITE_TITLE = "Screencap: screen recordings, one link away";
 const SITE_DESCRIPTION = "Record your screen and share it with a link.";
