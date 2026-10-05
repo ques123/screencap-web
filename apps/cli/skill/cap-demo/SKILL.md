@@ -1,6 +1,6 @@
 ---
 name: cap-demo
-description: Generate a cinematic 3D product-demo video from any URL — scouts the page, records it with virtual input, and treats it with Cap's 3D camera, brand background, and music.
+description: Generate a cinematic 3D product-demo video from any URL — scouts the page, records it with virtual input, and treats it with Screencap's 3D camera, brand background, and music.
 ---
 
 # cap-demo
@@ -8,10 +8,10 @@ description: Generate a cinematic 3D product-demo video from any URL — scouts 
 Give it a URL, get back a short, cinematic product-demo video. The pipeline
 scouts the page headlessly, shoots a headed browser with **virtual input only**
 (CDP mouse/keyboard — the user's real cursor is never touched), records with
-Cap's CLI, then treats the recording with Cap's 3D camera, a brand-matched
+Screencap's CLI, then treats the recording with Screencap's 3D camera, a brand-matched
 background gradient, a synthetic cursor, and music, and exports an mp4.
 
-> **macOS only (for now).** This skill records via Cap's window capture and
+> **macOS only (for now).** This skill records via Screencap's window capture and
 > resolves a cached Playwright Chromium under
 > `~/Library/Caches/ms-playwright`, both of which are macOS-specific today.
 > Apple Silicon is assumed (the bundled Chromium path is `chrome-mac-arm64`).
@@ -40,7 +40,7 @@ alias cap-demo='node <skilldir>/cap-demo.mjs'
   Chromium** under `~/Library/Caches/ms-playwright`; if none is cached, run
   `npx playwright install chromium` once.
 - **`python3`** and **`ffmpeg`/`ffprobe`** on PATH.
-- The **`cap` CLI** on PATH (Cap Desktop, https://cap.so) with macOS
+- The **`cap` CLI** on PATH (Screencap Desktop, https://screencap.co) with macOS
   **screen-recording permission** granted to it. Both stages otherwise resolve
   the binary from `CAP_BIN`; if neither is set they error clearly.
 
@@ -180,7 +180,7 @@ Orchestrator (`cap-demo <url> [flags]`):
 (light/smooth). Music resolves only from the skill's bundled
 `assets/music/<id>.mp3`; an unknown id errors.
 
-**Binary resolution** (both scripts): Cap binary = env `CAP_BIN`, else `cap` on
+**Binary resolution** (both scripts): Screencap binary = env `CAP_BIN`, else `cap` on
 PATH, else a clear error. Chromium = newest cached
 `~/Library/Caches/ms-playwright/chromium-*` (macOS), else the pinned
 `chromium-1228` build.

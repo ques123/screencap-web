@@ -3,7 +3,7 @@
 //! Two halves, and they run very differently.
 //!
 //! The A/V sync self-test runs as a **subprocess** -- the `cap` CLI, shipped
-//! inside `Cap.app` as the `cap-exporter` sidecar. It cannot run in-process:
+//! inside `Screencap.app` as the `cap-exporter` sidecar. It cannot run in-process:
 //! `cap selftest av-sync` builds its own winit `EventLoop` for the flashing
 //! test pattern and needs the process main thread, which gpui owns for the
 //! whole life of the app. So this module resolves the binary, drives its
@@ -57,7 +57,7 @@ const SELFTEST_BIN_ENV: &str = "CAP_GPUI_SELFTEST_BIN";
 /// The shipping app. The gpui binary is unbundled in dev and carries no
 /// sidecar of its own, so it borrows the installed app's -- the same fallback
 /// the editor's wallpaper lookup makes.
-const INSTALLED_APP: &str = "/Applications/Cap.app";
+const INSTALLED_APP: &str = "/Applications/Screencap.app";
 
 // ---------------------------------------------------------------------------
 // Log file
@@ -65,10 +65,10 @@ const INSTALLED_APP: &str = "/Applications/Cap.app";
 
 /// Where the rolling file log lives.
 ///
-/// macOS uses `~/Library/Logs/so.cap.desktop` -- the same directory the Tauri
+/// macOS uses `~/Library/Logs/co.screencap.desktop` -- the same directory the Tauri
 /// app writes into, so a user handing over "the Cap logs folder" hands over
 /// both apps' logs -- and every other platform uses
-/// `<local data>/so.cap.desktop/logs`, matching `main.rs` over there.
+/// `<local data>/co.screencap.desktop/logs`, matching `main.rs` over there.
 pub fn logs_dir() -> PathBuf {
     if let Ok(directory) = std::env::var("CAP_GPUI_LOG_DIR")
         && !directory.trim().is_empty()
@@ -80,13 +80,13 @@ pub fn logs_dir() -> PathBuf {
         dirs::home_dir()
             .unwrap_or_else(|| PathBuf::from("."))
             .join("Library/Logs")
-            .join("so.cap.desktop")
+            .join("co.screencap.desktop")
     }
     #[cfg(not(target_os = "macos"))]
     {
         dirs::data_local_dir()
             .unwrap_or_else(|| PathBuf::from("."))
-            .join("so.cap.desktop")
+            .join("co.screencap.desktop")
             .join("logs")
     }
 }
@@ -138,11 +138,11 @@ fn current_target_triple() -> Option<&'static str> {
 /// Every place the `cap` CLI could be, newest-context first.
 ///
 /// 1. Next to this executable, which is where the sidecar sits when the gpui
-///    app is staged inside `Cap.app` (`Contents/Resources/gpui/`) *and* where
+///    app is staged inside `Screencap.app` (`Contents/Resources/gpui/`) *and* where
 ///    a dev `cargo build` leaves it.
 /// 2. `../MacOS` and `../Resources` relative to the executable -- the two
 ///    places a Tauri bundle puts an `externalBin`.
-/// 3. The installed `/Applications/Cap.app`. The gpui dev binary is unbundled
+/// 3. The installed `/Applications/Screencap.app`. The gpui dev binary is unbundled
 ///    and has no sidecar of its own, so it borrows the installed app's, the
 ///    same way the editor's wallpaper lookup borrows its assets.
 /// 4. `target/{debug,release}/cap`, walking up from the working directory --
@@ -1060,7 +1060,7 @@ mod tests {
         let binary = dir.join("cap");
         std::fs::write(&binary, b"#!/bin/sh\n").unwrap();
         // A bundle whose sidecar would otherwise win.
-        let bundle = dir.join("Cap.app");
+        let bundle = dir.join("Screencap.app");
         std::fs::create_dir_all(bundle.join("Contents/MacOS")).unwrap();
         std::fs::write(
             bundle.join("Contents/MacOS").join(selftest_bin_name()),
@@ -1093,7 +1093,7 @@ mod tests {
     #[test]
     fn the_sidecar_probe_walks_from_this_build_outwards() {
         let root = temp_dir("probe");
-        let exe_dir = root.join("Cap.app/Contents/Resources/gpui");
+        let exe_dir = root.join("Screencap.app/Contents/Resources/gpui");
         let bundle = root.join("Installed.app");
         let installed = bundle.join("Contents/MacOS");
         let target = root.join("target/debug");
@@ -1136,7 +1136,7 @@ mod tests {
     #[test]
     fn the_sidecar_probe_looks_into_the_bundle_siblings() {
         let root = temp_dir("bundle");
-        let contents = root.join("Cap.app/Contents");
+        let contents = root.join("Screencap.app/Contents");
         let exe_dir = contents.join("Resources");
         let macos = contents.join("MacOS");
         std::fs::create_dir_all(&exe_dir).unwrap();
@@ -1270,12 +1270,12 @@ mod tests {
     #[test]
     fn urls_keep_their_host_and_lose_their_credentials() {
         assert_eq!(
-            redact_url_credentials("https://cap.so"),
-            "https://cap.so".to_string()
+            redact_url_credentials("https://screencap.co"),
+            "https://screencap.co".to_string()
         );
         assert_eq!(
-            redact_url_credentials("https://user:pass@cap.so/api"),
-            "https://***@cap.so/api".to_string()
+            redact_url_credentials("https://user:pass@screencap.co/api"),
+            "https://***@screencap.co/api".to_string()
         );
     }
 

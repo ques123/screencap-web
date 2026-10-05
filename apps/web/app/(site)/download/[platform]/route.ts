@@ -1,44 +1,29 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getGitHubReleases, type ReleaseDownloadKey } from "@/utils/releases";
 
 export const runtime = "nodejs";
 
-async function checkCrabNebulaDownload(
-	url: string,
-): Promise<{ ok: true; finalUrl: string } | { ok: false }> {
-	try {
-		const res = await fetch(url, {
-			signal: AbortSignal.timeout(10_000),
-			redirect: "follow",
-			cache: "no-store",
-			headers: {
-				Range: "bytes=0-0",
-			},
-		});
+const RELEASE_BASE =
+	"https://github.com/ques123/screencap-web/releases/latest/download";
+const APPLE_SILICON_URL = `${RELEASE_BASE}/Screencap_aarch64.dmg`;
+const INTEL_URL = `${RELEASE_BASE}/Screencap_x64.dmg`;
 
-		await res.body?.cancel().catch(() => {});
-		if (res.status >= 200 && res.status < 300) {
-			return { ok: true, finalUrl: res.url };
-		}
-	} catch {}
-
-	return { ok: false };
-}
-
-async function getGitHubFallbackDownloadUrl(
-	platform: ReleaseDownloadKey,
-): Promise<string | null> {
-	try {
-		const releases = await getGitHubReleases();
-
-		for (const release of releases) {
-			const url = release.downloads[platform];
-			if (url) return url;
-		}
-	} catch {}
-
-	return null;
-}
+const DOWNLOAD_URLS: Record<string, string> = {
+	"apple-silicon": APPLE_SILICON_URL,
+	"apple-aarch64": APPLE_SILICON_URL,
+	"apple-arm64": APPLE_SILICON_URL,
+	"macos-aarch64": APPLE_SILICON_URL,
+	"macos-arm64": APPLE_SILICON_URL,
+	aarch64: APPLE_SILICON_URL,
+	arm64: APPLE_SILICON_URL,
+	"apple-intel": INTEL_URL,
+	"apple-x64": INTEL_URL,
+	"apple-x86_64": INTEL_URL,
+	"macos-x64": INTEL_URL,
+	"macos-x86_64": INTEL_URL,
+	x64: INTEL_URL,
+	x86_64: INTEL_URL,
+	intel: INTEL_URL,
+};
 
 export async function GET(
 	request: NextRequest,
@@ -50,116 +35,9 @@ export async function GET(
 		return NextResponse.redirect(new URL("/download", request.url));
 	}
 
-	const downloadUrls: Record<
-		string,
-		{ url: string; fallback: ReleaseDownloadKey }
-	> = {
-		"apple-intel": {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/dmg-x86_64",
-			fallback: "macos-x64",
-		},
-		intel: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/dmg-x86_64",
-			fallback: "macos-x64",
-		},
-		mac: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/dmg-aarch64",
-			fallback: "macos-arm64",
-		},
-		macos: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/dmg-aarch64",
-			fallback: "macos-arm64",
-		},
-		"apple-silicon": {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/dmg-aarch64",
-			fallback: "macos-arm64",
-		},
-		aarch64: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/dmg-aarch64",
-			fallback: "macos-arm64",
-		},
-		x86_64: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/dmg-x86_64",
-			fallback: "macos-x64",
-		},
-		windows: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/nsis-x86_64",
-			fallback: "windows",
-		},
-		win: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/nsis-x86_64",
-			fallback: "windows",
-		},
-		linux: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/deb-x86_64",
-			fallback: "linux-deb",
-		},
-		"linux-deb": {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/deb-x86_64",
-			fallback: "linux-deb",
-		},
-		deb: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/deb-x86_64",
-			fallback: "linux-deb",
-		},
-		debian: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/deb-x86_64",
-			fallback: "linux-deb",
-		},
-		ubuntu: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/deb-x86_64",
-			fallback: "linux-deb",
-		},
-		"linux-appimage": {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/appimage-x86_64",
-			fallback: "linux-appimage",
-		},
-		appimage: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/appimage-x86_64",
-			fallback: "linux-appimage",
-		},
-		"linux-rpm": {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/rpm-x86_64",
-			fallback: "linux-rpm",
-		},
-		rpm: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/rpm-x86_64",
-			fallback: "linux-rpm",
-		},
-		fedora: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/rpm-x86_64",
-			fallback: "linux-rpm",
-		},
-		"linux-pacman": {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/pacman-x86_64",
-			fallback: "linux-pacman",
-		},
-		pacman: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/pacman-x86_64",
-			fallback: "linux-pacman",
-		},
-		arch: {
-			url: "https://cdn.crabnebula.app/download/cap/cap/latest/platform/pacman-x86_64",
-			fallback: "linux-pacman",
-		},
-	};
+	const url = DOWNLOAD_URLS[platform];
+	if (url) return NextResponse.redirect(url);
 
-	const download = downloadUrls[platform];
-
-	// If the platform is not supported, redirect to the main download page
-	if (!download) {
-		return NextResponse.redirect(new URL("/download", request.url));
-	}
-
-	const primary = await checkCrabNebulaDownload(download.url);
-	if (primary.ok) {
-		return NextResponse.redirect(primary.finalUrl);
-	}
-
-	const fallback = await getGitHubFallbackDownloadUrl(download.fallback);
-	if (fallback) {
-		return NextResponse.redirect(fallback);
-	}
-
-	return NextResponse.redirect(new URL("/download/versions", request.url));
+	// Windows, Linux and anything else: Screencap is Mac only.
+	return NextResponse.redirect(new URL("/download?unavailable=1", request.url));
 }

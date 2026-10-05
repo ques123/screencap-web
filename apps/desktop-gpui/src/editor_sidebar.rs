@@ -481,7 +481,7 @@ pub fn wallpapers_for_theme(theme: &str) -> Vec<&'static str> {
 /// 25 MB of JPEGs would add 25 MB to the binary *and* still need them written
 /// back out somewhere. So this resolves the same files
 /// `resolveResource("assets/backgrounds/<id>.jpg")` does, preferring an
-/// installed Cap.app (whose paths are byte-identical to what the shipping app
+/// installed Screencap.app (whose paths are byte-identical to what the shipping app
 /// would write) and falling back to the repository the dev build runs from.
 pub fn wallpaper_dir() -> Option<PathBuf> {
     let override_dir = std::env::var_os("CAP_GPUI_WALLPAPERS_DIR").map(PathBuf::from);
@@ -508,7 +508,7 @@ fn wallpaper_dir_from(
         .map(|directory| directory.join("assets/backgrounds"))
         .collect::<Vec<_>>();
     candidates.push(PathBuf::from(
-        "/Applications/Cap.app/Contents/Resources/assets/backgrounds",
+        "/Applications/Screencap.app/Contents/Resources/assets/backgrounds",
     ));
     candidates.push(
         manifest
@@ -4200,7 +4200,7 @@ mod tests {
             "cap-gpui-installed-wallpapers-{}",
             std::process::id()
         ));
-        let resources = root.join("Cap.app/Contents/Resources");
+        let resources = root.join("Screencap.app/Contents/Resources");
         let backgrounds = resources.join("assets/backgrounds");
         let wallpaper = backgrounds.join("macOS/sequoia-dark.jpg");
         std::fs::create_dir_all(wallpaper.parent().unwrap()).unwrap();
@@ -4250,12 +4250,12 @@ mod tests {
         assert_eq!(source_tab_for(&legacy), SourceTab::Desktop);
 
         let bundled = BackgroundSource::Wallpaper {
-            path: Some("/Applications/Cap.app/.../assets/backgrounds/macOS/tahoe-dark.jpg".into()),
+            path: Some("/Applications/Screencap.app/.../assets/backgrounds/macOS/tahoe-dark.jpg".into()),
         };
         assert_eq!(source_tab_for(&bundled), SourceTab::Wallpaper);
         assert_eq!(
             wallpaper_id_for_path(
-                "/Applications/Cap.app/.../assets/backgrounds/macOS/tahoe-dark.jpg"
+                "/Applications/Screencap.app/.../assets/backgrounds/macOS/tahoe-dark.jpg"
             ),
             Some("macOS/tahoe-dark")
         );

@@ -2328,7 +2328,7 @@ impl ScreenshotEditorWindow {
         let bundle = self.bundle.clone();
         cx.spawn_in(window, async move |_this, cx| {
             if !crate::platform::confirm_dialog(
-                "Cap",
+                "Screencap",
                 "Are you sure you want to delete this screenshot?",
                 "Yes",
                 "No",
@@ -4594,7 +4594,7 @@ fn spinning_logo(theme: &Theme) -> impl IntoElement {
             } else {
                 "icons/logo-full.svg"
             })
-            .w(px(103.))
+            .w(px(180.))
             .h(px(40.))
             .opacity(0.5)
             .text_color(theme.gray_8),

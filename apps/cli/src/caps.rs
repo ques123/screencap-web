@@ -623,11 +623,11 @@ impl AgentClient {
 
     pub fn new(server: String, access_token: String) -> Result<Self, AgentApiError> {
         let parsed = Url::parse(&server)
-            .map_err(|_| AgentApiError::local("INVALID_REQUEST", "Invalid Cap server URL"))?;
+            .map_err(|_| AgentApiError::local("INVALID_REQUEST", "Invalid Screencap server URL"))?;
         if parsed.scheme() != "http" && parsed.scheme() != "https" {
             return Err(AgentApiError::local(
                 "INVALID_REQUEST",
-                "Cap server URL must use HTTP or HTTPS",
+                "Screencap server URL must use HTTP or HTTPS",
             ));
         }
         let http = reqwest::Client::builder()
@@ -662,7 +662,7 @@ impl AgentClient {
                 } else {
                     "TEMPORARY_UNAVAILABLE"
                 },
-                format!("Cap returned HTTP {status}"),
+                format!("Screencap returned HTTP {status}"),
             )
         })
     }
@@ -866,10 +866,10 @@ impl AgentClient {
 pub fn cap_id(value: &str) -> Result<String, AgentApiError> {
     let id = if value.starts_with("http://") || value.starts_with("https://") {
         let url = Url::parse(value)
-            .map_err(|_| AgentApiError::local("INVALID_REQUEST", "Invalid Cap URL"))?;
+            .map_err(|_| AgentApiError::local("INVALID_REQUEST", "Invalid recording URL"))?;
         let segments = url
             .path_segments()
-            .ok_or_else(|| AgentApiError::local("INVALID_REQUEST", "Invalid Cap URL"))?
+            .ok_or_else(|| AgentApiError::local("INVALID_REQUEST", "Invalid recording URL"))?
             .filter(|segment| !segment.is_empty())
             .collect::<Vec<_>>();
         match segments.as_slice() {
@@ -878,7 +878,7 @@ pub fn cap_id(value: &str) -> Result<String, AgentApiError> {
             _ => {
                 return Err(AgentApiError::local(
                     "INVALID_REQUEST",
-                    "URL does not identify a Cap",
+                    "URL does not identify a recording",
                 ));
             }
         }
@@ -893,7 +893,7 @@ pub fn cap_id(value: &str) -> Result<String, AgentApiError> {
     {
         return Err(AgentApiError::local(
             "INVALID_REQUEST",
-            "Cap ID contains invalid characters",
+            "recording ID contains invalid characters",
         ));
     }
     Ok(id)
@@ -982,7 +982,7 @@ fn wait_complete(status: &Value, wait_for: WaitFor) -> Result<bool, AgentApiErro
         Some(_) => Ok(false),
         None => Err(AgentApiError::local(
             "TEMPORARY_UNAVAILABLE",
-            "Cap returned an invalid status",
+            "Screencap returned an invalid status",
         )),
     };
     match wait_for {
@@ -1027,7 +1027,7 @@ fn read_unlock_password(password_stdin: bool) -> Result<String, AgentApiError> {
                 "Non-interactive unlock requires --password-stdin",
             ));
         }
-        rpassword::prompt_password("Cap password: ")
+        rpassword::prompt_password("recording password: ")
             .map_err(|error| AgentApiError::local("INVALID_REQUEST", error.to_string()))?
     };
     if password.is_empty() || password.len() > 512 {
@@ -1049,9 +1049,9 @@ async fn run_cap_operation(
     confirmation::require(
         args.yes,
         if deleting {
-            "Permanently delete the Cap and its media"
+            "Permanently delete the recording and its media"
         } else {
-            "Duplicate the Cap and its media"
+            "Duplicate the recording and its media"
         },
     )
     .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
@@ -1073,7 +1073,7 @@ async fn run_cap_operation(
         .await?;
     let value = if args.wait {
         let operation_id = value.get("id").and_then(Value::as_str).ok_or_else(|| {
-            AgentApiError::local("TEMPORARY_UNAVAILABLE", "Cap returned an invalid operation")
+            AgentApiError::local("TEMPORARY_UNAVAILABLE", "Screencap returned an invalid operation")
         })?;
         crate::jobs::wait_operation(client, operation_id, args.timeout).await?
     } else {
@@ -1168,7 +1168,7 @@ impl CapsArgs {
                     let caps = value.get("caps").and_then(Value::as_array).ok_or_else(|| {
                         AgentApiError::local(
                             "TEMPORARY_UNAVAILABLE",
-                            "Cap returned an invalid list",
+                            "Screencap returned an invalid list",
                         )
                     })?;
                     for cap in caps {
@@ -1228,7 +1228,7 @@ impl CapsArgs {
                     if tokio::time::Instant::now() >= deadline {
                         return Err(AgentApiError {
                             code: "NOT_READY".to_string(),
-                            message: "Timed out waiting for Cap processing".to_string(),
+                            message: "Timed out waiting for Screencap processing".to_string(),
                             retryable: true,
                             retry_after_ms: Some(2_000),
                             request_id: value
@@ -1247,7 +1247,7 @@ impl CapsArgs {
                 let id = cap_id(&args.cap)?;
                 confirmation::require(
                     args.yes,
-                    "Start paid Cap processing when work is not already complete",
+                    "Start paid Screencap processing when work is not already complete",
                 )
                 .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                 let value = client
@@ -1276,7 +1276,7 @@ impl CapsArgs {
                         if args.owner_email.is_some() || args.space.is_some() {
                             "Import the Loom video and apply the requested organization assignment"
                         } else {
-                            "Import the Loom video into Cap"
+                            "Import the Loom video into Screencap"
                         },
                     )
                     .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
@@ -1297,7 +1297,7 @@ impl CapsArgs {
                             value.get("id").and_then(Value::as_str).ok_or_else(|| {
                                 AgentApiError::local(
                                     "TEMPORARY_UNAVAILABLE",
-                                    "Cap returned an invalid Loom import operation",
+                                    "Screencap returned an invalid Loom import operation",
                                 )
                             })?;
                         crate::jobs::wait_operation(&client, operation_id, args.timeout).await?
@@ -1361,7 +1361,7 @@ impl CapsArgs {
                 let cues = document.get("cues").cloned().ok_or_else(|| {
                     AgentApiError::local("INVALID_REQUEST", "Transcript JSON must contain cues")
                 })?;
-                confirmation::require(args.yes, "Replace the Cap transcript")
+                confirmation::require(args.yes, "Replace the recording transcript")
                     .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                 let value = client
                     .mutate_json_confirmed(
@@ -1382,7 +1382,7 @@ impl CapsArgs {
                 let url = info.get("url").and_then(Value::as_str).ok_or_else(|| {
                     AgentApiError::local(
                         "TEMPORARY_UNAVAILABLE",
-                        "Cap returned an invalid download",
+                        "Screencap returned an invalid download",
                     )
                 })?;
                 let response = client.http.get(url).send().await.map_err(|error| {
@@ -1414,7 +1414,7 @@ impl CapsArgs {
                 let (value, format) = match args.command {
                     PasswordCommands::Set(args) => {
                         let id = cap_id(&args.cap)?;
-                        confirmation::require(args.yes, "Set the Cap password")
+                        confirmation::require(args.yes, "Set the recording password")
                             .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                         let password = read_unlock_password(args.password_stdin)?;
                         let value = client
@@ -1429,7 +1429,7 @@ impl CapsArgs {
                     }
                     PasswordCommands::Clear(args) => {
                         let id = cap_id(&args.cap)?;
-                        confirmation::require(args.yes, "Clear the Cap password")
+                        confirmation::require(args.yes, "Clear the recording password")
                             .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                         let value = client
                             .mutate_text_confirmed(Method::PUT, &format!("/caps/{id}/password"), "")
@@ -1451,7 +1451,7 @@ impl CapsArgs {
                     .ok_or_else(|| {
                         AgentApiError::local(
                             "TEMPORARY_UNAVAILABLE",
-                            "Cap returned an invalid access grant",
+                            "Screencap returned an invalid access grant",
                         )
                     })?;
                 let expires_at = response
@@ -1460,7 +1460,7 @@ impl CapsArgs {
                     .ok_or_else(|| {
                         AgentApiError::local(
                             "TEMPORARY_UNAVAILABLE",
-                            "Cap returned an invalid access grant expiry",
+                            "Screencap returned an invalid access grant expiry",
                         )
                     })?;
                 credentials::store_agent_access_grant(
@@ -1553,7 +1553,7 @@ impl CapsArgs {
             }
             CapsCommands::Update(args) => {
                 let id = cap_id(&args.cap)?;
-                confirmation::require(args.yes, "Change the Cap title")
+                confirmation::require(args.yes, "Change the recording title")
                     .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                 let value = client
                     .mutate_json_confirmed(
@@ -1569,7 +1569,7 @@ impl CapsArgs {
                 let (value, format) = match args.command {
                     SharingCommands::Set(args) => {
                         let id = cap_id(&args.cap)?;
-                        confirmation::require(args.yes, "Change the Cap visibility")
+                        confirmation::require(args.yes, "Change the recording visibility")
                             .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                         let value = client
                             .mutate_json_confirmed(
@@ -1612,10 +1612,10 @@ impl CapsArgs {
                     if body.is_empty() {
                         return Err(AgentApiError::local(
                             "INVALID_REQUEST",
-                            "Provide at least one Cap setting",
+                            "Provide at least one recording setting",
                         ));
                     }
-                    confirmation::require(args.yes, "Update the Cap viewer settings")
+                    confirmation::require(args.yes, "Update the recording viewer settings")
                         .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                     let value = client
                         .mutate_json(
@@ -1631,7 +1631,7 @@ impl CapsArgs {
             CapsCommands::Date(args) => match args.command {
                 DateCommands::Set(args) => {
                     let id = cap_id(&args.cap)?;
-                    confirmation::require(args.yes, "Change the Cap recording date")
+                    confirmation::require(args.yes, "Change the recording date")
                         .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                     let value = client
                         .mutate_json(
@@ -1660,7 +1660,7 @@ impl CapsArgs {
                         .map(|folder| opaque_id(folder, "Folder ID"))
                         .transpose()?
                 };
-                confirmation::require(args.yes, "Move the Cap")
+                confirmation::require(args.yes, "Move the recording")
                     .map_err(|message| AgentApiError::local("INVALID_REQUEST", message))?;
                 let value = client
                     .mutate_json(
@@ -1693,7 +1693,7 @@ impl CapsArgs {
                                 .as_deref()
                                 .map(|value| opaque_id(value, "Folder ID"))
                                 .transpose()?;
-                            confirmation::require(args.yes, "Share the Cap with the organization")
+                            confirmation::require(args.yes, "Share the recording with the organization")
                                 .map_err(|message| {
                                     AgentApiError::local("INVALID_REQUEST", message)
                                 })?;
@@ -1732,7 +1732,7 @@ impl CapsArgs {
                                 .as_deref()
                                 .map(|value| opaque_id(value, "Folder ID"))
                                 .transpose()?;
-                            confirmation::require(args.yes, "Share the Cap with the space")
+                            confirmation::require(args.yes, "Share the recording with the space")
                                 .map_err(|message| {
                                     AgentApiError::local("INVALID_REQUEST", message)
                                 })?;
@@ -1837,12 +1837,12 @@ mod tests {
     #[test]
     fn accepts_ids_and_known_cap_urls() {
         assert_eq!(cap_id("cap_12345").unwrap(), "cap_12345");
-        assert_eq!(cap_id("https://cap.so/s/cap_12345").unwrap(), "cap_12345");
+        assert_eq!(cap_id("https://screencap.co/s/cap_12345").unwrap(), "cap_12345");
         assert_eq!(
             cap_id("https://videos.example.com/cap_12345").unwrap(),
             "cap_12345"
         );
-        assert!(cap_id("https://cap.so/settings/billing").is_err());
+        assert!(cap_id("https://screencap.co/settings/billing").is_err());
     }
 
     #[test]

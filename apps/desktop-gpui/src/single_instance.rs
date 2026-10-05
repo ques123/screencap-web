@@ -600,7 +600,7 @@ fn parse_linux_reopen_action(raw: &str) -> std::io::Result<crate::deeplink::Deep
         )
     };
     if raw.len() > MAX_FORWARDED_DEEP_LINK_BYTES
-        || !(raw.starts_with("cap-desktop://") || raw.starts_with("cap://"))
+        || !raw.starts_with("screencap-desktop://")
     {
         return Err(invalid());
     }
@@ -1072,7 +1072,7 @@ fn is_forwardable_deep_link(url: &str) -> bool {
     !url.is_empty()
         && url.len() <= MAX_FORWARDED_DEEP_LINK_BYTES
         && reqwest::Url::parse(url)
-            .is_ok_and(|parsed| matches!(parsed.scheme(), "cap-desktop" | "cap"))
+            .is_ok_and(|parsed| parsed.scheme() == "screencap-desktop")
 }
 
 #[cfg(any(windows, target_os = "macos", test))]
@@ -1444,13 +1444,13 @@ mod tests {
     }
 
     #[test]
-    fn forwarded_deep_links_only_accept_cap_schemes() {
-        assert!(is_forwardable_deep_link("cap-desktop://auth?token=test"));
-        assert!(is_forwardable_deep_link("cap://action?value=test"));
-        assert!(!is_forwardable_deep_link("https://cap.so"));
-        assert!(!is_forwardable_deep_link("cap-desktop-evil://auth"));
+    fn forwarded_deep_links_only_accept_screencap_scheme() {
+        assert!(is_forwardable_deep_link("screencap-desktop://auth?token=test"));
+        assert!(is_forwardable_deep_link("screencap-desktop://action?value=test"));
+        assert!(!is_forwardable_deep_link("https://screencap.co"));
+        assert!(!is_forwardable_deep_link("screencap-desktop-evil://auth"));
         assert!(!is_forwardable_deep_link(&format!(
-            "cap://action?value={}",
+            "screencap-desktop://action?value={}",
             "x".repeat(MAX_FORWARDED_DEEP_LINK_BYTES)
         )));
     }
@@ -1463,7 +1463,7 @@ mod tests {
             }
         });
         let url = reqwest::Url::parse_with_params(
-            "cap-desktop://action",
+            "screencap-desktop://action",
             &[("value", action.to_string())],
         )
         .unwrap();
@@ -1537,7 +1537,7 @@ mod tests {
     #[test]
     fn forwarded_deep_links_require_the_owner_secret_and_bounded_payload() {
         let secret = 0x0123_4567_89ab_cdef_u64;
-        let url = "cap-desktop://auth?token=test";
+        let url = "screencap-desktop://auth?token=test";
         let mut payload = secret.to_be_bytes().to_vec();
         payload.extend_from_slice(&(url.len() as u32).to_be_bytes());
         payload.extend_from_slice(url.as_bytes());
@@ -1775,7 +1775,7 @@ int main(int argc, char **argv) {
         let mut activated = None;
         let result = acquire_macos_instance(
             &path,
-            ["cap://action?value=\"stop_recording\"".into()].into_iter(),
+            ["screencap-desktop://action?value=\"stop_recording\"".into()].into_iter(),
             |pid| activated = Some(pid),
         )
         .unwrap();
@@ -1851,7 +1851,7 @@ int main(int argc, char **argv) {
         assert!(
             acquire_macos_instance(
                 &path,
-                ["cap-desktop://auth?token=fixture".into()].into_iter(),
+                ["screencap-desktop://auth?token=fixture".into()].into_iter(),
                 |pid| activated = Some(pid)
             )
             .unwrap()
@@ -1879,7 +1879,7 @@ int main(int argc, char **argv) {
         };
         write_forwarding_endpoint(&path.with_extension("ipc"), endpoint).unwrap();
         let before = identity(&path.with_extension("ipc"));
-        let url = "cap-desktop://auth?token=fixture".to_string();
+        let url = "screencap-desktop://auth?token=fixture".to_string();
         let error = forward_macos_deep_links(&path, 789, [url.clone()].into_iter()).unwrap_err();
         assert_eq!(error.kind(), std::io::ErrorKind::TimedOut);
         assert!(forward_macos_deep_links(&path, 123, std::iter::repeat_n(url, 33)).is_err());
@@ -1963,7 +1963,7 @@ int main(int argc, char **argv) {
                     );
                     acknowledge_reopen(&mut stream, || queued.send(()).is_ok()).unwrap();
                 } else {
-                    let url = "cap-desktop://auth?token=fixture";
+                    let url = "screencap-desktop://auth?token=fixture";
                     let mut expected = endpoint.secret.to_be_bytes().to_vec();
                     expected.extend_from_slice(&(url.len() as u32).to_be_bytes());
                     expected.extend_from_slice(url.as_bytes());
@@ -1978,7 +1978,7 @@ int main(int argc, char **argv) {
             send_macos_forwarded_request(endpoint, None, Instant::now(), Duration::from_secs(2));
         let deep_link = send_macos_forwarded_request(
             endpoint,
-            Some("cap-desktop://auth?token=fixture"),
+            Some("screencap-desktop://auth?token=fixture"),
             Instant::now(),
             Duration::from_secs(2),
         );
@@ -2093,8 +2093,8 @@ int main(int argc, char **argv) {
             urls
         });
         let urls = [
-            "cap-desktop://auth?token=fixture".to_string(),
-            "cap://action?value=\"stop_recording\"".to_string(),
+            "screencap-desktop://auth?token=fixture".to_string(),
+            "screencap-desktop://action?value=\"stop_recording\"".to_string(),
         ];
         let mut activated = None;
         let result = acquire_macos_instance(
@@ -2272,7 +2272,7 @@ mod linux_reopen_tests {
 
     fn action_url(action: &DeepLinkAction) -> String {
         reqwest::Url::parse_with_params(
-            "cap-desktop://action",
+            "screencap-desktop://action",
             &[("value", serde_json::to_string(action).unwrap())],
         )
         .unwrap()
@@ -2422,7 +2422,7 @@ mod linux_reopen_tests {
         );
         assert!(written.is_empty());
         let oversized = format!(
-            "cap://action?value={}",
+            "screencap-desktop://action?value={}",
             "x".repeat(MAX_FORWARDED_DEEP_LINK_BYTES)
         );
         assert!(linux_reopen_action_payload([oversized]).unwrap().is_empty());
@@ -2440,10 +2440,10 @@ mod linux_reopen_tests {
             b"".as_slice(),
             b"not a URL",
             b"https://action?value=%22stop_recording%22",
-            b"cap://auth?token=private-secret",
-            b"cap://action?value=private-secret",
-            b"cap://action?value=%22private-secret%22",
-            b"cap://action?value=%FF\xff",
+            b"screencap-desktop://auth?token=private-secret",
+            b"screencap-desktop://action?value=private-secret",
+            b"screencap-desktop://action?value=%22private-secret%22",
+            b"screencap-desktop://action?value=%FF\xff",
         ] {
             let (mut server, mut client) = UnixStream::pair().unwrap();
             client
@@ -2463,7 +2463,7 @@ mod linux_reopen_tests {
                 .unwrap()
                 .is_empty()
         );
-        for scheme in ["cap", "cap-desktop"] {
+        for scheme in ["screencap-desktop"] {
             let raw = format!("{scheme}://action?value=%22stop_recording%22");
             assert_eq!(
                 parse_linux_reopen_action(&raw).unwrap(),
@@ -2472,8 +2472,8 @@ mod linux_reopen_tests {
             assert!(!linux_reopen_action_payload([raw]).unwrap().is_empty());
         }
         for raw in [
-            "cap://auth?token=private-secret",
-            "cap://action?value=private-secret",
+            "screencap-desktop://auth?token=private-secret",
+            "screencap-desktop://action?value=private-secret",
         ] {
             assert!(
                 linux_reopen_action_payload([raw.into()])
@@ -2483,7 +2483,7 @@ mod linux_reopen_tests {
         }
         let valid = action_url(&DeepLinkAction::OpenSettings { page: None });
         let mixed = linux_reopen_action_payload([
-            "cap://action?value=private-secret".into(),
+            "screencap-desktop://action?value=private-secret".into(),
             valid.clone(),
         ])
         .unwrap();

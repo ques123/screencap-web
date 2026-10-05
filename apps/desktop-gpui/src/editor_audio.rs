@@ -447,7 +447,7 @@ mod tests {
     fn built_in_music_resolves_from_an_installed_bundle() {
         let root =
             std::env::temp_dir().join(format!("cap-gpui-installed-music-{}", std::process::id()));
-        let resources = root.join("Cap.app/Contents/Resources");
+        let resources = root.join("Screencap.app/Contents/Resources");
         let music = resources.join("assets/music");
         std::fs::create_dir_all(&music).unwrap();
         let track = music.join("lofi-beats-mirostar.mp3");

@@ -1103,7 +1103,7 @@ fn prepare_recording_project(
             .file_stem()
             .and_then(|name| name.to_str())
             .filter(|name| !name.is_empty())
-            .unwrap_or("Cap Recording")
+            .unwrap_or("Screencap Recording")
             .to_string(),
         sharing: None,
         inner: RecordingMetaInner::Instant(InstantRecordingMeta::InProgress { recording: true }),
@@ -1122,7 +1122,7 @@ fn persist_instant_recording_meta(
         .file_stem()
         .and_then(|name| name.to_str())
         .filter(|name| !name.is_empty())
-        .unwrap_or("Cap Recording")
+        .unwrap_or("Screencap Recording")
         .to_string();
     let meta = match &recording.meta {
         InstantRecordingMeta::Complete { .. } => recording.meta.clone(),

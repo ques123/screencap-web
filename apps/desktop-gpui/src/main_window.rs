@@ -1495,7 +1495,7 @@ impl MainWindow {
         };
         if !recover
             && !crate::platform::confirm_dialog(
-                "Cap",
+                "Screencap",
                 "Are you sure you want to delete this recording?",
                 "Yes",
                 "No",
@@ -2273,7 +2273,7 @@ impl MainWindow {
             }
             let available = storage.available_bytes as f64 / 1_073_741_824.0;
             let detail = if can_start {
-                format!("Only {available:.2} GB is available on your recording drive. Cap will stop automatically if storage gets too low, preserving your recording.")
+                format!("Only {available:.2} GB is available on your recording drive. Screencap will stop automatically if storage gets too low, preserving your recording.")
             } else {
                 format!("Only {available:.2} GB is available on your recording drive. Free up space so at least 512 MB is available before recording.")
             };
@@ -3255,7 +3255,7 @@ impl MainWindow {
                         .flex_col()
                         .gap(px(8.))
                         .text_size(px(12.))
-                        .child("Recording paused. Cap will hide before resuming.")
+                        .child("Recording paused. Screencap will hide before resuming.")
                         .child(
                             div()
                                 .id("resume-clean-recording")
@@ -4350,7 +4350,7 @@ impl MainWindow {
     ) {
         cx.spawn_in(window, async move |this, cx| {
             if !crate::platform::confirm_dialog(
-                "Cap",
+                "Screencap",
                 "Are you sure you want to delete this recording?",
                 "Yes",
                 "No",
@@ -4384,7 +4384,7 @@ impl MainWindow {
     ) {
         cx.spawn_in(window, async move |this, cx| {
             if !crate::platform::confirm_dialog(
-                "Cap",
+                "Screencap",
                 "Are you sure you want to delete this screenshot?",
                 "Yes",
                 "No",
@@ -5424,11 +5424,7 @@ impl MainWindow {
                 .border_color(theme.body_border(5))
                 .bg(theme.body_fill(3))
                 .text_color(theme.gray_12)
-                .child("Personal")
-                .hover(|style| style.bg(theme.body_hover_fill(5)))
-                .on_click(|_, _, cx| {
-                    cx.open_url(crate::auth::PRICING_URL);
-                }),
+                .child("Personal"),
             PlanBadge::Pro | PlanBadge::Commercial => badge
                 .bg(theme.blue_9)
                 .text_color(gpui::white())
@@ -5457,7 +5453,7 @@ impl MainWindow {
             "icons/logo-full.svg"
         })
         .w(px(84.))
-        .h(px(84. * 40. / 103.))
+        .h(px(84. * 40. / 180.))
         .flex_shrink_0()
     }
 

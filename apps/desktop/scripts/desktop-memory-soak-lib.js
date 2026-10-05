@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 const DEV_APP_COMMAND_PREFIX = fileURLToPath(
 	new URL("../../../target/debug/cap-desktop", import.meta.url),
 );
-const INSTALLED_APP_COMMAND_PREFIX = "/Applications/Cap.app/Contents/MacOS/Cap";
+const INSTALLED_APP_COMMAND_PREFIX = "/Applications/Screencap.app/Contents/MacOS/Screencap";
 
 export const DEFAULTS = {
 	appCommandPrefix:
@@ -25,7 +25,7 @@ export const DEFAULTS = {
 	stopTimeoutSeconds: 10,
 	storePath:
 		process.env.CAP_STORE_PATH ||
-		`${process.env.HOME}/Library/Application Support/so.cap.desktop.dev/store`,
+		`${process.env.HOME}/Library/Application Support/co.screencap.desktop.dev/store`,
 	settleSeconds: 120,
 	trailingSamples: 3,
 };

@@ -1,8 +1,8 @@
 {
 	"$schema": "https://schema.tauri.app/config/2",
-	"productName": "Cap",
-	"mainBinaryName": "Cap",
-	"identifier": "so.cap.desktop",
+	"productName": "Screencap",
+	"mainBinaryName": "Screencap",
+	"identifier": "co.screencap.desktop",
 	"build": {
 		"beforeBundleCommand": "node scripts/prodBeforeBundle.js"
 	},
@@ -10,10 +10,10 @@
 		"updater": {
 			"active": true,
 			"endpoints": [
-				"https://cdn.crabnebula.app/update/cap/cap/{{target}}/{{current_version}}"
+				"https://github.com/ques123/screencap-web/releases/latest/download/latest.json"
 			],
 			"dialog": true,
-			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEUyOTAzOTdFNzJFQkRFOTMKUldTVDN1dHlmam1RNHFXb1VYTXlrQk1iMFFkcjN0YitqZlA5WnZNY0ZtQ1dvM1dxK211M3VIYUQK"
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc4RjdDNTM4OUZFRkM1ODEKUldTQnhlK2ZPTVgzZUxMV3IwZ0czZHBMay9IcWQzQU84MGsrejQzSkx0OUhESVljVkJ3V0ZQeXgK"
 		}
 	},
 	"bundle": {

@@ -282,7 +282,7 @@ impl Default for FrameConfiguration {
         Self {
             style: FrameStyle::None,
             theme: FrameTheme::default(),
-            url: "Cap.so".to_string(),
+            url: "screencap.co".to_string(),
             title: String::new(),
         }
     }
@@ -2212,7 +2212,7 @@ fn effective_to_output(windows: &[(f64, f64)], effective: f64) -> f64 {
     output
 }
 
-pub const WALLPAPERS_PATH: &str = "assets/backgrounds/macOS";
+pub const WALLPAPERS_PATH: &str = "assets/backgrounds/screencap";
 
 #[derive(Type, Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]

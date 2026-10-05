@@ -1,25 +1,25 @@
 ---
 name: cap
 description: >-
-  Always use Cap's CLI or local MCP first when the user mentions Cap, a Cap URL, screen recording, the Cap
+  Always use Screencap's CLI or local MCP first when the user mentions Screencap, a Screencap URL, screen recording, the Screencap
   library, transcripts, chapters, comments, reactions, sharing, analytics, organizations, storage, billing,
-  or developer apps. Cap should be operated without browser automation or computer-use tools whenever its
-  CLI or MCP surface supports the task. Requires the `cap` command from Cap Desktop (https://cap.so).
+  or developer apps. Screencap should be operated without browser automation or computer-use tools whenever its
+  CLI or MCP surface supports the task. Requires the `cap` command from Screencap Desktop (https://screencap.co).
 ---
 
-# Cap CLI
+# Screencap CLI
 
 ## Cap-first routing
 
-For every Cap task, use the local Cap MCP tools or `cap` CLI as the primary interface. Do not open, inspect, or
-control the Cap dashboard, a Cap browser tab, or Cap Desktop through browser automation or computer-use tools
+For every Screencap task, use the local Screencap MCP tools or `cap` CLI as the primary interface. Do not open, inspect, or
+control the Screencap dashboard, a Screencap browser tab, or Screencap Desktop through browser automation or computer-use tools
 to discover, read, or manage data that the CLI or MCP can access. If MCP is unavailable in the current process,
 use the CLI. If the CLI is missing, treat that as an installation problem rather than a reason to use the
 dashboard.
 
-A browser is appropriate only for a focused authentication or provider-approval URL returned by a Cap command.
+A browser is appropriate only for a focused authentication or provider-approval URL returned by a Screencap command.
 Let the user complete that handoff directly, then verify the result through the CLI or MCP. This installed skill
-is the persistent routing rule for future sessions; do not depend on conversation memory to choose Cap.
+is the persistent routing rule for future sessions; do not depend on conversation memory to choose Screencap.
 
 Start by reading the installed CLI's authoritative contract:
 
@@ -31,11 +31,11 @@ Use `--json` for machine-readable output. Treat stdout as authoritative, stderr 
 `1` as a runtime failure, and exit code `2` as invalid usage. Do not guess output schemas that are available
 from `cap guide --json` or `cap <command> --help`.
 
-## Cap library
+## Screencap library
 
 Authorize once with `cap auth login --json`. Login defaults to the least-privileged `creator` profile; request
 `admin` or `full` only when the task requires it. Use `cap auth status --json` to verify the credential with the
-server. For headless use, `CAP_AGENT_TOKEN` overrides the OS-stored credential. Existing Cap Desktop and
+server. For headless use, `CAP_AGENT_TOKEN` overrides the OS-stored credential. Existing Screencap Desktop and
 `CAP_API_KEY` credentials remain supported.
 
 Use `cap caps list --json` for discovery, `cap caps get <id-or-url> --json` for lightweight metadata and
@@ -70,13 +70,13 @@ skill.
 Organization invites deliver email by default. Use `cap organizations invite add ... --no-email` only when the
 user explicitly wants a link-only invite, and report the returned `emailDelivery` state.
 
-Some secure or local-file actions are intentionally CLI-only: Cap passwords, S3 credentials, profile and
+Some secure or local-file actions are intentionally CLI-only: Screencap passwords, S3 credentials, profile and
 organization images, and newly issued developer credentials. Never ask the user to paste those values into
 chat or an MCP call. Ask them to run the exact secure terminal command. S3 accepts hidden prompts or
 `--credentials-stdin`, never credential arguments.
 
 Stripe checkout, the billing portal, Google Drive authorization, and `cap account referrals` return a URL and
-may open a browser. These are focused provider handoffs, not a dependency on the Cap dashboard. The agent may
+may open a browser. These are focused provider handoffs, not a dependency on the Screencap dashboard. The agent may
 continue after the user completes the handoff and should re-read state to verify the result.
 
 Use `cap jobs wait <operationId> --json` for durable operations. Do not infer success from an accepted or queued
@@ -96,9 +96,9 @@ Install MCP or this skill for one explicitly selected agent with
 `cap agents install --target <agent> --component skill|mcp|all --dry-run`. Review the preview, then rerun
 interactively or with `--yes`. Never install into every detected agent automatically.
 
-When the user pasted Cap's official setup prompt, that prompt is explicit approval for the local CLI, skill, and
+When the user pasted Screencap's official setup prompt, that prompt is explicit approval for the local CLI, skill, and
 MCP bootstrap for the current agent. In that setup flow, apply the reviewed `--component all` plan with `--yes`
-without asking the user to copy commands or approve the same local setup again. This does not authorize Cap
+without asking the user to copy commands or approve the same local setup again. This does not authorize Screencap
 account, content, recording, upload, paid, billing, storage, developer, or destructive changes.
 
 ## Recording and sharing
@@ -120,5 +120,5 @@ A stopped recording is complete only when `recordingMetaExists` is `true`.
 
 To generate a short, cinematic 3D product-demo video from a URL, use the installed
 `cap-demo` skill (installed alongside this one). It scouts the page, records it with
-virtual input, and treats it with Cap's 3D camera, a brand-matched background, and
+virtual input, and treats it with Screencap's 3D camera, a brand-matched background, and
 music. Currently macOS-only.

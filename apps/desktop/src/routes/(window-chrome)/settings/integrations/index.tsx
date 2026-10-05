@@ -84,7 +84,7 @@ export default function AppsTab() {
 		{
 			name: "Google Drive",
 			description:
-				"Connect Google Drive for new shareable link uploads. Cap stores new videos in a private Cap folder in your Drive and continues serving them through Cap after normal access checks.",
+				"Connect Google Drive for new shareable link uploads. Screencap stores new videos in a private Screencap folder in your Drive and continues serving them through Screencap after normal access checks.",
 			icon: GoogleDriveIcon,
 			url: "/settings/integrations/google-drive-config",
 			pro: true,
@@ -102,10 +102,7 @@ export default function AppsTab() {
 	const handleAppClick = async (app: (typeof apps)[number]) => {
 		try {
 			if (managedByOrganization()) return;
-			if (app.pro && !isPro()) {
-				await commands.showWindow("Upgrade");
-				return;
-			}
+			if (app.pro && !isPro()) return;
 			navigate(app.url);
 		} catch (error) {
 			console.error("Error handling app click:", error);
@@ -117,7 +114,7 @@ export default function AppsTab() {
 			<SettingsPageContent>
 				<Section
 					title="Integrations"
-					description="Configure integrations to extend Cap's functionality and connect with third-party services."
+					description="Configure integrations to extend Screencap's functionality and connect with third-party services."
 				>
 					<div class="space-y-3">
 						<For each={apps}>
@@ -137,7 +134,7 @@ export default function AppsTab() {
 											{managedByOrganization()
 												? "Managed by your organization"
 												: app.pro && !isPro()
-													? "Upgrade to Pro"
+													? "Pro only"
 													: "Configure"}
 										</Button>
 									</div>

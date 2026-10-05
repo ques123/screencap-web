@@ -67,7 +67,7 @@ process.stdin.on("end", () => {
 });
 ')"
 
-app_path="$target_dir/release/bundle/osx/Cap GPUI.app"
+app_path="$target_dir/release/bundle/osx/Screencap GPUI.app"
 contents="$app_path/Contents"
 
 rm -rf "$app_path"

@@ -17,7 +17,7 @@ use crate::{
 };
 
 const UPDATE_ENDPOINT: &str =
-    "https://cdn.crabnebula.app/update/cap/cap/{target}/{current_version}";
+    "https://github.com/ques123/screencap-web/releases/latest/download/latest.json";
 const STABLE_FIRST_CHECK_DELAY: Duration = Duration::from_secs(10);
 const NIGHTLY_FIRST_CHECK_DELAY: Duration = Duration::from_secs(60);
 const NIGHTLY_CHECK_INTERVAL: Duration = Duration::from_secs(2 * 60 * 60);
@@ -277,7 +277,7 @@ pub(crate) fn schedule_startup_check(cx: &mut App) {
                 if manual {
                     crate::platform::activate_app();
                     crate::platform::alert_dialog(
-                        "Cap is busy",
+                        "Screencap is busy",
                         "Finish your recording, export, upload, import, or transcription task before checking for updates.",
                     );
                     cx.update(|cx| finish_manual_check(cx, true));
@@ -315,7 +315,7 @@ pub(crate) fn schedule_startup_check(cx: &mut App) {
                         crate::platform::activate_app();
                         crate::platform::alert_dialog(
                             "No Update Available",
-                            "You're already using the latest version of Cap.",
+                            "You're already using the latest version of Screencap.",
                         );
                         cx.update(|cx| finish_manual_check(cx, true));
                     }
@@ -326,7 +326,7 @@ pub(crate) fn schedule_startup_check(cx: &mut App) {
                     if manual {
                         crate::platform::activate_app();
                         crate::platform::alert_dialog(
-                            "Update Cap",
+                            "Update Screencap",
                             &format!("Couldn't check for updates: {error}"),
                         );
                         cx.update(|cx| finish_manual_check(cx, true));
@@ -343,7 +343,7 @@ pub(crate) fn schedule_startup_check(cx: &mut App) {
                 if manual {
                     crate::platform::activate_app();
                     crate::platform::alert_dialog(
-                        "Cap is busy",
+                        "Screencap is busy",
                         "Finish your recording, export, upload, import, or transcription task before checking for updates.",
                     );
                     cx.update(|cx| finish_manual_check(cx, true));
@@ -355,8 +355,8 @@ pub(crate) fn schedule_startup_check(cx: &mut App) {
 
             crate::platform::activate_app();
             if crate::platform::confirm_dialog(
-                "Update Cap",
-                &format!("Version {version} of Cap is available. Would you like to install it?"),
+                "Update Screencap",
+                &format!("Version {version} of Screencap is available. Would you like to install it?"),
                 "Update",
                 "Ignore",
                 false,

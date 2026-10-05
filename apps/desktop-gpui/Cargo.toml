@@ -9,7 +9,7 @@ members = ["."]
 
 [package]
 name = "cap-desktop-gpui"
-version = "0.6.1"
+version = "0.6.101"
 edition = "2024"
 license = "AGPL-3.0"
 publish = false
@@ -23,13 +23,13 @@ name = "studio-finalization-benchmark"
 path = "../../crates/recording/examples/studio-finalization-benchmark.rs"
 
 [package.metadata.bundle]
-name = "Cap GPUI"
-identifier = "so.cap.desktop.gpui"
+name = "Screencap GPUI"
+identifier = "co.screencap.desktop.gpui"
 icon = ["assets/dock-icon.png"]
 category = "public.app-category.productivity"
 osx_minimum_system_version = "12.3"
 osx_info_plist_exts = ["resources/Info.plist"]
-osx_url_schemes = ["cap-desktop"]
+osx_url_schemes = ["screencap-desktop"]
 
 [dependencies]
 cap-audio = { path = "../../crates/audio" }

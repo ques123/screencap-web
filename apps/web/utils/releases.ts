@@ -80,11 +80,11 @@ function extractVersionFromTag(tagName: string): string {
 
 export async function getGitHubReleases(): Promise<Release[]> {
 	const response = await fetch(
-		"https://api.github.com/repos/CapSoftware/Cap/releases?per_page=100",
+		"https://api.github.com/repos/ques123/screencap-web/releases?per_page=100",
 		{
 			headers: {
 				Accept: "application/vnd.github.v3+json",
-				"User-Agent": "Cap-Web",
+				"User-Agent": "Screencap-Web",
 			},
 			next: {
 				revalidate: releasesRevalidateSeconds,

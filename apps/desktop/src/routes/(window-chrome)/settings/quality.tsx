@@ -14,7 +14,6 @@ import {
 	deriveGeneralSettings,
 	type GeneralSettingsStore,
 } from "~/utils/general-settings";
-import { openPricingPage } from "~/utils/pricing";
 import { commands, events, type StudioRecordingQuality } from "~/utils/tauri";
 import {
 	Section,
@@ -59,7 +58,7 @@ const INSTANT_OPTIONS = [
 		value: 1920,
 		label: "1080p",
 		description:
-			"Clear text and a practical upload size. Recommended with Cap Pro.",
+			"Clear text and a practical upload size. Recommended with Pro.",
 	},
 	{
 		value: 2560,
@@ -293,16 +292,9 @@ export default function RecordingQualitySettings() {
 								<Show when={!auth.isPending && !hasCapPro()}>
 									<div class="flex flex-col items-start gap-3 mt-4 pt-4 border-t border-gray-4">
 										<p class="text-xs leading-relaxed text-gray-11">
-											720p is included. Cap Pro unlocks 1080p, 1440p and 4K for
+											720p is included. Pro unlocks 1080p, 1440p and 4K for
 											Instant recordings.
 										</p>
-										<Button
-											size="sm"
-											variant="gray"
-											onClick={() => void openPricingPage()}
-										>
-											View plans ↗
-										</Button>
 									</div>
 								</Show>
 							</SectionCard>

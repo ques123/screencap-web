@@ -124,17 +124,17 @@ OUTPUT
   machine-readable capability + schema manifest.
 
 AUTH
-  `cap upload` authenticates automatically by reusing the login Cap Desktop already stored — no
+  `cap upload` authenticates automatically by reusing the login Screencap Desktop already stored — no
   key to copy when you are signed in there. Check with `cap auth status --json`. For headless/CI,
-  create a CLI API key in the Cap dashboard under Settings -> Account and set it as CAP_API_KEY.
+  create a CLI API key in the Screencap dashboard under Settings -> Account and set it as CAP_API_KEY.
 
 ENVIRONMENT
-  CAP_API_KEY         Overrides auth (CLI API key from the Cap dashboard, Settings -> Account);
-                      optional when signed into Cap Desktop.
-  CAP_SERVER_URL      Cap server base URL; defaults to Cap Desktop's server, else https://cap.so.
+  CAP_API_KEY         Overrides auth (CLI API key from the Screencap dashboard, Settings -> Account);
+                      optional when signed into Screencap Desktop.
+  CAP_SERVER_URL      Screencap server base URL; defaults to Screencap Desktop's server, else https://screencap.co.
   CAP_NO_MODIFY_PATH  Set to skip editing shell profiles during `cap desktop install-cli`.
   CAP_DESKTOP_FORCE_INSTALL
-                      Force the web installer scripts to replace Cap Desktop before linking the CLI.
+                      Force the web installer scripts to replace Screencap Desktop before linking the CLI.
 
 TYPICAL AGENT WORKFLOW
   cap doctor --json                          # verify permissions & capture readiness
@@ -149,8 +149,8 @@ TYPICAL AGENT WORKFLOW
 #[command(
     name = "cap",
     version,
-    about = "Cap screen recording from the command line",
-    long_about = "Cap screen recording from the command line.\n\nDesigned to be driven by automation and AI agents: add --json to any command for \
+    about = "Screencap screen recording from the command line",
+    long_about = "Screencap screen recording from the command line.\n\nDesigned to be driven by automation and AI agents: add --json to any command for \
 machine-readable output. See the sections below for the JSON convention, environment variables, and \
 the canonical record -> export -> upload workflow.",
     after_help = AGENT_HELP,
@@ -203,35 +203,35 @@ enum Commands {
     Recordings(RecordingsArgs),
     /// Upload a recording or video file and get a shareable link
     Upload(upload::UploadArgs),
-    /// Update Cap Desktop and the bundled CLI
+    /// Update Screencap Desktop and the bundled CLI
     Update(FormatArgs),
-    /// Show how `cap upload` will authenticate (env key or Cap Desktop login)
+    /// Show how `cap upload` will authenticate (env key or Screencap Desktop login)
     Auth(AuthArgs),
     /// Read and manage Caps in your personal library
     Caps(caps::CapsArgs),
-    /// Read or update the authenticated Cap account
+    /// Read or update the authenticated Screencap account
     Account(account::AccountArgs),
-    /// Inspect Cap organizations, members, billing, and storage connections
+    /// Inspect Screencap organizations, members, billing, and storage connections
     Organizations(organizations::OrganizationsArgs),
     /// Manage folders, spaces, and space membership
     Library(library::LibraryArgs),
     /// Read and manage account notifications
     Notifications(notifications::NotificationsArgs),
-    /// Read organization, space, or Cap analytics
+    /// Read organization, space, or Screencap analytics
     Analytics(analytics::AnalyticsArgs),
     /// Inspect developer apps, domains, usage, and credits
     Developers(developers::DevelopersArgs),
-    /// Inspect or wait for asynchronous Cap operations
+    /// Inspect or wait for asynchronous Screencap operations
     Jobs(jobs::JobsArgs),
-    /// Run Cap's local Model Context Protocol server
+    /// Run Screencap's local Model Context Protocol server
     Mcp(mcp::McpArgs),
-    /// Install Cap integrations for one explicitly selected agent
+    /// Install Screencap integrations for one explicitly selected agent
     Agents(agents::AgentsArgs),
     /// List available capture targets and devices
     Targets(TargetsArgs),
     /// Report CLI environment and capture-readiness diagnostics
     Doctor(FormatArgs),
-    /// Run end-to-end diagnostics that verify Cap works on this machine
+    /// Run end-to-end diagnostics that verify Screencap works on this machine
     Selftest(selftest::SelftestArgs),
     /// Print CLI version and execution context
     Version(FormatArgs),
@@ -239,7 +239,7 @@ enum Commands {
     Desktop(DesktopArgs),
     /// Print the machine-readable capability & JSON-schema manifest for agents
     Guide(FormatArgs),
-    /// List automation rules shared with Cap Desktop
+    /// List automation rules shared with Screencap Desktop
     Automations(AutomationsArgs),
     /// Generate shell completion scripts
     Completions(CompletionsArgs),
@@ -422,9 +422,9 @@ struct AuthArgs {
 enum AuthCommands {
     /// Report whether a credential is available and where it comes from (never prints the secret)
     Status(FormatArgs),
-    /// Authorize Cap CLI in the browser using PKCE
+    /// Authorize Screencap CLI in the browser using PKCE
     Login(agent_auth::LoginArgs),
-    /// Revoke and remove the Cap CLI credential
+    /// Revoke and remove the Screencap CLI credential
     Logout(agent_auth::LogoutArgs),
 }
 
@@ -436,7 +436,7 @@ struct AutomationsArgs {
 
 #[derive(Subcommand)]
 enum AutomationsCommands {
-    /// List the automation rules configured in Cap Desktop
+    /// List the automation rules configured in Screencap Desktop
     List(FormatArgs),
 }
 
@@ -679,7 +679,7 @@ fn print_welcome(json: bool) -> Result<(), String> {
     if json {
         return write_json(&serde_json::json!({
             "name": "cap",
-            "about": "Cap screen recording from the command line",
+            "about": "Screencap screen recording from the command line",
             "commands": ["record", "targets", "doctor", "guide", "upload"],
         }));
     }

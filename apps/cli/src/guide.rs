@@ -97,7 +97,7 @@ fn build() -> Guide {
         schema_version: GUIDE_SCHEMA_VERSION,
         binary: env!("CARGO_PKG_NAME"),
         version: env!("CARGO_PKG_VERSION"),
-        description: "Cap screen recording, driven from the command line. Add --json to any command \
+        description: "Screencap screen recording, driven from the command line. Add --json to any command \
                       for machine-readable output.",
         output_convention: OutputConvention {
             json_flag: "--json (global) or a command's --format json",
@@ -112,19 +112,19 @@ fn build() -> Guide {
                 name: "CAP_API_KEY",
                 required: false,
                 used_by: "upload, auth, caps, mcp",
-                description: "Overrides auth (create a CLI API key in the Cap dashboard under Settings -> Account, or use a legacy desktop key). Optional when signed into Cap Desktop, which the CLI reuses automatically.",
+                description: "Overrides auth (create a CLI API key in the Screencap dashboard under Settings -> Account, or use a legacy desktop key). Optional when signed into Screencap Desktop, which the CLI reuses automatically.",
             },
             EnvVar {
                 name: "CAP_SERVER_URL",
                 required: false,
                 used_by: "upload, auth login, caps, mcp",
-                description: "Cap server base URL. Defaults to https://cap.so.",
+                description: "Screencap server base URL. Defaults to https://screencap.co.",
             },
             EnvVar {
                 name: "CAP_AGENT_TOKEN",
                 required: false,
                 used_by: "caps, mcp",
-                description: "Overrides the OS-stored Cap agent credential for headless use. Mint one in the Cap dashboard under Settings -> Account.",
+                description: "Overrides the OS-stored Screencap agent credential for headless use. Mint one in the Screencap dashboard under Settings -> Account.",
             },
             EnvVar {
                 name: "CAP_NO_MODIFY_PATH",
@@ -136,7 +136,7 @@ fn build() -> Guide {
                 name: "CAP_DESKTOP_FORCE_INSTALL",
                 required: false,
                 used_by: "install-cli.sh, install-cli.ps1, update",
-                description: "Force the installer scripts to replace Cap Desktop before linking the CLI.",
+                description: "Force the installer scripts to replace Screencap Desktop before linking the CLI.",
             },
         ],
         exit_codes: vec![
@@ -211,31 +211,31 @@ fn build() -> Guide {
             ),
             cmd(
                 "upload",
-                "Upload a .cap project or video file; returns a shareable link. Authenticates via Cap Desktop's login or CAP_API_KEY.",
+                "Upload a .cap project or video file; returns a shareable link. Authenticates via Screencap Desktop's login or CAP_API_KEY.",
                 OutputMode::SingleJson,
                 &[],
             ),
             cmd(
                 "update",
-                "Download and install the latest Cap Desktop bundle, then repair the `cap` shim.",
+                "Download and install the latest Screencap Desktop bundle, then repair the `cap` shim.",
                 OutputMode::SingleJson,
                 &[],
             ),
             cmd(
                 "auth status",
-                "Report credential presence and verify Cap CLI agent credentials with the configured server.",
+                "Report credential presence and verify Screencap CLI agent credentials with the configured server.",
                 OutputMode::SingleJson,
                 &[],
             ),
             cmd(
                 "auth login|logout",
-                "Authorize with browser approval and PKCE, or revoke the OS-stored Cap agent credential.",
+                "Authorize with browser approval and PKCE, or revoke the OS-stored Screencap agent credential.",
                 OutputMode::SingleJson,
                 &[],
             ),
             cmd(
                 "caps list|get|context|status",
-                "Read the authenticated Cap library. `get` is lightweight; `context` includes content and activity.",
+                "Read the authenticated Screencap library. `get` is lightweight; `context` includes content and activity.",
                 OutputMode::SingleJson,
                 &[],
             ),
@@ -265,25 +265,25 @@ fn build() -> Guide {
             ),
             cmd(
                 "caps duplicate|delete|password",
-                "Run confirmed Cap lifecycle operations or securely set and clear Cap passwords. Duplicate and delete can be observed with jobs wait.",
+                "Run confirmed recording lifecycle operations or securely set and clear recording passwords. Duplicate and delete can be observed with jobs wait.",
                 OutputMode::SingleJson,
                 &[],
             ),
             cmd(
                 "caps unlock",
-                "Securely unlock a password-protected Cap with an interactive prompt or --password-stdin; stores only a short-lived access grant.",
+                "Securely unlock a password-protected recording with an interactive prompt or --password-stdin; stores only a short-lived access grant.",
                 OutputMode::SingleJson,
                 &[],
             ),
             cmd(
                 "caps comments|reactions|update|sharing",
-                "Create idempotent feedback or change an owner Cap title or visibility. Capabilities remain server-enforced.",
+                "Create idempotent feedback or change an owner recording title or visibility. Capabilities remain server-enforced.",
                 OutputMode::SingleJson,
                 &[],
             ),
             cmd(
                 "account get|update|image|referrals|sign-out-all",
-                "Read and manage the authenticated Cap profile, image, default organization, referral provider handoff, and active sessions. Image files and global sign-out require confirmed CLI commands.",
+                "Read and manage the authenticated Screencap profile, image, default organization, referral provider handoff, and active sessions. Image files and global sign-out require confirmed CLI commands.",
                 OutputMode::SingleJson,
                 &[],
             ),
@@ -301,7 +301,7 @@ fn build() -> Guide {
             ),
             cmd(
                 "organizations billing get|checkout|portal",
-                "Inspect billing or create a confirmed browser handoff for Cap Pro checkout and the billing portal.",
+                "Inspect billing or create a confirmed browser handoff for Pro checkout and the billing portal.",
                 OutputMode::SingleJson,
                 &[],
             ),
@@ -325,7 +325,7 @@ fn build() -> Guide {
             ),
             cmd(
                 "analytics get",
-                "Read organization, space, or Cap analytics for a bounded time range.",
+                "Read organization, space, or recording analytics for a bounded time range.",
                 OutputMode::SingleJson,
                 &[],
             ),
@@ -337,7 +337,7 @@ fn build() -> Guide {
             ),
             cmd(
                 "jobs get|wait",
-                "Inspect or wait for asynchronous Cap operations without starting new work.",
+                "Inspect or wait for asynchronous Screencap operations without starting new work.",
                 OutputMode::SingleJson,
                 &[],
             ),
@@ -349,7 +349,7 @@ fn build() -> Guide {
             ),
             cmd(
                 "agents install",
-                "Preview and install the Cap skill, MCP configuration, or both for one explicit agent target.",
+                "Preview and install the recording skill, MCP configuration, or both for one explicit agent target.",
                 OutputMode::SingleJson,
                 &[],
             ),
@@ -391,7 +391,7 @@ fn build() -> Guide {
             ),
             cmd(
                 "automations list",
-                "List the automation rules configured in Cap Desktop (Settings > Automations) that the CLI honors after screenshot/record/upload.",
+                "List the automation rules configured in Screencap Desktop (Settings > Automations) that the CLI honors after screenshot/record/upload.",
                 OutputMode::SingleJson,
                 &[],
             ),
@@ -407,10 +407,10 @@ fn build() -> Guide {
              ProjectConfiguration, export NDJSON) preserve their original field casing.",
             "`cap completions <shell>` prints a shell completion script.",
             "Recording without --duration requires either --detach or an interactive terminal.",
-            "Automations authored in Cap Desktop run automatically after `cap screenshot`, `cap record` \
+            "Automations authored in Screencap Desktop run automatically after `cap screenshot`, `cap record` \
              finishes, and `cap upload`. Clipboard/OCR/notification/editor actions are desktop-only and \
              are skipped on the CLI. List them with `cap automations list`.",
-            "Cap library reads and waits never start transcription, AI generation, or other paid processing.",
+            "Screencap library reads and waits never start transcription, AI generation, or other paid processing.",
             "MCP never accepts passwords, S3 credentials, image files, or newly issued developer credentials. Use confirmed secure CLI commands for those values.",
         ],
     }

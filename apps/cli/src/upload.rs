@@ -122,7 +122,7 @@ impl UploadArgs {
         if use_agent && self.video_id.is_some() {
             return Err(
                 "--video-id is not supported with a CLI API key (cap_cli_) or agent login; it \
-                 requires Cap Desktop login or a legacy desktop CAP_API_KEY."
+                 requires Screencap Desktop login or a legacy desktop CAP_API_KEY."
                     .to_string(),
             );
         }
@@ -131,7 +131,7 @@ impl UploadArgs {
                 .await
                 .map_err(|error| {
                     format!(
-                        "{error} Run `cap auth login` or sign in to Cap Desktop, or set CAP_API_KEY/CAP_AGENT_TOKEN."
+                        "{error} Run `cap auth login` or sign in to Screencap Desktop, or set CAP_API_KEY/CAP_AGENT_TOKEN."
                     )
                 })?
         } else {
@@ -151,14 +151,14 @@ impl UploadArgs {
                 Err(legacy_error) => {
                     if self.video_id.is_some() {
                         return Err(format!(
-                            "{legacy_error} --video-id currently requires Cap Desktop login or a legacy desktop CAP_API_KEY"
+                            "{legacy_error} --video-id currently requires Screencap Desktop login or a legacy desktop CAP_API_KEY"
                         ));
                     }
                     upload_file_with_agent(&file_path, self.name.as_deref(), &meta)
                         .await
                         .map_err(|error| {
                             format!(
-                                "{error} Run `cap auth login` or sign in to Cap Desktop, or set CAP_API_KEY/CAP_AGENT_TOKEN."
+                                "{error} Run `cap auth login` or sign in to Screencap Desktop, or set CAP_API_KEY/CAP_AGENT_TOKEN."
                             )
                         })?
                 }
@@ -317,7 +317,7 @@ async fn upload_agent_target(
         | AgentUploadTarget::DriveResumable { url, headers } => (url, headers),
         AgentUploadTarget::S3Post { url, fields } => {
             let _ = (url, fields);
-            return Err("Cap returned an unsupported S3 POST upload target".to_string());
+            return Err("Screencap returned an unsupported S3 POST upload target".to_string());
         }
     };
     let file = tokio::fs::File::open(path)
@@ -431,7 +431,7 @@ async fn create_video(
         .query(&params)
         .send()
         .await
-        .map_err(|e| format!("Failed to reach Cap: {e}"))?;
+        .map_err(|e| format!("Failed to reach Screencap: {e}"))?;
 
     if !response.status().is_success() {
         let status = response.status();

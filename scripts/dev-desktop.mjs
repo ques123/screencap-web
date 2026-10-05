@@ -26,7 +26,7 @@ const gpuiDir = path.join(repoRoot, "apps", "desktop-gpui");
 const gpuiDevScript = path.join(gpuiDir, "dev.sh");
 const reopenSentinel = path.join(
 	os.homedir(),
-	"Library/Application Support/so.cap.desktop/cap-classic.reopen",
+	"Library/Application Support/co.screencap.desktop/cap-classic.reopen",
 );
 
 let tauri = null;

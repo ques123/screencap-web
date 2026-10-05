@@ -35,14 +35,14 @@ const desktopAppPath = process.env.CAP_VERIFY_DESKTOP_APP_PATH
 		: null;
 const desktopBundleId =
 	process.env.CAP_VERIFY_DESKTOP_BUNDLE_ID ||
-	(desktopAppPath?.endsWith("Cap - Development.app")
-		? "so.cap.desktop.dev"
-		: "so.cap.desktop");
+	(desktopAppPath?.endsWith("Screencap - Development.app")
+		? "co.screencap.desktop.dev"
+		: "co.screencap.desktop");
 const signDesktopApp = process.env.CAP_VERIFY_SIGN_DESKTOP !== "0";
 const desktopEntitlementsPath = process.env.CAP_VERIFY_DESKTOP_ENTITLEMENTS
 	? path.resolve(process.env.CAP_VERIFY_DESKTOP_ENTITLEMENTS)
 	: path.join(root, "apps", "desktop", "src-tauri", "Entitlements.plist");
-const desktopLogDirs = ["so.cap.desktop.dev", "so.cap.desktop"].map((name) =>
+const desktopLogDirs = ["co.screencap.desktop.dev", "co.screencap.desktop"].map((name) =>
 	path.join(os.homedir(), "Library", "Logs", name),
 );
 const desktopRecordingDirs = [
@@ -50,14 +50,14 @@ const desktopRecordingDirs = [
 		os.homedir(),
 		"Library",
 		"Application Support",
-		"so.cap.desktop.dev",
+		"co.screencap.desktop.dev",
 		"recordings",
 	),
 	path.join(
 		os.homedir(),
 		"Library",
 		"Application Support",
-		"so.cap.desktop",
+		"co.screencap.desktop",
 		"recordings",
 	),
 ].filter((value, index, values) => values.indexOf(value) === index);
@@ -650,7 +650,7 @@ async function signDesktopAppIfNeeded() {
 
 async function openDeepLink(name, action) {
 	const value = JSON.stringify(action);
-	const url = `cap-desktop://action?value=${encodeURIComponent(value)}`;
+	const url = `screencap-desktop://action?value=${encodeURIComponent(value)}`;
 	if (desktopExecPath) {
 		await runCommand(name, desktopExecPath, [url]);
 		return;

@@ -1,6 +1,6 @@
 //! Persisted state: this app's own, and the Tauri app's settings store.
 //!
-//! Two files, both inside `so.cap.desktop`'s app-data dir:
+//! Two files, both inside `co.screencap.desktop`'s app-data dir:
 //!
 //! - `gpui-state.json` -- ours. The Tauri app keeps the camera window's chrome
 //!   state in the webview's `localStorage` (`cameraWindowState`); there is no
@@ -125,9 +125,9 @@ pub struct ExportPrefs {
     pub organization_id: Option<String>,
 }
 
-/// `so.cap.desktop`'s app-data dir -- where both stores live.
+/// `co.screencap.desktop`'s app-data dir -- where both stores live.
 ///
-/// Same identifier the Tauri app uses (`so.cap.desktop`), resolved the way
+/// Same identifier the Tauri app uses (`co.screencap.desktop`), resolved the way
 /// each OS's app-data convention spells it so a recording made on Windows or
 /// Linux lands in the folder both apps already agree on.
 pub fn app_data_dir() -> PathBuf {
@@ -140,14 +140,14 @@ pub fn app_data_dir() -> PathBuf {
     #[cfg(target_os = "macos")]
     {
         PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| ".".into()))
-            .join("Library/Application Support/so.cap.desktop")
+            .join("Library/Application Support/co.screencap.desktop")
     }
     #[cfg(target_os = "windows")]
     {
         std::env::var_os("APPDATA")
             .map(PathBuf::from)
             .unwrap_or_else(|| PathBuf::from("."))
-            .join("so.cap.desktop")
+            .join("co.screencap.desktop")
     }
     #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
     {
@@ -157,7 +157,7 @@ pub fn app_data_dir() -> PathBuf {
                 PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| ".".into()))
                     .join(".local/share")
             });
-        base.join("so.cap.desktop")
+        base.join("co.screencap.desktop")
     }
 }
 
@@ -320,7 +320,7 @@ pub fn clear_update_handoff() {
     }
 }
 
-/// A dev-checkout switch-back has no `Cap.app` to `open`: the classic app only
+/// A dev-checkout switch-back has no `Screencap.app` to `open`: the classic app only
 /// runs inside its `tauri dev` harness, which exited with the hand-off. This
 /// sentinel asks whatever supervises the dev session (`scripts/dev-desktop.mjs`
 /// watches for it) to start that harness again; with no supervisor listening it
@@ -853,15 +853,15 @@ impl WindowExclusion {
 /// `DEFAULT_EXCLUDED_WINDOW_TITLES` in `general_settings.rs`, which is what
 /// the page's Reset button asks the backend for.
 pub const DEFAULT_EXCLUDED_WINDOW_TITLES: &[&str] = &[
-    "Cap",
-    "Cap Settings",
-    "Cap Recording Controls",
-    "Cap Camera",
-    "Cap Window Capture Occluder",
-    "Cap Capture Area",
-    "Cap Mode Selection",
-    "Cap Recordings Overlay",
-    "Cap Teleprompter",
+    "Screencap",
+    "Screencap Settings",
+    "Screencap Recording Controls",
+    "Screencap Camera",
+    "Screencap Window Capture Occluder",
+    "Screencap Capture Area",
+    "Screencap Mode Selection",
+    "Screencap Recordings Overlay",
+    "Screencap Teleprompter",
 ];
 
 pub fn default_excluded_windows() -> Vec<WindowExclusion> {
@@ -879,9 +879,9 @@ pub fn excluded_windows_to_json(windows: &[WindowExclusion]) -> Value {
     Value::Array(windows.iter().map(WindowExclusion::to_json).collect())
 }
 
-/// `https://cap.so` -- `default_server_url()` in `general_settings.rs`, which
+/// `https://screencap.co` -- `default_server_url()` in `general_settings.rs`, which
 /// is also what `clientEnv.VITE_SERVER_URL` resolves to in a release build.
-pub const DEFAULT_SERVER_URL: &str = "https://cap.so";
+pub const DEFAULT_SERVER_URL: &str = "https://screencap.co";
 
 /// `DEFAULT_FILENAME_TEMPLATE` in `src-tauri/src/recording.rs`, spelled the
 /// same way `general.tsx` spells it.
@@ -1409,7 +1409,7 @@ pub fn hotkey_from_value(value: &Value) -> Option<Hotkey> {
 
 /// `DEFAULT_TRANSCRIPTION_HINTS` (`apps/desktop/src/utils/general-settings.ts`).
 pub const DEFAULT_TRANSCRIPTION_HINTS: &[&str] =
-    &["Cap", "TypeScript", "My Brand Name", "mywebsite.com"];
+    &["Screencap", "TypeScript", "My Brand Name", "mywebsite.com"];
 
 /// `normalizeTranscriptionHints`: strip NULs, trim, drop empties and
 /// duplicates, first occurrence wins.
@@ -1772,7 +1772,7 @@ fn default_post() -> String {
 }
 
 fn default_notify_title() -> String {
-    "Cap Automation".to_string()
+    "Screencap Automation".to_string()
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -2264,7 +2264,7 @@ mod tests {
     "defaultZoomAmount": 2.5,
     "maxFps": 120,
     "serverUrl": "https://cap.example.com",
-    "excludedWindows": [{ "bundleIdentifier": null, "ownerName": null, "windowTitle": "Cap" }]
+    "excludedWindows": [{ "bundleIdentifier": null, "ownerName": null, "windowTitle": "Screencap" }]
   }
 }"#,
             ),
@@ -2284,7 +2284,7 @@ mod tests {
         assert_eq!(settings.max_fps, 120);
         assert_eq!(settings.server_url, "https://cap.example.com");
         assert_eq!(settings.excluded_windows.len(), 1);
-        assert_eq!(settings.excluded_windows[0].primary_label(), "Cap");
+        assert_eq!(settings.excluded_windows[0].primary_label(), "Screencap");
         // Absent keys take the page's defaults, not the struct's zero values.
         assert!(settings.enable_notifications);
         assert!(settings.crash_recovery_recording);
@@ -2422,16 +2422,16 @@ mod tests {
 
     #[test]
     fn bundled_resource_paths_follow_the_installed_executable() {
-        let executable = std::path::Path::new("/Applications/Cap.app/Contents/MacOS/cap-gpui");
+        let executable = std::path::Path::new("/Applications/Screencap.app/Contents/MacOS/cap-gpui");
         let override_dir = std::path::Path::new("/tmp/cap-resources");
 
         assert_eq!(
             super::bundled_resource_dirs_for(Some(executable), Some(override_dir)),
             vec![
                 override_dir.to_path_buf(),
-                std::path::PathBuf::from("/Applications/Cap.app/Contents/Resources"),
-                std::path::PathBuf::from("/Applications/Cap.app/Contents/MacOS/resources"),
-                std::path::PathBuf::from("/Applications/Cap.app/Contents/MacOS"),
+                std::path::PathBuf::from("/Applications/Screencap.app/Contents/Resources"),
+                std::path::PathBuf::from("/Applications/Screencap.app/Contents/MacOS/resources"),
+                std::path::PathBuf::from("/Applications/Screencap.app/Contents/MacOS"),
             ]
         );
 
@@ -2686,10 +2686,10 @@ mod tests {
     #[test]
     fn exclusion_matches_by_each_field_and_owner_title_requires_both() {
         let title = WindowExclusion {
-            window_title: Some("Cap Camera".into()),
+            window_title: Some("Screencap Camera".into()),
             ..Default::default()
         };
-        assert!(title.matches(None, None, Some("Cap Camera")));
+        assert!(title.matches(None, None, Some("Screencap Camera")));
         assert!(!title.matches(None, None, Some("Other Window")));
         assert!(!title.matches(None, None, None));
 
@@ -2701,21 +2701,21 @@ mod tests {
         assert!(!bundle.matches(Some("com.other.app"), None, None));
 
         let owner = WindowExclusion {
-            owner_name: Some("Cap".into()),
+            owner_name: Some("Screencap".into()),
             ..Default::default()
         };
-        assert!(owner.matches(None, Some("Cap"), None));
+        assert!(owner.matches(None, Some("Screencap"), None));
         assert!(!owner.matches(None, Some("Other"), None));
 
         let owner_and_title = WindowExclusion {
-            owner_name: Some("Cap".into()),
-            window_title: Some("Cap Camera".into()),
+            owner_name: Some("Screencap".into()),
+            window_title: Some("Screencap Camera".into()),
             ..Default::default()
         };
-        assert!(owner_and_title.matches(None, Some("Cap"), Some("Cap Camera")));
-        assert!(!owner_and_title.matches(None, Some("Cap"), Some("Wrong Title")));
-        assert!(!owner_and_title.matches(None, Some("Wrong Owner"), Some("Cap Camera")));
-        assert!(!owner_and_title.matches(None, None, Some("Cap Camera")));
+        assert!(owner_and_title.matches(None, Some("Screencap"), Some("Screencap Camera")));
+        assert!(!owner_and_title.matches(None, Some("Screencap"), Some("Wrong Title")));
+        assert!(!owner_and_title.matches(None, Some("Wrong Owner"), Some("Screencap Camera")));
+        assert!(!owner_and_title.matches(None, None, Some("Screencap Camera")));
 
         let empty = WindowExclusion::default();
         assert!(!empty.matches(None, None, None));
@@ -2723,7 +2723,7 @@ mod tests {
 
         let bundle_first = WindowExclusion {
             bundle_identifier: Some("com.cap.desktop".into()),
-            window_title: Some("Cap Camera".into()),
+            window_title: Some("Screencap Camera".into()),
             ..Default::default()
         };
         assert!(bundle_first.matches(Some("com.cap.desktop"), None, Some("Wrong")));
@@ -2739,7 +2739,7 @@ mod tests {
             absent
                 .excluded_windows
                 .iter()
-                .any(|e| e.window_title.as_deref() == Some("Cap Camera"))
+                .any(|e| e.window_title.as_deref() == Some("Screencap Camera"))
         );
 
         let mut general = Map::new();

@@ -1,5 +1,5 @@
 //! The settings pages beyond General/Recordings/Screenshots -- Shortcuts,
-//! CLI, Automations, Transcription, Integrations, License, Experimental,
+//! CLI, Automations, Transcription, Integrations, Experimental,
 //! Feedback and Changelog -- kept out of `settings_window.rs` so the shell
 //! stays readable. Every renderer here is an `impl SettingsWindow` extension.
 //!
@@ -60,7 +60,6 @@ const MONO_FONT: &str = if cfg!(target_os = "macos") {
 enum PageField {
     Hint,
     Feedback,
-    LicenseKey,
     S3(usize),
 }
 
@@ -332,12 +331,6 @@ pub(crate) struct PagesState {
     // refetch keeps showing the loaded list, the way the cached query does.
     changelog: Option<Result<Vec<ChangelogEntry>, String>>,
 
-    // License (license.tsx)
-    license_input: Entity<ui::TextInputState>,
-    license_draft: String,
-    license_activating: bool,
-    license_error: Option<String>,
-
     // Integrations
     integrations_view: IntegrationsView,
     storage: Option<StorageIntegrations>,
@@ -370,12 +363,7 @@ impl PagesState {
         });
         let feedback_input = cx.new(|cx| {
             let mut input = ui::TextInputState::multi_line(window, cx);
-            input.set_placeholder("Tell us what you think about Cap...");
-            input
-        });
-        let license_input = cx.new(|cx| {
-            let mut input = ui::TextInputState::single_line(window, cx);
-            input.set_placeholder("License key");
+            input.set_placeholder("Tell us what you think about Screencap...");
             input
         });
         let s3_inputs = std::array::from_fn(|index| {
@@ -393,9 +381,6 @@ impl PagesState {
             }),
             cx.subscribe(&feedback_input, |this, input, event, cx| {
                 this.page_field_event(PageField::Feedback, input, event, cx)
-            }),
-            cx.subscribe(&license_input, |this, input, event, cx| {
-                this.page_field_event(PageField::LicenseKey, input, event, cx)
             }),
         ];
         for (index, input) in s3_inputs.iter().enumerate() {
@@ -432,10 +417,6 @@ impl PagesState {
             diagnostic_upload: UploadStatus::Idle,
             selftest_binary: None,
             changelog: None,
-            license_input,
-            license_draft: String::new(),
-            license_activating: false,
-            license_error: None,
             integrations_view: IntegrationsView::Index,
             storage: None,
             s3: S3Page {
@@ -504,13 +485,6 @@ impl SettingsWindow {
                 self.feedback_load_os_version(window, cx);
             }
             Page::Changelog => self.changelog_fetch(window, cx),
-            Page::License => {
-                self.pages.license_draft.clear();
-                self.pages.license_activating = false;
-                self.pages.license_error = None;
-                let input = self.pages.license_input.clone();
-                input.update(cx, |input, cx| input.set_text("", cx));
-            }
             Page::Integrations => {
                 self.pages.integrations_view = IntegrationsView::Index;
                 self.integrations_fetch_storage(false, window, cx);
@@ -542,7 +516,6 @@ impl SettingsWindow {
                 match field {
                     PageField::Hint => self.pages.hint_draft = value,
                     PageField::Feedback => self.pages.feedback_draft = value,
-                    PageField::LicenseKey => self.pages.license_draft = value,
                     PageField::S3(index) => self.pages.s3.drafts[index] = value,
                 }
                 cx.notify();
@@ -1155,7 +1128,7 @@ impl SettingsWindow {
         vec![
             self.section(
                 "Shortcuts",
-                Some("Configure system-wide keyboard shortcuts to control Cap."),
+                Some("Configure system-wide keyboard shortcuts to control Screencap."),
                 None,
                 vec![card.into_any_element()],
             )
@@ -1399,7 +1372,7 @@ impl SettingsWindow {
             self.section(
                 "Command Line",
                 Some(
-                    "Install the Cap command for terminals, agents, scripts, and local automation.",
+                    "Install the Screencap command for terminals, agents, scripts, and local automation.",
                 ),
                 None,
                 vec![self.card(true).child(body).into_any_element()],
@@ -1924,7 +1897,7 @@ const CLASSIC_WAIT_TIMEOUT: Duration = Duration::from_secs(10 * 60);
 /// One line at a time, fading between them, underneath the countdown rather
 /// than ahead of it: the numeral is on screen from the first frame.
 const SWITCH_SENTENCES: &[&str] = &[
-    "Switching back to the classic Cap app.",
+    "Switching back to the classic Screencap app.",
     "Your recordings and settings stay exactly where they are.",
 ];
 const SWITCH_SENTENCE_MS: u64 = 2000;
@@ -1957,12 +1930,12 @@ fn takeover_frame(elapsed_ms: f32) -> (usize, f32, u32) {
 
 /// Where the classic app lives when this build was not started from inside its
 /// bundle and is not a dev build either.
-const CLASSIC_APP_FALLBACK: &str = "/Applications/Cap.app";
+const CLASSIC_APP_FALLBACK: &str = "/Applications/Screencap.app";
 
 #[cfg(windows)]
-const CLASSIC_EXECUTABLE_NAME: &str = "Cap.exe";
+const CLASSIC_EXECUTABLE_NAME: &str = "Screencap.exe";
 #[cfg(not(windows))]
-const CLASSIC_EXECUTABLE_NAME: &str = "Cap";
+const CLASSIC_EXECUTABLE_NAME: &str = "Screencap";
 
 /// What "the classic app" means for this process -- decided from where its
 /// binary lives, so dev sessions reopen the dev app and installed ones the
@@ -1970,7 +1943,7 @@ const CLASSIC_EXECUTABLE_NAME: &str = "Cap";
 #[derive(Debug, PartialEq)]
 enum ClassicTarget {
     /// `open` this bundle: the shipped layout is
-    /// `.../Cap.app/Contents/MacOS/cap-gpui`, so the nearest `.app`
+    /// `.../Screencap.app/Contents/MacOS/cap-gpui`, so the nearest `.app`
     /// ancestor is the classic app this binary shipped inside.
     Bundle(std::path::PathBuf),
     /// Windows and Linux install Tauri sidecars beside the main executable.
@@ -2027,8 +2000,8 @@ pub(crate) fn simulate_update_handoff(cx: &mut gpui::App) {
     cx.spawn(async move |cx| {
         crate::platform::activate_app();
         if crate::platform::confirm_dialog(
-            "Update Cap",
-            "Version 99.0.0 of Cap is available. Would you like to install it?",
+            "Update Screencap",
+            "Version 99.0.0 of Screencap is available. Would you like to install it?",
             "Update",
             "Ignore",
             false,
@@ -2045,12 +2018,12 @@ fn begin_update_handoff(cx: &mut gpui::App, request_handoff: fn() -> std::io::Re
     }
 
     let Some(target) = classic_target() else {
-        cx.open_url("https://cap.so/download");
+        cx.open_url("https://screencap.co/download");
         return;
     };
 
     if matches!(target, ClassicTarget::DevSupervisor) && !cfg!(debug_assertions) {
-        cx.open_url("https://cap.so/download");
+        cx.open_url("https://screencap.co/download");
         return;
     }
 
@@ -2059,7 +2032,7 @@ fn begin_update_handoff(cx: &mut gpui::App, request_handoff: fn() -> std::io::Re
     }
     if let Err(error) = crate::app_windows::flush_pending_editor_saves(cx) {
         cx.spawn(async move |_| {
-            crate::platform::alert_dialog("Cap is still open", &error);
+            crate::platform::alert_dialog("Screencap is still open", &error);
         })
         .detach();
         return;
@@ -2067,7 +2040,7 @@ fn begin_update_handoff(cx: &mut gpui::App, request_handoff: fn() -> std::io::Re
 
     if let Err(error) = request_handoff() {
         tracing::error!("couldn't request the Tauri updater: {error}");
-        cx.open_url("https://cap.so/download");
+        cx.open_url("https://screencap.co/download");
         return;
     }
 
@@ -2110,7 +2083,7 @@ fn begin_update_handoff(cx: &mut gpui::App, request_handoff: fn() -> std::io::Re
         (Err(error), _) => {
             store::clear_update_handoff();
             tracing::error!("couldn't open the Tauri updater: {error}");
-            cx.open_url("https://cap.so/download");
+            cx.open_url("https://screencap.co/download");
         }
     }
 }
@@ -2125,7 +2098,7 @@ fn update_handoff_blocked(cx: &mut gpui::App) -> bool {
     );
     cx.spawn(async move |_| {
         crate::platform::alert_dialog(
-            "Cap is busy",
+            "Screencap is busy",
             "Finish your recording, export, upload, import, or transcription task before checking for updates.",
         );
     })
@@ -2228,9 +2201,9 @@ impl SettingsWindow {
         // startup.
         let checked = !matches!(self.pages.switch_back, Some(SwitchBack::Running(_)));
         self.setting_row(
-            "Cap GPUI",
+            "Screencap GPUI",
             Some(
-                "You are using the native version of Cap. Turning this off closes it and reopens \
+                "You are using the native version of Screencap. Turning this off closes it and reopens \
                  the classic app. Your recordings and settings are shared.",
             ),
             self.toggle("enable-gpui-app", checked, cx, |this, cx| {
@@ -2297,7 +2270,7 @@ impl SettingsWindow {
                             .font_weight(FontWeight::SEMIBOLD)
                             .text_center()
                             .text_color(white)
-                            .child("Opening the classic Cap app"),
+                            .child("Opening the classic Screencap app"),
                     )
                     .child(
                         div()
@@ -2305,7 +2278,7 @@ impl SettingsWindow {
                             .text_size(px(14.))
                             .text_center()
                             .text_color(gpui::hsla(0., 0., 1., 0.7))
-                            .child("This window will close when the classic Cap app is ready."),
+                            .child("This window will close when the classic Screencap app is ready."),
                     );
             }
             SwitchBack::Failed(error) => {
@@ -2415,7 +2388,7 @@ impl SettingsWindow {
 
         let Some(target) = classic_target() else {
             self.pages.switch_back = Some(SwitchBack::Failed(
-                "Couldn't find the Cap app to switch back to.".to_string(),
+                "Couldn't find the Screencap app to switch back to.".to_string(),
             ));
             cx.notify();
             return;
@@ -2432,7 +2405,7 @@ impl SettingsWindow {
 
         if !store::set_store_setting(GENERAL_SETTINGS, "enableGpuiApp", Value::Bool(false)) {
             self.pages.switch_back = Some(SwitchBack::Failed(
-                "Couldn't save your app preference. Cap is still open.".to_string(),
+                "Couldn't save your app preference. Screencap is still open.".to_string(),
             ));
             cx.notify();
             return;
@@ -2461,7 +2434,7 @@ impl SettingsWindow {
                     }
                 })
                 .await;
-            let mut failure = result.err().map(|error| format!("Couldn't open Cap: {error}"));
+            let mut failure = result.err().map(|error| format!("Couldn't open Screencap: {error}"));
             let started = std::time::Instant::now();
             while failure.is_none() {
                 match store::classic_pending_path().try_exists() {
@@ -2472,7 +2445,7 @@ impl SettingsWindow {
                     }
                     Ok(true) => {}
                     Err(error) => {
-                        failure = Some(format!("Couldn't check whether Cap opened: {error}"));
+                        failure = Some(format!("Couldn't check whether Screencap opened: {error}"));
                         break;
                     }
                 }
@@ -2481,7 +2454,7 @@ impl SettingsWindow {
                         "The classic app hasn't opened. Check the dev terminal for build errors, then try again."
                             .to_string()
                     } else {
-                        "The classic app hasn't opened. Cap is still here; please try again."
+                        "The classic app hasn't opened. Screencap is still here; please try again."
                             .to_string()
                     });
                     break;
@@ -2490,7 +2463,7 @@ impl SettingsWindow {
                     .timer(Duration::from_millis(250))
                     .await;
             }
-            let message = failure.unwrap_or_else(|| "Couldn't open Cap.".to_string());
+            let message = failure.unwrap_or_else(|| "Couldn't open Screencap.".to_string());
             tracing::error!("{message}");
             store::clear_classic_pending();
             store::set_store_setting(GENERAL_SETTINGS, "enableGpuiApp", Value::Bool(true));
@@ -2526,7 +2499,7 @@ fn launch_classic(target: &ClassicTarget) -> std::io::Result<()> {
         let output = command.output()?;
         if !output.status.success() {
             return Err(std::io::Error::other(format!(
-                "Cap launcher failed ({}): {}",
+                "Screencap launcher failed ({}): {}",
                 output.status,
                 String::from_utf8_lossy(&output.stderr).trim()
             )));
@@ -2576,8 +2549,7 @@ impl SettingsWindow {
         let Some(token) = auth.token else {
             // `protectedHeaders()`'s throw.
             self.pages.feedback = FeedbackStatus::Error(
-                "Please sign in to continue. Alternatively, email hello@cap.so or join our \
-                 Discord at cap.link/discord"
+                "Please sign in to continue. Alternatively, email email@screencap.co"
                     .to_string(),
             );
             cx.notify();
@@ -2655,7 +2627,7 @@ impl SettingsWindow {
         // A stray click costs a couple of minutes of hijacked screen and loud
         // beeps, so it is confirmed the way the Tauri app confirms it.
         let message = format!(
-            "Cap will take over your screen with a flashing pattern and play loud beeps for \
+            "Screencap will take over your screen with a flashing pattern and play loud beeps for \
              about {} seconds per pipeline. Take your headphones off, leave the volume \
              audible, and leave the machine alone until it finishes.",
             diagnostics::DEFAULT_DURATION_SECS
@@ -2730,7 +2702,7 @@ impl SettingsWindow {
                         None => (
                             None,
                             Some(
-                                "The Cap command-line tool was not found next to this build, so \
+                                "The Screencap command-line tool was not found next to this build, so \
                                  the sync test could not run."
                                     .to_string(),
                             ),
@@ -2975,7 +2947,7 @@ impl SettingsWindow {
                     .text_color(theme.settings_muted())
                     .child(
                         "A fullscreen window flashes black and white while 1kHz beeps play \
-                         through your speakers, and Cap records it and measures how far the \
+                         through your speakers, and Screencap records it and measures how far the \
                          picture and the sound have drifted apart. Leave the machine alone \
                          while it runs. Both modes together take a couple of minutes.",
                     ),
@@ -3049,7 +3021,7 @@ impl SettingsWindow {
                             .text_size(px(11.))
                             .text_color(theme.settings_muted())
                             .child(
-                                "The Cap command-line tool was not found next to this build, so \
+                                "The Screencap command-line tool was not found next to this build, so \
                                  the report will cover your environment only.",
                             ),
                     );
@@ -3117,7 +3089,7 @@ impl SettingsWindow {
                     .label(if self.pages.diagnostic_upload == UploadStatus::Pending {
                         "Sending..."
                     } else {
-                        "Send to Cap"
+                        "Send to Screencap"
                     })
                     .disabled_settings(
                         &theme,
@@ -3301,17 +3273,6 @@ impl SettingsWindow {
             ),
         );
 
-        let discord = div().child(
-            ui::Button::settings(
-                &theme,
-                "feedback-discord",
-                ui::ButtonVariant::Gray,
-                ui::ButtonSize::Md,
-            )
-            .label("Join Discord")
-            .on_click(|_, _, cx| cx.open_url("https://cap.link/discord")),
-        );
-
         // `commands.uploadLogs()`. The gpui app writes a rolling log file of
         // its own (`main.rs`), so this posts the same multipart form the Tauri
         // app posts -- minus the diagnostic report, which the section above
@@ -3441,21 +3402,11 @@ impl SettingsWindow {
             self.section(
                 "Feedback",
                 Some(
-                    "Help us improve Cap by submitting feedback or reporting bugs. We'll get \
+                    "Help us improve Screencap by submitting feedback or reporting bugs. We'll get \
                      right on it.",
                 ),
                 None,
                 vec![form.into_any_element()],
-            )
-            .into_any_element(),
-            self.section(
-                "Join the Community",
-                Some(
-                    "Have questions, want to share ideas, or just hang out? Join the Cap \
-                     Discord community.",
-                ),
-                None,
-                vec![discord.into_any_element()],
             )
             .into_any_element(),
             self.section(
@@ -3473,7 +3424,7 @@ impl SettingsWindow {
             self.section(
                 "Debug Information",
                 Some(
-                    "Upload your logs to help us diagnose issues with Cap. No personal \
+                    "Upload your logs to help us diagnose issues with Screencap. No personal \
                      information is included.",
                 ),
                 None,
@@ -3703,284 +3654,6 @@ fn markdown_paragraphs(content: &str) -> Vec<MarkdownParagraph> {
             })
         })
         .collect()
-}
-
-// ---------------------------------------------------------------------------
-// License (license.tsx)
-// ---------------------------------------------------------------------------
-
-/// `licenseApiClient`'s fixed base (`utils/web-api.ts:54-57`).
-const LICENSE_API_BASE: &str = "https://l.cap.so/api";
-
-impl SettingsWindow {
-    /// `activateCommercialLicense`: key and instance id go as headers, and a
-    /// 200 writes `general_settings.commercialLicense` in the exact shape
-    /// license.tsx's `onActivated` writes.
-    fn license_activate(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        if self.pages.license_activating || self.pages.license_draft.trim().is_empty() {
-            return;
-        }
-        let Some(instance_id) = store::instance_id_or_create() else {
-            self.pages.license_error = Some("No instance ID found".to_string());
-            cx.notify();
-            return;
-        };
-        let key = self.pages.license_draft.clone();
-        self.pages.license_activating = true;
-        self.pages.license_error = None;
-        cx.notify();
-
-        let url = format!("{LICENSE_API_BASE}/commercial/activate");
-        let header_key = key.clone();
-        self.spawn_tokio(
-            window,
-            cx,
-            async move {
-                http_json(
-                    reqwest::Method::POST,
-                    url,
-                    Vec::new(),
-                    vec![("licensekey", header_key), ("instanceid", instance_id)],
-                    None,
-                    HttpBody::Json(json!({ "reset": false })),
-                    None,
-                )
-                .await
-            },
-            move |this, result, _window, cx| {
-                this.pages.license_activating = false;
-                match result {
-                    Ok((200, body)) => {
-                        let license = store::CommercialLicense {
-                            license_key: key.clone(),
-                            expiry_date: body.get("expiryDate").and_then(Value::as_f64),
-                            refresh: body.get("refresh").and_then(Value::as_f64).unwrap_or(0.),
-                            activated_on: chrono::Utc::now().timestamp_millis() as f64,
-                        };
-                        if !store::set_commercial_license(Some(&license)) {
-                            this.pages.license_error =
-                                Some("Failed to save the license".to_string());
-                            return;
-                        }
-                        this.pages.license_draft.clear();
-                        let input = this.pages.license_input.clone();
-                        input.update(cx, |input, cx| input.set_text("", cx));
-                    }
-                    Ok((_, body)) => {
-                        this.pages.license_error = Some(
-                            body.get("message")
-                                .and_then(Value::as_str)
-                                .map(str::to_string)
-                                .unwrap_or_else(|| body.to_string()),
-                        );
-                    }
-                    Err(error) => this.pages.license_error = Some(error.text()),
-                }
-            },
-        );
-    }
-
-    pub(crate) fn render_license(&self, cx: &mut Context<Self>) -> Vec<gpui::AnyElement> {
-        let theme = self.theme;
-        let auth = store::auth_snapshot();
-        let pro = auth.is_upgraded();
-        let license = store::commercial_license();
-        let (name, description) = if pro {
-            (
-                "Cap Pro",
-                "Your account includes cloud sharing, Pro features and a desktop license for commercial use.",
-            )
-        } else if license.is_some() {
-            (
-                "Desktop License",
-                "Your desktop license covers commercial recording and editing. Cap Pro adds cloud sharing and collaboration features.",
-            )
-        } else {
-            (
-                "Cap Free",
-                "Record and edit locally for personal use. Choose a paid plan for commercial use or more cloud features.",
-            )
-        };
-        let mut content = vec![
-            self.section("Plan & license", Some("Your Cap plan and desktop license, in one place."), None, vec![]).into_any_element(),
-            self.section("Your plan", None, None, vec![self.card(true).child(
-                div().flex().flex_col().gap(px(8.))
-                    .child(div().text_size(px(18.)).font_weight(FontWeight::SEMIBOLD).child(name))
-                    .child(div().text_size(px(12.)).line_height(px(18.)).text_color(theme.settings_muted()).child(description))
-                    .when(auth.signed_in(), |this| this.child(
-                        div().flex().flex_col().items_start().gap(px(8.)).child(self.button(
-                            "refresh-plan", (ui::ButtonVariant::Gray, None),
-                            if self.plan_refresh_pending { "Checking…" } else { "Refresh plan" },
-                            self.plan_refresh_pending, cx, |this, window, cx| this.refresh_plan(window, cx),
-                        )).when(self.plan_refresh_failed, |this| this.child(div().text_size(px(12.)).text_color(theme.settings_muted()).child("Couldn't refresh your plan. Please try again.")))
-                    ))
-                    .when(!auth.signed_in(), |this| this.child(div().text_size(px(12.)).line_height(px(18.)).text_color(theme.settings_muted()).child("Already have Cap Pro? Sign in with your account from the sidebar.")))
-            ).into_any_element()]).into_any_element(),
-            self.section("Explore plans", Some("Compare current pricing and everything included on our website."), None, vec![self.card(true).child(
-                div().flex().flex_col().items_start().gap(px(12.))
-                    .child(div().text_size(px(12.)).line_height(px(18.)).child("Desktop License · Commercial use of the desktop recorder and editor."))
-                    .child(div().text_size(px(12.)).line_height(px(18.)).child("Cap Pro · A desktop license, plus cloud sharing, AI features and collaboration."))
-                    .child(ui::Button::settings(&theme, "license-pricing", ui::ButtonVariant::Dark, ui::ButtonSize::Sm).label("View plans & pricing ↗").on_click(|_, _, cx| cx.open_url(crate::auth::PRICING_URL)))
-                    .child(div().text_size(px(12.)).text_color(theme.settings_muted()).child("Opens cap.so/pricing in your browser."))
-            ).into_any_element()]).into_any_element(),
-        ];
-        if !pro {
-            content.push(if let Some(license) = license {
-                self.render_license_active(license, cx)
-            } else {
-                self.render_license_activate(cx).into_any_element()
-            });
-        }
-        content
-    }
-
-    /// The activated-commercial card.
-    fn render_license_active(
-        &self,
-        license: store::CommercialLicense,
-        cx: &mut Context<Self>,
-    ) -> gpui::AnyElement {
-        let theme = self.theme;
-        let expiry = license.expiry_date.map(|ms| {
-            chrono::DateTime::from_timestamp_millis(ms as i64)
-                .map(|date| date.format("%-m/%-d/%Y").to_string())
-                .unwrap_or_else(|| ms.to_string())
-        });
-
-        div()
-            .flex()
-            .flex_col()
-            .items_center()
-            .w_full()
-            .child(
-                div()
-                    .flex()
-                    .flex_col()
-                    .gap(px(24.))
-                    .w_full()
-                    .max_w(px(700.))
-                    .mt(px(24.))
-                    .p(px(32.))
-                    .rounded(px(12.))
-                    .border_1()
-                    .border_color(theme.settings_border())
-                    .bg(theme.settings_card_bg())
-                    .child(
-                        div().flex().flex_col().items_center().gap(px(8.)).child(
-                            div()
-                                .text_size(px(24.))
-                                .font_weight(FontWeight::MEDIUM)
-                                .child("Desktop license"),
-                        ),
-                    )
-                    .child(
-                        div()
-                            .flex()
-                            .flex_col()
-                            .gap(px(8.))
-                            .child(div().text_size(px(13.)).child("License Key"))
-                            .child(
-                                div()
-                                    .p(px(12.))
-                                    .rounded(px(8.))
-                                    .border_1()
-                                    .border_color(theme.settings_border())
-                                    .bg(theme.settings_fill())
-                                    .font_family(MONO_FONT)
-                                    .text_size(px(12.))
-                                    .text_color(theme.settings_muted())
-                                    .child(license.license_key.clone()),
-                            ),
-                    )
-                    .when_some(expiry, |this, expiry| {
-                        this.child(
-                            div()
-                                .flex()
-                                .flex_col()
-                                .gap(px(4.))
-                                .child(div().text_size(px(13.)).child("Expires"))
-                                .child(
-                                    div()
-                                        .text_size(px(13.))
-                                        .text_color(theme.settings_muted())
-                                        .child(expiry),
-                                ),
-                        )
-                    })
-                    .child(div().h(px(1.)).w_full().bg(theme.settings_border()))
-                    .child(div().flex().flex_col().items_center().child(self.button(
-                        "license-deactivate",
-                        (ui::ButtonVariant::Destructive, None),
-                        "Deactivate License",
-                        false,
-                        cx,
-                        |this, _window, cx| {
-                            if !store::set_commercial_license(None) {
-                                tracing::warn!("clearing the commercial license failed");
-                            }
-                            this.pages.license_error = None;
-                            cx.notify();
-                        },
-                    ))),
-            )
-            .into_any_element()
-    }
-
-    /// `LicenseKeyActivate`.
-    fn render_license_activate(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = self.theme;
-        let activating = self.pages.license_activating;
-        let disabled = activating || self.pages.license_draft.trim().is_empty();
-
-        div()
-            .flex()
-            .flex_col()
-            .gap(px(12.))
-            .w_full()
-            .max_w(px(700.))
-            .p(px(24.))
-            .rounded(px(12.))
-            .border_1()
-            .border_color(theme.settings_border())
-            .bg(theme.settings_card_bg())
-            .child(
-                div()
-                    .text_size(px(20.))
-                    .text_center()
-                    .mb(px(8.))
-                    .child("Have a license key?"),
-            )
-            .child(self.pages_input("license-key-input", &self.pages.license_input))
-            .child(
-                div()
-                    .flex()
-                    .flex_row()
-                    .justify_center()
-                    .mt(px(16.))
-                    .child(self.button(
-                        "license-activate",
-                        (ui::ButtonVariant::Primary, None),
-                        if activating {
-                            "Activating..."
-                        } else {
-                            "Activate License"
-                        },
-                        disabled,
-                        cx,
-                        |this, window, cx| this.license_activate(window, cx),
-                    )),
-            )
-            .when_some(self.pages.license_error.clone(), |this, error| {
-                this.child(
-                    div()
-                        .mt(px(8.))
-                        .text_size(px(13.))
-                        .text_center()
-                        .text_color(Hsla::from(theme.red_9))
-                        .child(error),
-                )
-            })
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -4336,7 +4009,6 @@ impl SettingsWindow {
                             this.gdrive_wait_for_connection(window, cx);
                         }
                     }
-                    Ok((403, _)) => cx.open_url(crate::auth::PRICING_URL),
                     Ok(_) => {
                         this.pages.gdrive.error =
                             Some("Failed to start Google Drive connection".to_string())
@@ -4589,8 +4261,8 @@ impl SettingsWindow {
             (
                 "Google Drive",
                 "icons/google-drive.svg",
-                "Connect Google Drive for new shareable link uploads. Cap stores new videos in \
-                 a private Cap folder in your Drive and continues serving them through Cap \
+                "Connect Google Drive for new shareable link uploads. Screencap stores new videos in \
+                 a private Screencap folder in your Drive and continues serving them through Screencap \
                  after normal access checks.",
                 IntegrationsView::GoogleDrive,
             ),
@@ -4659,7 +4331,6 @@ impl SettingsWindow {
                                                 return;
                                             }
                                             if !store::auth_snapshot().plan_upgraded {
-                                                cx.open_url(crate::auth::PRICING_URL);
                                                 return;
                                             }
                                             match view {
@@ -4686,7 +4357,7 @@ impl SettingsWindow {
             self.section(
                 "Integrations",
                 Some(
-                    "Configure integrations to extend Cap's functionality and connect with \
+                    "Configure integrations to extend Screencap's functionality and connect with \
                      third-party services.",
                 ),
                 None,
@@ -4742,8 +4413,7 @@ impl SettingsWindow {
                     .line_height(px(18.))
                     .text_color(theme.settings_muted())
                     .child(
-                        "Please sign in to continue. Alternatively, email hello@cap.so or join \
-                         our Discord at cap.link/discord",
+                        "Please sign in to continue. Alternatively, email email@screencap.co",
                     ),
             )
             .into_any_element()
@@ -4837,18 +4507,8 @@ impl SettingsWindow {
                     .text_color(theme.settings_muted())
                     .child(
                         "It should take under 10 minutes to set up and connect your storage \
-                         bucket to Cap. View the\u{a0}",
-                    )
-                    .child(
-                        div()
-                            .id("s3-guide-link")
-                            .text_color(theme.settings_text())
-                            .underline()
-                            .cursor_pointer()
-                            .child("Storage Config Guide")
-                            .on_click(|_, _, cx| cx.open_url("https://cap.so/docs/s3-config")),
-                    )
-                    .child("\u{a0}to get started."),
+                         bucket to Screencap.",
+                    ),
             );
 
         let footer = div()
@@ -4933,8 +4593,8 @@ impl SettingsWindow {
                 self.section(
                     "Connection",
                     Some(
-                        "Google Drive stores new uploads in a private Cap folder in your Drive. \
-                         Existing Cap-hosted and S3 videos keep using their current storage.",
+                        "Google Drive stores new uploads in a private Screencap folder in your Drive. \
+                         Existing Screencap-hosted and S3 videos keep using their current storage.",
                     ),
                     None,
                     vec![self.render_sign_in_required()],
@@ -5096,8 +4756,8 @@ impl SettingsWindow {
             self.section(
                 "Connection",
                 Some(
-                    "Google Drive stores new uploads in a private Cap folder in your Drive. \
-                     Existing Cap-hosted and S3 videos keep using their current storage.",
+                    "Google Drive stores new uploads in a private Screencap folder in your Drive. \
+                     Existing Screencap-hosted and S3 videos keep using their current storage.",
                 ),
                 None,
                 vec![self.card(true).child(card).into_any_element()],
@@ -5557,7 +5217,7 @@ fn default_action(kind: ActionType) -> Action {
         },
         ActionType::RecognizeTextToClipboard => Action::RecognizeTextToClipboard,
         ActionType::Notify => Action::Notify {
-            title_template: "Cap".to_string(),
+            title_template: "Screencap".to_string(),
             body_template: String::new(),
         },
         ActionType::OpenEditor => Action::OpenEditor,
@@ -5765,7 +5425,7 @@ const TEMPLATES: [Template; 8] = [
     Template {
         id: "ocr-screenshot",
         name: "Pull the text out of screenshots",
-        description: "Cap reads the text in your screenshot and copies it for you.",
+        description: "Screencap reads the text in your screenshot and copies it for you.",
         icon: "icons/scan-text.svg",
         build: || {
             template_rule(
@@ -5837,7 +5497,7 @@ const TEMPLATES: [Template; 8] = [
                 "Ping me when an upload is ready",
                 Trigger::UploadCompleted,
                 vec![Action::Notify {
-                    title_template: "Cap".to_string(),
+                    title_template: "Screencap".to_string(),
                     body_template: "Your recording is ready to share.".to_string(),
                 }],
             )
@@ -6347,7 +6007,7 @@ impl SettingsWindow {
             self.section(
                 "Automations",
                 Some(
-                    "Rules are shared with classic Cap and the Cap CLI. Experimental GPUI \
+                    "Rules are shared with classic Screencap and the Screencap CLI. Experimental GPUI \
                      saves these rules but does not run automations.",
                 ),
                 None,
@@ -6936,7 +6596,7 @@ impl SettingsWindow {
                         .line_height(px(18.))
                         .text_color(Hsla::from(theme.amber_11))
                         .child(
-                            "In classic Cap or the Cap CLI, this automation runs commands or sends \
+                            "In classic Screencap or the Screencap CLI, this automation runs commands or sends \
                              network requests with your permissions. Only use values you trust.",
                         ),
                 )
@@ -6950,7 +6610,7 @@ impl SettingsWindow {
                         .text_color(Hsla::from(theme.amber_11))
                         .child(
                             "Compatibility checked: this automation cannot run in Experimental \
-                             GPUI. Saved rules remain available to classic Cap and the Cap CLI. \
+                             GPUI. Saved rules remain available to classic Screencap and the Screencap CLI. \
                              No actions were run.",
                         ),
                 )
@@ -7808,11 +7468,11 @@ mod cli_install {
 
     fn target_path() -> Result<PathBuf, String> {
         let exe =
-            env::current_exe().map_err(|e| format!("Could not locate Cap executable: {e}"))?;
+            env::current_exe().map_err(|e| format!("Could not locate Screencap executable: {e}"))?;
         let exe = resolve_path_for_target_lookup(exe);
         let dir = exe
             .parent()
-            .ok_or_else(|| "Could not locate Cap executable directory".to_string())?;
+            .ok_or_else(|| "Could not locate Screencap executable directory".to_string())?;
 
         for candidate in cli_binary_candidates(dir) {
             if candidate.exists() {
@@ -8121,7 +7781,7 @@ mod cli_install {
         let installed = target_exists && shim_points_to(&shim_path, &target_path)?;
         let conflict = if shim_exists && !installed && !shim_is_cap_managed(&shim_path) {
             Some(format!(
-                "{} already exists and is not managed by Cap",
+                "{} already exists and is not managed by Screencap",
                 display_path(&shim_path)
             ))
         } else if !target_exists {
@@ -8186,7 +7846,7 @@ mod cli_install {
             // to clobber a genuinely foreign file.
             if !shim_points_to(&shim_path, &target_path)? && !shim_is_cap_managed(&shim_path) {
                 return Err(format!(
-                    "{} already exists and is not managed by Cap",
+                    "{} already exists and is not managed by Screencap",
                     display_path(&shim_path)
                 ));
             }
@@ -8321,7 +7981,7 @@ mod cli_install {
             .create(true)
             .append(true)
             .open(profile)
-            .and_then(|mut file| writeln!(file, "\n# Added by Cap\n{line}"))
+            .and_then(|mut file| writeln!(file, "\n# Added by Screencap\n{line}"))
             .is_ok()
     }
 
@@ -8358,7 +8018,7 @@ mod cli_install {
 
             // A symlink to a cap-cli binary is Cap-managed even when it points
             // at a different install (the target need not exist).
-            std::os::unix::fs::symlink("/elsewhere/Cap.app/Contents/MacOS/cap-cli", &shim).unwrap();
+            std::os::unix::fs::symlink("/elsewhere/Screencap.app/Contents/MacOS/cap-cli", &shim).unwrap();
             assert!(shim_is_cap_managed(&shim));
 
             // A symlink to anything else is not.
@@ -8475,10 +8135,10 @@ mod tests {
     fn the_classic_target_matches_the_launch_context() {
         assert_eq!(
             classic_target_for_exe(std::path::Path::new(
-                "/Applications/Cap.app/Contents/MacOS/cap-gpui"
+                "/Applications/Screencap.app/Contents/MacOS/cap-gpui"
             )),
             Some(ClassicTarget::Bundle(std::path::PathBuf::from(
-                "/Applications/Cap.app"
+                "/Applications/Screencap.app"
             )))
         );
         assert_eq!(
@@ -8490,10 +8150,10 @@ mod tests {
         // A dev binary staged inside a bundle is still that bundle's.
         assert_eq!(
             classic_target_for_exe(std::path::Path::new(
-                "/Users/x/Cap/target/debug/bundle/osx/Cap.app/Contents/MacOS/cap-gpui"
+                "/Users/x/Cap/target/debug/bundle/osx/Screencap.app/Contents/MacOS/cap-gpui"
             )),
             Some(ClassicTarget::Bundle(std::path::PathBuf::from(
-                "/Users/x/Cap/target/debug/bundle/osx/Cap.app"
+                "/Users/x/Cap/target/debug/bundle/osx/Screencap.app"
             )))
         );
     }
@@ -8658,8 +8318,8 @@ mod tests {
     #[test]
     fn markdown_reduces_to_clean_paragraphs() {
         let paragraphs = markdown_paragraphs(
-            "## What's new\n\nWe **shipped** a thing, see [the docs](https://cap.so/docs).\n\n\
-             ![screenshot](https://cap.so/img.png)\n\nAnd `another` line.",
+            "## What's new\n\nWe **shipped** a thing, see [the docs](https://screencap.co/docs).\n\n\
+             ![screenshot](https://screencap.co/img.png)\n\nAnd `another` line.",
         );
         assert_eq!(paragraphs.len(), 3);
         assert!(paragraphs[0].heading);

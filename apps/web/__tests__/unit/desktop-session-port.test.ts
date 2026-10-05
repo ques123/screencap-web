@@ -191,7 +191,7 @@ describe("desktop redirect page escaping (defence in depth)", () => {
 	// helper-level tests above would still pass.
 	it("renders a safe page even when handed a hostile fallback URL", () => {
 		const html = createDesktopRedirectPage(
-			"cap-desktop://signin?type=token&token=t",
+			"screencap-desktop://signin?type=token&token=t",
 			"http://127.0.0.1:1/?x=</script><script>alert(document.domain)//",
 		);
 		// Exactly one <script> element: no breakout occurred.

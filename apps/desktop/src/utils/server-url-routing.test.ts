@@ -8,8 +8,8 @@ describe("server-url-routing", () => {
 	it("keeps production Cap Cloud on the hybrid desktop session", () => {
 		expect(
 			shouldUseLocalServerSessionForUrl(
-				"https://cap.so",
-				"https://cap.so",
+				"https://screencap.co",
+				"https://screencap.co",
 				false,
 			),
 		).toBe(false);
@@ -18,8 +18,8 @@ describe("server-url-routing", () => {
 	it("treats equivalent Cap Cloud origins as the same production auth path", () => {
 		expect(
 			shouldUseLocalServerSessionForUrl(
-				"https://cap.so/",
-				"https://cap.so",
+				"https://screencap.co/",
+				"https://screencap.co",
 				false,
 			),
 		).toBe(false);
@@ -29,7 +29,7 @@ describe("server-url-routing", () => {
 		expect(
 			shouldUseLocalServerSessionForUrl(
 				"https://cap-web-production-7301.up.railway.app",
-				"https://cap.so",
+				"https://screencap.co",
 				false,
 			),
 		).toBe(true);
@@ -38,35 +38,35 @@ describe("server-url-routing", () => {
 	it("keeps development on the local callback session", () => {
 		expect(
 			shouldUseLocalServerSessionForUrl(
-				"https://cap.so",
-				"https://cap.so",
+				"https://screencap.co",
+				"https://screencap.co",
 				true,
 			),
 		).toBe(true);
 	});
 
 	it("does not rewrite Cap Cloud API requests for the default origin", () => {
-		const path = "https://cap.so/api/desktop/user/profile";
+		const path = "https://screencap.co/api/desktop/user/profile";
 
 		expect(
-			resolveServerRequestPath(path, "https://cap.so", "https://cap.so"),
+			resolveServerRequestPath(path, "https://screencap.co", "https://screencap.co"),
 		).toBe(path);
 	});
 
 	it("does not rewrite Cap Cloud API requests for equivalent origins", () => {
-		const path = "https://cap.so/api/desktop/user/profile";
+		const path = "https://screencap.co/api/desktop/user/profile";
 
 		expect(
-			resolveServerRequestPath(path, "https://cap.so/", "https://cap.so"),
+			resolveServerRequestPath(path, "https://screencap.co/", "https://screencap.co"),
 		).toBe(path);
 	});
 
 	it("rewrites packaged API requests to custom origins", () => {
 		expect(
 			resolveServerRequestPath(
-				"https://cap.so/api/desktop/user/profile?refresh=true#profile",
+				"https://screencap.co/api/desktop/user/profile?refresh=true#profile",
 				"https://cap-web-production-7301.up.railway.app",
-				"https://cap.so",
+				"https://screencap.co",
 			),
 		).toBe(
 			"https://cap-web-production-7301.up.railway.app/api/desktop/user/profile?refresh=true#profile",
@@ -74,13 +74,13 @@ describe("server-url-routing", () => {
 	});
 
 	it("does not rewrite external API requests", () => {
-		const path = "https://l.cap.so/api/license/activate";
+		const path = "https://example.com/api/other";
 
 		expect(
 			resolveServerRequestPath(
 				path,
 				"https://cap-web-production-7301.up.railway.app",
-				"https://cap.so",
+				"https://screencap.co",
 			),
 		).toBe(path);
 	});

@@ -13,13 +13,13 @@ use crate::{
 };
 
 const UPDATE_ENDPOINT: &str =
-    "https://cdn.crabnebula.app/update/cap/cap/{{target}}/{{current_version}}";
+    "https://github.com/ques123/screencap-web/releases/latest/download/latest.json";
 
 const FIRST_CHECK_DELAY: Duration = Duration::from_secs(60);
 const CHECK_INTERVAL: Duration = Duration::from_secs(2 * 60 * 60);
 const BUSY_RETRY_DELAY: Duration = Duration::from_secs(5 * 60);
 const UPDATE_BUSY_ERROR: &str =
-    "Finish your recording, export, or upload before updating or restarting Cap.";
+    "Finish your recording, export, or upload before updating or restarting Screencap.";
 
 #[derive(Serialize, Deserialize, Type, Clone, Copy, PartialEq, Eq, Debug, Default)]
 #[serde(rename_all = "camelCase")]

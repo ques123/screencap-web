@@ -502,7 +502,7 @@ async fn run_operation(
         let operation_id = value
             .get("id")
             .and_then(Value::as_str)
-            .ok_or_else(|| "Cap returned an invalid operation".to_string())?;
+            .ok_or_else(|| "Screencap returned an invalid operation".to_string())?;
         value = crate::jobs::wait_operation(&client, operation_id, timeout)
             .await
             .map_err(|error| error.to_string())?;
@@ -613,7 +613,7 @@ impl OrganizationsArgs {
                     .await
                 }
                 OrganizationBillingCommands::Checkout(args) => {
-                    confirmation::require(args.yes, "Create the Cap Pro checkout")?;
+                    confirmation::require(args.yes, "Create the Pro checkout")?;
                     let id = opaque_id(&args.organization, "Organization ID")
                         .map_err(|error| error.to_string())?;
                     let client =
@@ -637,7 +637,7 @@ impl OrganizationsArgs {
                     agent_client::print_value(&value, resolve_format(global_json, args.format))
                 }
                 OrganizationBillingCommands::Portal(args) => {
-                    confirmation::require(args.yes, "Open the Cap billing portal")?;
+                    confirmation::require(args.yes, "Open the Screencap billing portal")?;
                     let id = opaque_id(&args.organization, "Organization ID")
                         .map_err(|error| error.to_string())?;
                     let client =
@@ -1044,7 +1044,7 @@ impl OrganizationsArgs {
                         let operation_id = value
                             .get("id")
                             .and_then(Value::as_str)
-                            .ok_or_else(|| "Cap returned an invalid operation".to_string())?;
+                            .ok_or_else(|| "Screencap returned an invalid operation".to_string())?;
                         value = crate::jobs::wait_operation(&client, operation_id, args.timeout)
                             .await
                             .map_err(|error| error.to_string())?;

@@ -818,7 +818,7 @@ fn build_macos_app_menu(app_handle: &AppHandle) -> tauri::Result<Menu<tauri::Wry
         .product_name
         .as_ref()
         .map(|name| format!("Quit {name}"))
-        .unwrap_or_else(|| "Quit Cap".to_string());
+        .unwrap_or_else(|| "Quit Screencap".to_string());
 
     let window_menu = Submenu::with_id_and_items(
         app_handle,
@@ -3639,7 +3639,7 @@ fn show_exit_blocked(app: &AppHandle, reason: ExitBlocked) {
     );
     app.dialog()
         .message(reason.message())
-        .title("Cap is still busy")
+        .title("Screencap is still busy")
         .kind(tauri_plugin_dialog::MessageDialogKind::Warning)
         .show(|_| {});
 }
@@ -3742,7 +3742,7 @@ fn restart_app(app: AppHandle) -> Result<(), String> {
             app.request_restart();
             Ok(())
         }
-        Ok(false) => Err("Cap is already shutting down.".into()),
+        Ok(false) => Err("Screencap is already shutting down.".into()),
         Err(reason) => Err(reason.message().into()),
     }
 }
@@ -6263,10 +6263,9 @@ async fn editor_delete_project(
     Ok(())
 }
 
-async fn open_pricing_page(app: &AppHandle) -> Result<(), String> {
-    app.shell()
-        .open("https://cap.so/pricing?ref=desktop", None)
-        .map_err(|e| e.to_string())
+// Screencap has no pricing page; every account is treated as upgraded.
+async fn open_pricing_page(_app: &AppHandle) -> Result<(), String> {
+    Ok(())
 }
 
 // keep this async otherwise opening windows may hang on windows
@@ -6633,7 +6632,7 @@ fn configure_windows_graphics_recovery(
         cap_rendering::set_force_software_wgpu_adapter(true);
         crash_sentinel::mark_graphics_recovery();
         warn!(
-            "Previous Cap session terminated during GPU initialisation; using Windows software graphics recovery mode for this launch"
+            "Previous Screencap session terminated during GPU initialisation; using Windows software graphics recovery mode for this launch"
         );
     } else if previous_termination.is_some() {
         info!(
@@ -6700,7 +6699,7 @@ fn configure_camera_blur_recovery(
         crash_sentinel::mark_blur_recovery();
         if stored.is_none() {
             error!(
-                "Previous Cap session died with camera background blur active; disabling blur until the next app update"
+                "Previous Screencap session died with camera background blur active; disabling blur until the next app update"
             );
         } else {
             warn!("Camera background blur remains disabled by crash recovery for this launch");
@@ -7221,9 +7220,9 @@ pub async fn run(recording_logging_handle: LoggingHandle, logs_dir: PathBuf) {
                         if let Some(pid) = reopen_pid
                         {
                             match tokio::task::spawn_blocking(move || gpui_app::request_gpui_reopen(pid)).await {
-                                Ok(Ok(())) => info!(pid, "Queued a request to reopen Cap GPUI"),
-                                Ok(Err(error)) => warn!(pid, %error, "Could not confirm Cap GPUI reopening; the existing instance remains unchanged"),
-                                Err(error) => warn!(pid, %error, "Cap GPUI reopen forwarding did not finish"),
+                                Ok(Ok(())) => info!(pid, "Queued a request to reopen Screencap GPUI"),
+                                Ok(Err(error)) => warn!(pid, %error, "Could not confirm Screencap GPUI reopening; the existing instance remains unchanged"),
+                                Err(error) => warn!(pid, %error, "Screencap GPUI reopen forwarding did not finish"),
                             }
                         }
                         app.exit(0);
@@ -7338,7 +7337,7 @@ pub async fn run(recording_logging_handle: LoggingHandle, logs_dir: PathBuf) {
                 } else {
                     (
                         option_env!("VITE_SERVER_URL")
-                            .unwrap_or("https://cap.so")
+                            .unwrap_or("https://screencap.co")
                             .to_string(),
                         true,
                     )
@@ -7952,7 +7951,7 @@ fn handle_single_instance(app: &AppHandle, args: Vec<String>) {
 
     let action_urls = args
         .iter()
-        .filter(|arg| arg.starts_with("cap-desktop://"))
+        .filter(|arg| arg.starts_with("screencap-desktop://"))
         .filter_map(|arg| tauri::Url::parse(arg).ok())
         .collect::<Vec<_>>();
     if !action_urls.is_empty() {
@@ -8060,7 +8059,7 @@ struct StartupOpenQueue {
 impl StartupOpenQueue {
     fn request(&mut self, urls: Vec<tauri::Url>) -> Result<Option<StartupOpenDispatch>, String> {
         if self.cancelled {
-            return Err("Cap startup stopped before the project could be opened".into());
+            return Err("Screencap startup stopped before the project could be opened".into());
         }
         if self.destination == Some(StartupOpenDestination::Desktop) {
             return Ok(Some(StartupOpenDispatch {
@@ -8077,7 +8076,7 @@ impl StartupOpenQueue {
                 continue;
             }
             if self.urls.len() + self.gpui_dispatched.len() + additions.len() >= 64 {
-                return Err("Too many projects were requested while Cap was starting".into());
+                return Err("Too many projects were requested while Screencap was starting".into());
             }
             additions.push(url);
         }
@@ -8153,11 +8152,11 @@ impl Drop for StartupOpenGuard {
 fn queue_macos_startup_urls(app: &AppHandle, urls: Vec<tauri::Url>) -> Result<(), String> {
     let gate = app
         .try_state::<StartupOpenGate>()
-        .ok_or_else(|| "Cap startup is not ready to receive projects".to_string())?;
+        .ok_or_else(|| "Screencap startup is not ready to receive projects".to_string())?;
     let dispatch = gate
         .0
         .lock()
-        .map_err(|_| "Cap startup file-open state is unavailable".to_string())?
+        .map_err(|_| "Screencap startup file-open state is unavailable".to_string())?
         .request(urls)?;
     if let Some(dispatch) = dispatch {
         dispatch_macos_startup_urls(app, dispatch);
@@ -8201,7 +8200,7 @@ fn dispatch_macos_startup_urls(app: &AppHandle, dispatch: StartupOpenDispatch) {
 
     if dispatch.destination == StartupOpenDestination::Gpui {
         let Some(redirect) = app.try_state::<gpui_app::StartupRedirectState>() else {
-            warn!("Cap GPUI startup forwarding state is unavailable");
+            warn!("Screencap GPUI startup forwarding state is unavailable");
             return;
         };
         if redirect.begin_forwarding() {
@@ -8219,7 +8218,7 @@ fn dispatch_macos_startup_urls(app: &AppHandle, dispatch: StartupOpenDispatch) {
                     if let Some(pid) = forwarded {
                         forwarded_pid = Some(pid);
                     } else {
-                        warn!("Could not forward the requested project batch to Cap GPUI");
+                        warn!("Could not forward the requested project batch to Screencap GPUI");
                     }
                     let next = app.try_state::<StartupOpenGate>().and_then(|gate| {
                         gate.0
@@ -8242,7 +8241,7 @@ fn dispatch_macos_startup_urls(app: &AppHandle, dispatch: StartupOpenDispatch) {
                         gpui_app::activate_instance(pid);
                     })
                 {
-                    warn!(%error, "Could not activate Cap GPUI after forwarding a project");
+                    warn!(%error, "Could not activate Screencap GPUI after forwarding a project");
                 }
                 if app
                     .try_state::<gpui_app::StartupRedirectState>()
@@ -8253,7 +8252,7 @@ fn dispatch_macos_startup_urls(app: &AppHandle, dispatch: StartupOpenDispatch) {
             });
         } else {
             cancel_macos_startup_opens(app);
-            warn!("Cap GPUI handoff already finished before the project could be forwarded");
+            warn!("Screencap GPUI handoff already finished before the project could be forwarded");
         }
         return;
     }
@@ -9229,12 +9228,12 @@ fn open_project_from_path(path: &Path, app: AppHandle) -> Result<(), String> {
     {
         let gate = app
             .try_state::<StartupOpenGate>()
-            .ok_or_else(|| "Cap startup is not ready to receive projects".to_string())?;
+            .ok_or_else(|| "Screencap startup is not ready to receive projects".to_string())?;
         let ready = {
             let queue = gate
                 .0
                 .lock()
-                .map_err(|_| "Cap startup file-open state is unavailable".to_string())?;
+                .map_err(|_| "Screencap startup file-open state is unavailable".to_string())?;
             !queue.cancelled && queue.destination == Some(StartupOpenDestination::Desktop)
         };
         if !ready {
@@ -10524,7 +10523,7 @@ mod screenshot_share_cache_tests {
     fn sharing(content_hash: Option<&str>) -> SharingMeta {
         SharingMeta {
             id: String::from("video-id"),
-            link: String::from("https://cap.so/s/video-id"),
+            link: String::from("https://screencap.co/s/video-id"),
             content_hash: content_hash.map(str::to_string),
         }
     }
@@ -10534,7 +10533,7 @@ mod screenshot_share_cache_tests {
         let link =
             screenshot_share_link_for_hash(Some(&sharing(Some("hash-a"))), "hash-a").unwrap();
 
-        assert_eq!(link, "https://cap.so/s/video-id");
+        assert_eq!(link, "https://screencap.co/s/video-id");
     }
 
     #[test]

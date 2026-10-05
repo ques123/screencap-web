@@ -22,7 +22,7 @@ DEFAULT_RECORDINGS_DIR = (
 	Path.home()
 	/ "Library"
 	/ "Application Support"
-	/ "so.cap.desktop.dev"
+	/ "co.screencap.desktop.dev"
 	/ "recordings"
 )
 NUMERIC_COLUMNS = {
@@ -316,7 +316,7 @@ def deep_link(action, app_pid, action_sender):
 		[
 			action_sender,
 			app_pid,
-			f"cap-desktop://action?{query}",
+			f"screencap-desktop://action?{query}",
 		]
 	)
 

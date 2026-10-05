@@ -16,22 +16,22 @@ impl ExitBlocked {
     pub(crate) fn message(self) -> &'static str {
         match self {
             Self::StateUnavailable => {
-                "Cap could not confirm that recording has finished. Wait for any recording to finish, then try again."
+                "Screencap could not confirm that recording has finished. Wait for any recording to finish, then try again."
             }
             Self::RecordingActive => {
-                "Finish or cancel your recording before quitting or restarting Cap. If you already pressed Stop, wait for it to finish."
+                "Finish or cancel your recording before quitting or restarting Screencap. If you already pressed Stop, wait for it to finish."
             }
             Self::FinalizationActive => {
-                "Cap is still saving your recording. Wait for it to finish before quitting or restarting."
+                "Screencap is still saving your recording. Wait for it to finish before quitting or restarting."
             }
             Self::ExportActive => {
-                "Wait for your export to finish before quitting or restarting Cap."
+                "Wait for your export to finish before quitting or restarting Screencap."
             }
             Self::UploadActive => {
-                "Cap is still uploading your recording. Wait for it to finish before quitting or restarting."
+                "Screencap is still uploading your recording. Wait for it to finish before quitting or restarting."
             }
-            Self::UpdateInstalling => "Cap is installing an update. Wait for it to finish.",
-            Self::AlreadyExiting => "Cap is already shutting down.",
+            Self::UpdateInstalling => "Screencap is installing an update. Wait for it to finish.",
+            Self::AlreadyExiting => "Screencap is already shutting down.",
         }
     }
 }
@@ -53,9 +53,9 @@ pub(crate) fn recording_start_allowed(
     update_blocks_recording: bool,
 ) -> Result<(), &'static str> {
     if is_exiting {
-        Err("Cap is shutting down. Recording has not started.")
+        Err("Screencap is shutting down. Recording has not started.")
     } else if update_blocks_recording {
-        Err("Cap is installing an update. Finish updating or restart Cap before recording.")
+        Err("Screencap is installing an update. Finish updating or restart Screencap before recording.")
     } else {
         Ok(())
     }

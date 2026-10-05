@@ -92,8 +92,7 @@ export function handleRecordingResult(
 					setOptions({ mode: "studio" });
 					commands.setRecordingMode("studio");
 				}
-			} else if (result === "UpgradeRequired") commands.showWindow("Upgrade");
-			else
+			} else
 				await dialog.message(`Error: ${result}`, {
 					title: "Error starting recording",
 				});

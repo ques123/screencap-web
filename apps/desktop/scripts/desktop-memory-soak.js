@@ -35,7 +35,7 @@ const APPLE_KEY_CODES = {
 	KeyT: 17,
 };
 
-const INSTALLED_APP_COMMAND_PREFIX = "/Applications/Cap.app/Contents/MacOS/Cap";
+const INSTALLED_APP_COMMAND_PREFIX = "/Applications/Screencap.app/Contents/MacOS/Screencap";
 
 function parseArgs(argv) {
 	const options = {

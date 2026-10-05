@@ -189,7 +189,6 @@ export default function GoogleDriveConfigPage() {
 			});
 
 			if (response.status === 403) {
-				await commands.showWindow("Upgrade");
 				return null;
 			}
 
@@ -279,7 +278,7 @@ export default function GoogleDriveConfigPage() {
 				<IntegrationConfigHeader title="Google Drive" />
 				<Section
 					title="Connection"
-					description="Google Drive stores new uploads in a private Cap folder in your Drive. Existing Cap-hosted and S3 videos keep using their current storage."
+					description="Google Drive stores new uploads in a private Screencap folder in your Drive. Existing Screencap-hosted and S3 videos keep using their current storage."
 				>
 					<SectionCard padded class="custom-scroll">
 						<Suspense

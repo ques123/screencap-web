@@ -750,8 +750,8 @@ mod tests {
     #[test]
     fn redacts_only_url_credentials() {
         assert_eq!(
-            redact_url_credentials("https://cap.so"),
-            "https://cap.so".to_string()
+            redact_url_credentials("https://screencap.co"),
+            "https://screencap.co".to_string()
         );
         assert_eq!(
             redact_url_credentials("https://user:pass@self.hosted/cap"),

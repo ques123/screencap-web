@@ -133,7 +133,7 @@ fn resolve_auto_screenshot_editor(target: &str) -> Option<std::path::PathBuf> {
 /// stdout, plus a rolling daily file the Feedback page can upload.
 ///
 /// Mirrors `src-tauri/src/main.rs`: `tracing_appender::rolling::daily` into
-/// `~/Library/Logs/so.cap.desktop` on macOS (the directory the Tauri app
+/// `~/Library/Logs/co.screencap.desktop` on macOS (the directory the Tauri app
 /// already writes into) under a **different** filename prefix, so the two apps
 /// never interleave lines into one file. Returns the non-blocking writer's
 /// guard, which has to outlive `main` or the last lines never reach the disk.
@@ -324,17 +324,17 @@ fn main() {
                     titlebar: None,
                     #[cfg(target_os = "windows")]
                     titlebar: Some(gpui::TitlebarOptions {
-                        title: Some("Cap".into()),
+                        title: Some("Screencap".into()),
                         appears_transparent: true,
                         ..Default::default()
                     }),
                     #[cfg(target_os = "linux")]
                     titlebar: Some(gpui::TitlebarOptions {
-                        title: Some("Cap".into()),
+                        title: Some("Screencap".into()),
                         ..Default::default()
                     }),
                     #[cfg(target_os = "linux")]
-                    app_id: Some("Cap".into()),
+                    app_id: Some("Screencap".into()),
                     #[cfg(target_os = "linux")]
                     window_min_size: Some(size(px(MAIN_WINDOW_WIDTH), px(MAIN_WINDOW_HEIGHT))),
                     #[cfg(target_os = "linux")]

@@ -28,7 +28,9 @@ export default function () {
 		} catch (error) {
 			console.error("Failed to restart after update:", error);
 			setUpdateError(
-				typeof error === "string" ? error : "Unable to restart Cap safely.",
+				typeof error === "string"
+					? error
+					: "Unable to restart Screencap safely.",
 			);
 		}
 	};
@@ -36,11 +38,11 @@ export default function () {
 		try {
 			await returnToGpui();
 		} catch (error) {
-			console.error("Failed to return to Cap GPUI:", error);
+			console.error("Failed to return to Screencap GPUI:", error);
 			setUpdateError(
 				typeof error === "string"
 					? error
-					: "Unable to return to Cap GPUI safely.",
+					: "Unable to return to Screencap GPUI safely.",
 			);
 		}
 	};
@@ -65,8 +67,8 @@ export default function () {
 				<div class="flex flex-col gap-4 items-center text-center max-w-md">
 					<p class="text-(--text-primary)">{updateError()}</p>
 					<p class="text-(--text-tertiary)">
-						Please download the latest version manually from cap.so/download.
-						Your data will not be lost.
+						Please download the latest version manually from
+						screencap.co/download. Your data will not be lost.
 					</p>
 					<p class="text-(--text-tertiary) text-xs">
 						If this issue persists, please contact support.
@@ -76,7 +78,7 @@ export default function () {
 							fromGpui ? void returnSafelyToGpui() : navigate("/")
 						}
 					>
-						{fromGpui ? "Return to Cap GPUI" : "Go Back"}
+						{fromGpui ? "Return to Screencap GPUI" : "Go Back"}
 					</Button>
 				</div>
 			</Show>
@@ -92,7 +94,7 @@ export default function () {
 							<span class="text-(--text-tertiary)">No update available</span>
 							<Show when={fromGpui}>
 								<Button onClick={() => void returnSafelyToGpui()}>
-									Return to Cap GPUI
+									Return to Screencap GPUI
 								</Button>
 							</Show>
 						</div>
@@ -169,7 +171,8 @@ export default function () {
 								<Match when={updateStatus()?.type === "done"}>
 									<div class="flex flex-col gap-4 items-center">
 										<p class="text-(--text-tertiary)">
-											Update has been installed. Restart Cap to finish updating.
+											Update has been installed. Restart Screencap to finish
+											updating.
 										</p>
 										<Button onClick={restart}>Restart Now</Button>
 									</div>

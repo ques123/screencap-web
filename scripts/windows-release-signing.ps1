@@ -28,8 +28,8 @@ $manifestPath = Join-Path $signingRoot "payload-manifest.json"
 function Get-PayloadDefinitions {
 	return @(
 		[pscustomobject]@{
-			Name = "Cap.exe"
-			Path = Join-Path $releaseRoot "Cap.exe"
+			Name = "Screencap.exe"
+			Path = Join-Path $releaseRoot "Screencap.exe"
 		},
 		[pscustomobject]@{
 			Name = "cap-gpui.exe"

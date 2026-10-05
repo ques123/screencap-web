@@ -496,7 +496,7 @@ pub struct Doctor {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub install: Option<cap_cli_install::CliInstallStatus>,
     pub checks: Vec<Check>,
-    /// Automation rules shared with Cap Desktop that the CLI honors after capture/upload.
+    /// Automation rules shared with Screencap Desktop that the CLI honors after capture/upload.
     pub automations: AutomationsInfo,
     /// Overall health: false when a required check (e.g. ffmpeg) failed.
     pub ok: bool,

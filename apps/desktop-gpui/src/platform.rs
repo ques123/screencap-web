@@ -31,7 +31,7 @@ impl LinuxFileDialogError {
         match self {
             Self::Busy => "A file dialog is already open. Finish or cancel it before trying again.".into(),
             Self::BeforeDispatch(error) | Self::NativeResponse(error) => format!("The file dialog could not complete: {error}"),
-            Self::Indeterminate(_) | Self::RestartRequired => "Cap could not confirm that the file dialog closed. Close any remaining file dialog and restart Cap before trying again.".into(),
+            Self::Indeterminate(_) | Self::RestartRequired => "Screencap could not confirm that the file dialog closed. Close any remaining file dialog and restart Screencap before trying again.".into(),
         }
     }
 }
@@ -730,7 +730,7 @@ mod mac {
 
     /// `LIQUID_GLASS_IDENTIFIER`, kept byte-identical to the Tauri app so the
     /// two view hierarchies read the same in a debugger.
-    const LIQUID_GLASS_IDENTIFIER: &str = "so.cap.liquid-glass-background";
+    const LIQUID_GLASS_IDENTIFIER: &str = "co.screencap.liquid-glass-background";
 
     /// `NSViewWidthSizable | NSViewHeightSizable` -- the mask the Tauri glass
     /// view gets (`setAutoresizingMask: 18usize`), which is what makes the
@@ -1322,12 +1322,12 @@ mod mac {
     ///
     /// The shape matters more than the bytes on macOS 26: the system
     /// re-renders every *bundle* icon onto its standard squircle plate (the
-    /// legacy-icon treatment), which is what the shipping Cap.app's dock tile
+    /// legacy-icon treatment), which is what the shipping Screencap.app's dock tile
     /// shows -- but a raw `setApplicationIconImage:` bypasses that pipeline,
     /// so the classic `icon.png` renders with its own pre-26 rounded-rect
     /// shape and looks visibly different next to the original. NSWorkspace's
     /// `iconForFile:` hands back the icon *as the system presents it*,
-    /// treatment included, so the installed Cap.app's is used when it exists
+    /// treatment included, so the installed Screencap.app's is used when it exists
     /// and the raw asset only as a fallback. A future .app bundle with its
     /// own (Icon Composer) icon supersedes all of this.
     pub fn set_dock_icon(fallback_png: &[u8]) {
@@ -1336,7 +1336,7 @@ mod mac {
         unsafe {
             let mut image: Option<Id<AnyObject>> = None;
 
-            let cap_app = NSString::from_str("/Applications/Cap.app");
+            let cap_app = NSString::from_str("/Applications/Screencap.app");
             let exists: bool = {
                 let manager: *mut AnyObject = msg_send![class!(NSFileManager), defaultManager];
                 !manager.is_null() && msg_send![manager, fileExistsAtPath: &*cap_app]
@@ -2637,7 +2637,7 @@ mod file_dialog_tests {
         assert!(
             LinuxFileDialogError::RestartRequired
                 .message()
-                .contains("restart Cap")
+                .contains("restart Screencap")
         );
     }
 

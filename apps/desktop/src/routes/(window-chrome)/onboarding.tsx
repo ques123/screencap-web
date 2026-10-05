@@ -2,7 +2,6 @@ import { Button } from "@cap/ui-solid";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ask, message as showMessage } from "@tauri-apps/plugin-dialog";
 import { type as ostype } from "@tauri-apps/plugin-os";
-import * as shell from "@tauri-apps/plugin-shell";
 import { cx } from "cva";
 import {
 	createEffect,
@@ -42,7 +41,6 @@ import IconLucideArrowRight from "~icons/lucide/arrow-right";
 import IconLucideCheck from "~icons/lucide/check";
 import IconLucideChevronDown from "~icons/lucide/chevron-down";
 import IconLucideCopy from "~icons/lucide/copy";
-import IconLucideExternalLink from "~icons/lucide/external-link";
 import IconLucideSave from "~icons/lucide/save";
 import IconLucideShield from "~icons/lucide/shield";
 import cloud1 from "../../assets/illustrations/cloud-1.png";
@@ -119,20 +117,21 @@ const setupPermissions: readonly SetupPermission[] = [
 		name: "Screen Recording",
 		key: "screenRecording",
 		description:
-			"Click Grant to allow when macOS asks, or pick Cap in System Settings if needed. Restart the app after allowing screen recording.",
+			"Click Grant to allow when macOS asks, or pick Screencap in System Settings if needed. Restart the app after allowing screen recording.",
 		requiresManualGrant: false,
 	},
 	{
 		name: "Accessibility",
 		key: "accessibility",
 		description:
-			"During recording, Cap collects mouse activity locally to generate automatic zoom in segments.",
+			"During recording, Screencap collects mouse activity locally to generate automatic zoom in segments.",
 		requiresManualGrant: false,
 	},
 	{
 		name: "Microphone",
 		key: "microphone",
-		description: "This permission is required to record audio in your Caps.",
+		description:
+			"This permission is required to record audio in your recordings.",
 		requiresManualGrant: false,
 		optional: true,
 	},
@@ -140,7 +139,7 @@ const setupPermissions: readonly SetupPermission[] = [
 		name: "Camera",
 		key: "camera",
 		description:
-			"This permission is required to record your camera in your Caps.",
+			"This permission is required to record your camera in your recordings.",
 		requiresManualGrant: false,
 		optional: true,
 	},
@@ -407,8 +406,8 @@ export default function OnboardingPage() {
 	});
 
 	const nextLabel = () => {
-		if (permissionsOnly()) return "Continue to Cap";
-		if (step() === totalSteps() - 1) return "Start Using Cap";
+		if (permissionsOnly()) return "Continue to Screencap";
+		if (step() === totalSteps() - 1) return "Start Using Screencap";
 		return "Continue";
 	};
 
@@ -694,8 +693,8 @@ function ModesOverviewStep(props: { active: boolean }) {
 					One app, every workflow
 				</h2>
 				<p class="text-[14px] text-gray-10 leading-relaxed">
-					Whether you need speed, studio quality, or a quick screenshot — Cap
-					has a mode for it.
+					Whether you need speed, studio quality, or a quick screenshot —
+					Screencap has a mode for it.
 				</p>
 			</div>
 
@@ -851,7 +850,8 @@ function ToggleStep(props: { active: boolean }) {
 					Switch modes anytime
 				</h2>
 				<p class="text-[14px] text-gray-10 leading-relaxed">
-					Toggle between modes with a single click from the main Cap window.
+					Toggle between modes with a single click from the main Screencap
+					window.
 				</p>
 			</div>
 
@@ -962,7 +962,7 @@ function ShortcutsStep(props: { active: boolean }) {
 		},
 		{
 			title: "Custom Domain",
-			desc: "Use your own domain for shareable links instead of cap.so",
+			desc: "Use your own domain for shareable links instead of screencap.co",
 		},
 		{
 			title: "Recording Preferences",
@@ -982,11 +982,11 @@ function ShortcutsStep(props: { active: boolean }) {
 					<IconCapSettings class="size-5 text-gray-11" />
 				</div>
 				<h2 class="text-2xl font-bold text-gray-12 tracking-tight">
-					Make Cap yours
+					Make Screencap yours
 				</h2>
 				<p class="text-[14px] text-gray-10 leading-relaxed">
-					Customize everything from keyboard shortcuts to storage. Cap adapts to
-					your workflow.
+					Customize everything from keyboard shortcuts to storage. Screencap
+					adapts to your workflow.
 				</p>
 			</div>
 
@@ -1064,18 +1064,9 @@ function FaqStep(props: { active: boolean }) {
 					visible() ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
 				)}
 			>
-				<FaqItem question="Is Cap free to use?">
+				<FaqItem question="Is Screencap free to use?">
 					<p class="text-[13px] text-gray-10 leading-relaxed">
-						Cap is free for personal use. For teams and commercial use, check
-						out our{" "}
-						<button
-							type="button"
-							onClick={() => shell.open("https://cap.so/pricing?ref=desktop")}
-							class="text-blue-10 hover:text-blue-11 underline underline-offset-2"
-						>
-							pricing plans
-						</button>
-						.
+						Yes, Screencap is free to use.
 					</p>
 				</FaqItem>
 				<FaqItem question="What's the difference between Instant and Studio?">
@@ -1089,7 +1080,7 @@ function FaqStep(props: { active: boolean }) {
 				<FaqItem question="Where are my recordings stored?">
 					<p class="text-[13px] text-gray-10 leading-relaxed">
 						All recordings are stored locally on your computer. In Instant mode,
-						they're also uploaded to Cap's cloud for easy sharing. You can
+						they're also uploaded to Screencap's cloud for easy sharing. You can
 						manage storage in Settings.
 					</p>
 				</FaqItem>
@@ -1103,22 +1094,10 @@ function FaqStep(props: { active: boolean }) {
 					<p class="text-[13px] text-gray-10 leading-relaxed">
 						In Instant mode, you get a shareable link automatically when you
 						stop recording. In Studio mode, export your edited video and share
-						via Cap's cloud or save locally.
+						via Screencap's cloud or save locally.
 					</p>
 				</FaqItem>
 			</div>
-
-			<button
-				type="button"
-				onClick={() => shell.open("https://cap.so/pricing?ref=desktop")}
-				class={cx(
-					"flex items-center gap-1.5 text-[13px] text-blue-10 hover:text-blue-11 transition-all duration-500 delay-200",
-					visible() ? "opacity-100" : "opacity-0",
-				)}
-			>
-				View pricing plans
-				<IconLucideExternalLink class="size-3" />
-			</button>
 		</div>
 	);
 }
@@ -1437,7 +1416,7 @@ function InstantMockup(props: { active: boolean }) {
 							<div class="flex items-center gap-2 w-full">
 								<div class="flex-1 flex items-center px-3 py-2 rounded-lg bg-white dark:bg-gray-3 border border-gray-4">
 									<span class="text-[11px] text-gray-11 font-mono">
-										cap.so/s/m4k92x
+										screencap.co/s/m4k92x
 									</span>
 								</div>
 								<div
@@ -1565,7 +1544,7 @@ function StudioMockup(props: { active: boolean }) {
 								<div class="size-2 rounded-full bg-gray-6" />
 							</div>
 							<span class="text-[10px] text-gray-11 font-medium">
-								Cap Editor
+								Screencap Editor
 							</span>
 						</div>
 						<div
@@ -1861,7 +1840,7 @@ function StartupOverlay(props: {
 						/>
 					</div>
 					<h1 class="text-5xl md:text-5xl font-bold mb-4 mt-8 drop-shadow-[0_0_20px_rgba(0,0,0,0.2)]">
-						Welcome to Cap
+						Welcome to Screencap
 					</h1>
 					<p class="text-xl md:text-2xl opacity-80 mx-auto drop-shadow-[0_0_20px_rgba(0,0,0,0.2)] whitespace-nowrap">
 						Beautiful screen recordings, owned by you.
@@ -1939,8 +1918,8 @@ function PermissionsStep(props: {
 	const maybePromptRestartForPermission = async (permission: OSPermission) => {
 		const message =
 			permission === "accessibility"
-				? "After enabling Accessibility for Cap in System Settings, macOS may keep showing it as denied until you restart the app."
-				: "After adding Cap in System Settings, you'll need to restart the app for the permission to take effect.";
+				? "After enabling Accessibility for Screencap in System Settings, macOS may keep showing it as denied until you restart the app."
+				: "After adding Screencap in System Settings, you'll need to restart the app for the permission to take effect.";
 		const shouldRestart = await ask(message, {
 			title: "Restart Required",
 			kind: "info",
@@ -1952,8 +1931,10 @@ function PermissionsStep(props: {
 				await commands.restartApp();
 			} catch (error) {
 				await showMessage(
-					typeof error === "string" ? error : "Unable to restart Cap safely.",
-					{ title: "Unable to restart Cap", kind: "warning" },
+					typeof error === "string"
+						? error
+						: "Unable to restart Screencap safely.",
+					{ title: "Unable to restart Screencap", kind: "warning" },
 				);
 			}
 		}
@@ -2022,7 +2003,8 @@ function PermissionsStep(props: {
 					Permissions Required
 				</h2>
 				<p class="text-[14px] text-gray-10 leading-relaxed">
-					Cap needs a few permissions to record your screen and capture audio.
+					Screencap needs a few permissions to record your screen and capture
+					audio.
 				</p>
 			</div>
 

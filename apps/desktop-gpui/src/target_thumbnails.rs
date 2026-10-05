@@ -1452,7 +1452,7 @@ mod tests {
 
     #[test]
     fn window_signature_joins_every_field_the_source_joins() {
-        let list = [window("1", "Cap", "Main"), window("2", "Cap", "Editor")];
+        let list = [window("1", "Screencap", "Main"), window("2", "Screencap", "Editor")];
         assert_eq!(
             window_signature(&list),
             "1:Cap:Main:0:0:1920:1080:60|2:Cap:Editor:0:0:1920:1080:60"
@@ -1461,7 +1461,7 @@ mod tests {
 
     #[test]
     fn window_signature_notices_a_move_a_resize_a_rename_and_a_reorder() {
-        let base = [window("1", "Cap", "Main")];
+        let base = [window("1", "Screencap", "Main")];
 
         let mut moved = base.clone();
         moved[0].position = Some((10., 0.));
@@ -1475,8 +1475,8 @@ mod tests {
         renamed[0].label = "Untitled".into();
         assert_ne!(window_signature(&base), window_signature(&renamed));
 
-        let pair = [window("1", "Cap", "Main"), window("2", "Cap", "Editor")];
-        let swapped = [window("2", "Cap", "Editor"), window("1", "Cap", "Main")];
+        let pair = [window("1", "Screencap", "Main"), window("2", "Screencap", "Editor")];
+        let swapped = [window("2", "Screencap", "Editor"), window("1", "Screencap", "Main")];
         assert_ne!(window_signature(&pair), window_signature(&swapped));
     }
 
@@ -1567,7 +1567,7 @@ mod tests {
     #[test]
     fn staleness_tracks_the_signature_of_the_captured_list() {
         let mut cache = ThumbnailCache::default();
-        let list = [window("1", "Cap", "Main")];
+        let list = [window("1", "Screencap", "Main")];
 
         // Nothing captured yet: always stale.
         assert!(cache.windows_stale(&list));

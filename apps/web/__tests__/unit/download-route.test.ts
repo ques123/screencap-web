@@ -1,97 +1,41 @@
 import { NextRequest } from "next/server";
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@/utils/releases", () => ({ getGitHubReleases: vi.fn() }));
+import { describe, expect, it } from "vitest";
 
 import { GET } from "@/app/(site)/download/[platform]/route";
-import { getGitHubReleases } from "@/utils/releases";
 
-const request = new NextRequest("https://cap.so/download/apple-silicon");
+const request = new NextRequest("https://screencap.co/download/apple-silicon");
+const base = "https://github.com/ques123/screencap-web/releases/latest/download";
+
+const call = (platform?: string) =>
+	GET(request, {
+		params: Promise.resolve({ platform } as { platform: string }),
+	});
 
 describe("desktop download route", () => {
 	it("handles missing route parameters without throwing", async () => {
-		const response = await GET(request, {
-			params: Promise.resolve({} as { platform: string }),
-		});
-		expect(response.headers.get("location")).toBe("https://cap.so/download");
-	});
-
-	it("redirects to the resolved download and cancels its probe body", async () => {
-		const cancel = vi.fn().mockResolvedValue(undefined);
-		vi.stubGlobal(
-			"fetch",
-			vi.fn().mockResolvedValue({
-				status: 206,
-				url: "https://downloads.example/cap.dmg",
-				body: { cancel },
-			}),
-		);
-		const response = await GET(request, {
-			params: Promise.resolve({ platform: "Apple-Silicon" }),
-		});
+		const response = await call();
 		expect(response.headers.get("location")).toBe(
-			"https://downloads.example/cap.dmg",
+			"https://screencap.co/download",
 		);
-		expect(cancel).toHaveBeenCalledOnce();
-		vi.unstubAllGlobals();
-	});
-
-	it("uses the GitHub fallback when the download provider fails", async () => {
-		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Unavailable")));
-		vi.mocked(getGitHubReleases).mockResolvedValue([
-			{ downloads: { "macos-arm64": "https://github.com/cap.dmg" } },
-		] as Awaited<ReturnType<typeof getGitHubReleases>>);
-		const response = await GET(request, {
-			params: Promise.resolve({ platform: "apple-silicon" }),
-		});
-		expect(response.headers.get("location")).toBe("https://github.com/cap.dmg");
-		vi.unstubAllGlobals();
 	});
 
 	it.each([
-		["linux-appimage", "https://github.com/cap.AppImage"],
-		["linux-rpm", "https://github.com/cap.rpm"],
-		["linux-pacman", "https://github.com/cap.pkg.tar.zst"],
-	])("keeps the %s download format in the fallback", async (platform, url) => {
-		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Unavailable")));
-		vi.mocked(getGitHubReleases).mockResolvedValue([
-			{
-				version: "0.6.0",
-				tagName: "cap-v0.6.0",
-				publishedAt: "2026-09-15T13:10:21Z",
-				body: "",
-				htmlUrl: "https://github.com/CapSoftware/Cap/releases/tag/cap-v0.6.0",
-				downloads: {
-					"linux-appimage": "https://github.com/cap.AppImage",
-					"linux-rpm": "https://github.com/cap.rpm",
-					"linux-pacman": "https://github.com/cap.pkg.tar.zst",
-				},
-			},
-		]);
-		const response = await GET(request, {
-			params: Promise.resolve({ platform }),
-		});
+		["Apple-Silicon", `${base}/Screencap_aarch64.dmg`],
+		["arm64", `${base}/Screencap_aarch64.dmg`],
+		["apple-intel", `${base}/Screencap_x64.dmg`],
+		["x86_64", `${base}/Screencap_x64.dmg`],
+	])("redirects %s to the GitHub release asset", async (platform, url) => {
+		const response = await call(platform);
 		expect(response.headers.get("location")).toBe(url);
-		vi.unstubAllGlobals();
 	});
 
-	it("preserves a successful redirect when probe cancellation fails", async () => {
-		vi.stubGlobal(
-			"fetch",
-			vi.fn().mockResolvedValue({
-				status: 206,
-				url: "https://downloads.example/cap.dmg",
-				body: {
-					cancel: vi.fn().mockRejectedValue(new Error("Already closed")),
-				},
-			}),
-		);
-		const response = await GET(request, {
-			params: Promise.resolve({ platform: "apple-silicon" }),
-		});
-		expect(response.headers.get("location")).toBe(
-			"https://downloads.example/cap.dmg",
-		);
-		vi.unstubAllGlobals();
-	});
+	it.each(["windows", "linux-deb", "linux-rpm", "bogus"])(
+		"redirects %s to the unavailable notice",
+		async (platform) => {
+			const response = await call(platform);
+			expect(response.headers.get("location")).toBe(
+				"https://screencap.co/download?unavailable=1",
+			);
+		},
+	);
 });

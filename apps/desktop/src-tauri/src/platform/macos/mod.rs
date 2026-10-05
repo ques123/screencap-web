@@ -186,7 +186,7 @@ pub fn apply_squircle_corners(window: &tauri::WebviewWindow, radius: f64) {
 }
 
 const TAURI_VIBRANCY_VIEW_TAG: isize = 91376254;
-const LIQUID_GLASS_IDENTIFIER: &str = "so.cap.liquid-glass-background";
+const LIQUID_GLASS_IDENTIFIER: &str = "co.screencap.liquid-glass-background";
 const NS_GLASS_EFFECT_VIEW_STYLE_REGULAR: isize = 0;
 
 #[derive(Clone, Copy, PartialEq, Eq)]

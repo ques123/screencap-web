@@ -84,7 +84,7 @@ export const createSoftwareApplicationSchema = (
 		description:
 			"Cap is a powerful, open-source screen recording software that offers instant sharing, studio mode, and privacy-focused features.",
 		url: "https://cap.so",
-		downloadUrl: "https://cap.so/download",
+		downloadUrl: "https://screencap.co/download",
 		screenshot: [
 			{
 				"@type": "ImageObject",

@@ -9,15 +9,13 @@ use serde_json::{Value, json};
 
 use crate::store::{self, DEFAULT_SERVER_URL};
 
-pub const PRICING_URL: &str = "https://cap.so/pricing?ref=desktop";
-
 const CALLBACK_HTML: &str = r#"<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
-  <title>Signed in — Cap</title>
+  <title>Signed in — Screencap</title>
   <style>
     html { height: 100%; }
     body { min-height: 100%; margin: 0; padding: 24px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; font-family: system-ui, sans-serif; background: #f8f9fa; color: #12161f; }
@@ -33,7 +31,7 @@ const CALLBACK_HTML: &str = r#"<!DOCTYPE html>
 <body>
   <main>
     <h1>You’re signed in</h1>
-    <p>You can close this tab and return to Cap.</p>
+    <p>You can close this tab and return to Screencap.</p>
   </main>
 </body>
 </html>
@@ -519,7 +517,7 @@ mod tests {
 
     #[test]
     fn parses_session_deep_link() {
-        let params = parse_auth_params("cap-desktop://auth?token=tok&user_id=user-2&expires=9")
+        let params = parse_auth_params("screencap-desktop://auth?token=tok&user_id=user-2&expires=9")
             .expect("session");
         assert_eq!(
             params,
@@ -539,8 +537,8 @@ mod tests {
     #[test]
     fn local_session_for_custom_origin() {
         assert!(should_use_local_server_session("http://localhost:3000"));
-        assert!(has_same_origin("https://cap.so/", "https://cap.so"));
-        assert!(!has_same_origin("https://cap.so", "http://localhost:3000"));
+        assert!(has_same_origin("https://screencap.co/", "https://screencap.co"));
+        assert!(!has_same_origin("https://screencap.co", "http://localhost:3000"));
     }
 }
 

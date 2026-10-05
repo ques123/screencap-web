@@ -29,7 +29,7 @@ For a Tauri build with bundled frontend assets and no development server:
 
 ```sh
 pnpm --filter @cap/desktop build
-TAURI_CONFIG='{"identifier":"so.cap.desktop.picker-benchmark","productName":"Cap Picker Benchmark","build":{"devUrl":null}}' cargo build -p cap-desktop --features tauri/custom-protocol
+TAURI_CONFIG='{"identifier":"co.screencap.desktop.picker-benchmark","productName":"Screencap Picker Benchmark","build":{"devUrl":null}}' cargo build -p cap-desktop --features tauri/custom-protocol
 ```
 
 ## What changed

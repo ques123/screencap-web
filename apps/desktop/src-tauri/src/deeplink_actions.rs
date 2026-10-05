@@ -346,7 +346,7 @@ mod tests {
 
     #[test]
     fn parses_stop_recording_action_url() {
-        let url = Url::parse("cap-desktop://action?value=%22stop_recording%22").unwrap();
+        let url = Url::parse("screencap-desktop://action?value=%22stop_recording%22").unwrap();
 
         assert_eq!(
             DeepLinkAction::try_from(&url),
@@ -363,7 +363,7 @@ mod tests {
             }
         })
         .to_string();
-        let url = Url::parse_with_params("cap-desktop://action", &[("value", value)]).unwrap();
+        let url = Url::parse_with_params("screencap-desktop://action", &[("value", value)]).unwrap();
 
         assert_eq!(
             DeepLinkAction::try_from(&url),
@@ -387,7 +387,7 @@ mod tests {
             }
         })
         .to_string();
-        let url = Url::parse_with_params("cap-desktop://action", &[("value", value)]).unwrap();
+        let url = Url::parse_with_params("screencap-desktop://action", &[("value", value)]).unwrap();
 
         assert_eq!(
             DeepLinkAction::try_from(&url),
@@ -405,8 +405,8 @@ mod tests {
     #[cfg(debug_assertions)]
     #[test]
     fn parses_pause_and_resume_action_urls() {
-        let pause_url = Url::parse("cap-desktop://action?value=%22pause_recording%22").unwrap();
-        let resume_url = Url::parse("cap-desktop://action?value=%22resume_recording%22").unwrap();
+        let pause_url = Url::parse("screencap-desktop://action?value=%22pause_recording%22").unwrap();
+        let resume_url = Url::parse("screencap-desktop://action?value=%22resume_recording%22").unwrap();
 
         assert_eq!(
             DeepLinkAction::try_from(&pause_url),
@@ -439,7 +439,7 @@ mod tests {
             }
         })
         .to_string();
-        let url = Url::parse_with_params("cap-desktop://action", &[("value", value)]).unwrap();
+        let url = Url::parse_with_params("screencap-desktop://action", &[("value", value)]).unwrap();
 
         assert_eq!(
             DeepLinkAction::try_from(&url),
@@ -472,7 +472,7 @@ mod tests {
             }
         })
         .to_string();
-        let url = Url::parse_with_params("cap-desktop://action", &[("value", value)]).unwrap();
+        let url = Url::parse_with_params("screencap-desktop://action", &[("value", value)]).unwrap();
 
         assert_eq!(
             DeepLinkAction::try_from(&url),
@@ -489,7 +489,7 @@ mod tests {
     #[test]
     fn parses_start_recording_action_url() {
         let url = Url::parse(
-            "cap-desktop://action?value=%7B%22start_recording%22%3A%7B%22capture_mode%22%3A%7B%22screen%22%3A%22Odyssey%20G93SC%22%7D%2C%22camera%22%3Anull%2C%22mic_label%22%3A%22Shure%20MV7%2B%22%2C%22capture_system_audio%22%3Atrue%2C%22mode%22%3A%22studio%22%7D%7D",
+            "screencap-desktop://action?value=%7B%22start_recording%22%3A%7B%22capture_mode%22%3A%7B%22screen%22%3A%22Odyssey%20G93SC%22%7D%2C%22camera%22%3Anull%2C%22mic_label%22%3A%22Shure%20MV7%2B%22%2C%22capture_system_audio%22%3Atrue%2C%22mode%22%3A%22studio%22%7D%7D",
         )
         .unwrap();
 
@@ -526,7 +526,7 @@ mod tests {
             }
         })
         .to_string();
-        let url = Url::parse_with_params("cap-desktop://action", &[("value", value)]).unwrap();
+        let url = Url::parse_with_params("screencap-desktop://action", &[("value", value)]).unwrap();
 
         let Ok(DeepLinkAction::StartRecording {
             camera,
@@ -548,7 +548,7 @@ mod tests {
 
     #[test]
     fn rejects_non_action_host() {
-        let url = Url::parse("cap-desktop://login?value=%22stop_recording%22").unwrap();
+        let url = Url::parse("screencap-desktop://login?value=%22stop_recording%22").unwrap();
 
         assert_eq!(
             DeepLinkAction::try_from(&url),

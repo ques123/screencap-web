@@ -87,7 +87,6 @@ pub enum Page {
     Automations,
     Transcription,
     Integrations,
-    License,
     Experimental,
     Feedback,
     Changelog,
@@ -104,7 +103,6 @@ impl Page {
         Page::Automations,
         Page::Transcription,
         Page::Integrations,
-        Page::License,
         Page::Experimental,
         Page::Feedback,
         Page::Changelog,
@@ -123,7 +121,6 @@ impl Page {
             Self::Automations => "Automations",
             Self::Transcription => "Transcription",
             Self::Integrations => "Integrations",
-            Self::License => "Plan & license",
             Self::Experimental => "Experimental",
             Self::Feedback => "Feedback",
             Self::Changelog => "Changelog",
@@ -142,7 +139,6 @@ impl Page {
             Self::Automations => "automations",
             Self::Transcription => "transcription",
             Self::Integrations => "integrations",
-            Self::License => "license",
             Self::Experimental => "experimental",
             Self::Feedback => "feedback",
             Self::Changelog => "changelog",
@@ -163,7 +159,6 @@ impl Page {
             Self::Automations => "icons/zap.svg",
             Self::Transcription => "icons/captions.svg",
             Self::Integrations => "icons/unplug.svg",
-            Self::License => "icons/gift.svg",
             Self::Feedback => "icons/message-square-plus.svg",
             Self::Changelog => "icons/bell.svg",
         }
@@ -254,7 +249,7 @@ const INSTANT_RESOLUTION_TIERS: &[(u32, &str, &str)] = &[
     (
         1920,
         "1080p",
-        "Clear text and a practical upload size. Recommended with Cap Pro.",
+        "Clear text and a practical upload size. Recommended with Pro.",
     ),
     (
         2560,
@@ -849,7 +844,7 @@ impl SettingsWindow {
     /// scheduling a frame.
     pub fn page_shown(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.pages_shown(window, cx);
-        if matches!(self.page, Page::Quality | Page::License) {
+        if matches!(self.page, Page::Quality) {
             self.refresh_plan(window, cx);
         }
         if self.page == Page::Recordings {
@@ -1037,7 +1032,7 @@ impl SettingsWindow {
     fn delete_recording(&mut self, path: PathBuf, window: &mut Window, cx: &mut Context<Self>) {
         cx.spawn_in(window, async move |this, cx| {
             let confirmed = crate::platform::confirm_dialog(
-                "Cap",
+                "Screencap",
                 "Are you sure you want to delete this recording?",
                 "Yes",
                 "No",
@@ -1162,7 +1157,7 @@ impl SettingsWindow {
     fn delete_screenshot(&mut self, path: PathBuf, window: &mut Window, cx: &mut Context<Self>) {
         cx.spawn_in(window, async move |this, cx| {
             let confirmed = crate::platform::confirm_dialog(
-                "Cap",
+                "Screencap",
                 "Are you sure you want to delete this screenshot?",
                 "Yes",
                 "No",
@@ -1830,7 +1825,7 @@ impl SettingsWindow {
                     .id("settings-previous-versions")
                     .child("View previous versions")
                     .hover(|style| style.text_color(theme.settings_text()))
-                    .on_click(|_, _, cx| cx.open_url("https://cap.so/download/versions")),
+                    .on_click(|_, _, cx| cx.open_url("https://screencap.co/download")),
             )
             .child(
                 div()
@@ -2110,7 +2105,6 @@ impl SettingsWindow {
                         Page::Automations => self.render_automations(cx),
                         Page::Transcription => self.render_transcription(cx),
                         Page::Integrations => self.render_integrations(cx),
-                        Page::License => self.render_license(cx),
                         Page::Experimental => self.render_experimental(cx),
                         Page::Feedback => self.render_feedback(cx),
                         Page::Changelog => self.render_changelog(cx),
@@ -3016,7 +3010,7 @@ impl SettingsWindow {
 
         self.section(
             "Appearance",
-            Some("Match Cap to your system theme or pick a fixed look."),
+            Some("Match Screencap to your system theme or pick a fixed look."),
             None,
             vec![self.card(true).child(tiles).into_any_element()],
         )
@@ -3026,13 +3020,13 @@ impl SettingsWindow {
     fn render_app_section(&self, cx: &mut Context<Self>) -> impl IntoElement {
         self.section(
             "App",
-            Some("Choose how Cap shows up on your system."),
+            Some("Choose how Screencap shows up on your system."),
             None,
             vec![
                 self.rows(vec![
                     self.setting_row(
                         "Always show dock icon",
-                        Some("Keep Cap in the dock even when no windows are open."),
+                        Some("Keep Screencap in the dock even when no windows are open."),
                         // The row is the *inverse* of the stored key.
                         self.toggle(
                             "hide-dock-icon",
@@ -3055,7 +3049,7 @@ impl SettingsWindow {
                         "System notifications",
                         Some(
                             "Show notifications for clipboard copies, saved files, and more. \
-                             You may need to allow Cap in your system's notification settings.",
+                             You may need to allow Screencap in your system's notification settings.",
                         ),
                         self.toggle(
                             "enable-notifications",
@@ -3167,12 +3161,6 @@ impl SettingsWindow {
                     ui::SegmentOption::new(if locked { format!("{label} · Pro") } else { (*label).to_string() }, *value == effective).disabled(locked)
                 }).collect(), cx, |this, index, cx| this.select_instant_resolution(index, cx)))
                 .child(div().text_size(px(12.)).line_height(px(18.)).text_color(theme.settings_muted()).child(format!("{summary} Resolution is limited by the screen or area you record.")))
-                .when(!self.has_cap_pro, |this| this.child(
-                    div().flex().flex_col().items_start().gap(px(12.)).pt(px(12.)).border_t_1().border_color(theme.settings_border())
-                        .child(div().text_size(px(12.)).line_height(px(18.)).child("720p is included. Cap Pro unlocks 1080p, 1440p and 4K for Instant recordings."))
-                        .child(ui::Button::settings(&theme, "instant-quality-pricing", ui::ButtonVariant::Gray, ui::ButtonSize::Sm)
-                            .label("View plans ↗").on_click(|_, _, cx| cx.open_url(crate::auth::PRICING_URL)))
-                ))
                 .when_some(self.instant_quality_notice, |this, _| this.child(div().text_size(px(12.)).text_color(Hsla::from(theme.amber_11)).child("Couldn't save your recording settings. Please try again."))),
         );
         self.section(
@@ -3341,7 +3329,7 @@ impl SettingsWindow {
                     ),
                     self.setting_row(
                         "Delete Instant recordings after upload",
-                        Some("Cap removes the local file once it has uploaded successfully."),
+                        Some("Screencap removes the local file once it has uploaded successfully."),
                         self.toggle(
                             "delete-after-upload",
                             settings.delete_instant_recordings_after_upload,
@@ -3538,7 +3526,7 @@ impl SettingsWindow {
 
         self.section(
             "Storage",
-            Some("Where Cap saves your recordings."),
+            Some("Where Screencap saves your recordings."),
             None,
             vec![
                 self.card(true)
@@ -3913,7 +3901,7 @@ impl SettingsWindow {
                                 div()
                                     .text_size(px(12.))
                                     .font_weight(FontWeight::MEDIUM)
-                                    .child("Recommended Cap windows are not excluded"),
+                                    .child("Recommended Screencap windows are not excluded"),
                             )
                             .child(div().text_size(px(10.)).line_height(px(14.)).child(format!(
                                 "Camera, settings, or recording windows can appear as black \
@@ -3976,7 +3964,7 @@ impl SettingsWindow {
                                     .text_size(px(12.))
                                     .line_height(px(16.))
                                     .text_color(theme.settings_muted())
-                                    .child("Which release channel Cap updates from."),
+                                    .child("Which release channel Screencap updates from."),
                             ),
                     )
                     .child(self.segmented::<UpdateChannel>(
@@ -4012,7 +4000,7 @@ impl SettingsWindow {
 
         self.section(
             "Updates",
-            Some("Choose which Cap builds you receive."),
+            Some("Choose which Screencap builds you receive."),
             None,
             vec![self.card(false).child(body).into_any_element()],
         )
@@ -4032,7 +4020,7 @@ impl SettingsWindow {
                     .flex()
                     .flex_col()
                     .gap(px(6.))
-                    .child(div().text_size(px(13.)).child("Cap Server URL"))
+                    .child(div().text_size(px(13.)).child("Screencap Server URL"))
                     .child(self.text_field(Field::ServerUrl, cx)),
             )
             .child(
@@ -4074,7 +4062,7 @@ impl SettingsWindow {
 
         self.section(
             "Self-host",
-            Some("Only change this if you are running your own instance of Cap Web."),
+            Some("Only change this if you are running your own instance of Screencap Web."),
             None,
             vec![self.card(true).child(body).into_any_element()],
         )
@@ -4123,7 +4111,7 @@ impl SettingsWindow {
                     self.setting_row(
                         "Share anonymous telemetry",
                         Some(
-                            "Cap uses anonymous telemetry to improve reliability and fix bugs. We \
+                            "Screencap uses anonymous telemetry to improve reliability and fix bugs. We \
                          never collect recording contents, window titles, file paths, or \
                          personal information.",
                         ),
@@ -4511,7 +4499,7 @@ mod tests {
     /// addresses by slug.
     #[test]
     fn every_page_round_trips_through_its_slug() {
-        assert_eq!(Page::ALL.len(), 13);
+        assert_eq!(Page::ALL.len(), 12);
         for page in Page::ALL {
             assert_eq!(Page::from_slug(page.slug()), Some(*page));
         }
@@ -4530,8 +4518,8 @@ mod tests {
             Some("http://localhost:3000".to_string())
         );
         // `new URL()` throws on these, and the handler never runs.
-        assert_eq!(origin_of("cap.so"), None);
-        assert_eq!(origin_of("ftp://cap.so"), None);
+        assert_eq!(origin_of("screencap.co"), None);
+        assert_eq!(origin_of("ftp://screencap.co"), None);
         assert_eq!(origin_of(""), None);
     }
 
@@ -4600,21 +4588,21 @@ mod tests {
     #[test]
     fn default_exclusions_are_covered_by_title() {
         let default = WindowExclusion {
-            window_title: Some("Cap Camera".into()),
+            window_title: Some("Screencap Camera".into()),
             ..Default::default()
         };
         assert!(covers_default_exclusion(&default, &default));
         assert!(covers_default_exclusion(
             &WindowExclusion {
-                owner_name: Some("Cap".into()),
-                window_title: Some("Cap Camera".into()),
+                owner_name: Some("Screencap".into()),
+                window_title: Some("Screencap Camera".into()),
                 ..Default::default()
             },
             &default
         ));
         assert!(!covers_default_exclusion(
             &WindowExclusion {
-                window_title: Some("Cap Settings".into()),
+                window_title: Some("Screencap Settings".into()),
                 ..Default::default()
             },
             &default

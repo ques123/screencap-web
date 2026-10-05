@@ -65,9 +65,6 @@ const SettingsFeedbackPage = lazy(
 const SettingsExperimentalPage = lazy(
 	() => import("./routes/(window-chrome)/settings/experimental"),
 );
-const SettingsLicensePage = lazy(
-	() => import("./routes/(window-chrome)/settings/license"),
-);
 const SettingsIntegrationsPage = lazy(
 	() => import("./routes/(window-chrome)/settings/integrations"),
 );
@@ -83,7 +80,6 @@ const SettingsGoogleDriveConfigPage = lazy(
 const OnboardingPage = lazy(
 	() => import("./routes/(window-chrome)/onboarding"),
 );
-const UpgradePage = lazy(() => import("./routes/(window-chrome)/upgrade"));
 const UpdatePage = lazy(() => import("./routes/(window-chrome)/update"));
 const CameraPage = lazy(() => import("./routes/camera"));
 const CaptureAreaPage = lazy(() => import("./routes/capture-area"));
@@ -219,7 +215,6 @@ function Inner() {
 								path="/experimental"
 								component={SettingsExperimentalPage}
 							/>
-							<Route path="/license" component={SettingsLicensePage} />
 							<Route
 								path="/integrations"
 								component={SettingsIntegrationsPage}
@@ -234,7 +229,6 @@ function Inner() {
 							/>
 						</Route>
 						<Route path="/onboarding" component={OnboardingPage} />
-						<Route path="/upgrade" component={UpgradePage} />
 						<Route path="/update" component={UpdatePage} />
 					</Route>
 					<Route path="/camera" component={CameraPage} />

@@ -135,16 +135,16 @@ fn binary_path(app: &AppHandle) -> Option<PathBuf> {
 
 /// Mirror of `store::app_data_dir` in `apps/desktop-gpui`: the pidfile and the
 /// handoff marker live under the shared production identifier
-/// (`so.cap.desktop`), not this app's possibly-`.dev` one.
+/// (`co.screencap.desktop`), not this app's possibly-`.dev` one.
 fn shared_data_dir() -> PathBuf {
     #[cfg(target_os = "macos")]
     let base = PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| ".".into()))
-        .join("Library/Application Support/so.cap.desktop");
+        .join("Library/Application Support/co.screencap.desktop");
     #[cfg(target_os = "windows")]
     let base = std::env::var_os("APPDATA")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("so.cap.desktop");
+        .join("co.screencap.desktop");
     #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
     let base = std::env::var_os("XDG_DATA_HOME")
         .map(PathBuf::from)
@@ -152,7 +152,7 @@ fn shared_data_dir() -> PathBuf {
             PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| ".".into()))
                 .join(".local/share")
         })
-        .join("so.cap.desktop");
+        .join("co.screencap.desktop");
     base
 }
 
@@ -161,7 +161,7 @@ fn gpui_pidfile() -> PathBuf {
 }
 
 /// Whether this app's own store IS the shared one. It is for the production
-/// bundle (`so.cap.desktop`), but a dev build stores under a `.dev` identifier
+/// bundle (`co.screencap.desktop`), but a dev build stores under a `.dev` identifier
 /// while `cap-gpui` always reads and writes the shared file -- two stores that
 /// silently disagree. The handoff flag therefore lives in the shared store,
 /// and this app's own copy of the setting is just what its settings page
@@ -255,13 +255,13 @@ fn take_update_handoff() -> Option<bool> {
         Ok(contents) => contents,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return None,
         Err(error) => {
-            warn!(%error, "could not read the Cap GPUI update hand-off");
+            warn!(%error, "could not read the Screencap GPUI update hand-off");
             return None;
         }
     };
 
     let Some(handoff) = parse_update_handoff(&contents) else {
-        warn!("discarding an invalid Cap GPUI update hand-off");
+        warn!("discarding an invalid Screencap GPUI update hand-off");
         let _ = std::fs::remove_file(&marker);
         return None;
     };
@@ -278,7 +278,7 @@ fn take_update_handoff() -> Option<bool> {
     if expected_pid.is_some_and(|pid| pid != handoff.pid) || stale {
         warn!(
             pid = handoff.pid,
-            "discarding a stale Cap GPUI update hand-off"
+            "discarding a stale Screencap GPUI update hand-off"
         );
         let _ = std::fs::remove_file(&marker);
         return None;
@@ -288,13 +288,13 @@ fn take_update_handoff() -> Option<bool> {
         Ok(()) => {
             info!(
                 pid = handoff.pid,
-                "taking ownership from Cap GPUI for an update check"
+                "taking ownership from Screencap GPUI for an update check"
             );
             Some(handoff.simulated)
         }
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
         Err(error) => {
-            warn!(%error, "could not consume the Cap GPUI update hand-off");
+            warn!(%error, "could not consume the Screencap GPUI update hand-off");
             None
         }
     }
@@ -418,7 +418,7 @@ fn is_forwardable_gpui_deep_link(url: &str) -> bool {
     !url.is_empty()
         && url.len() <= MAX_FORWARDED_DEEP_LINK_BYTES
         && reqwest::Url::parse(url)
-            .is_ok_and(|parsed| matches!(parsed.scheme(), "cap-desktop" | "cap"))
+            .is_ok_and(|parsed| matches!(parsed.scheme(), "screencap-desktop"))
 }
 
 #[cfg(any(target_os = "macos", windows, test))]
@@ -445,7 +445,7 @@ fn forwarded_gpui_argument(argument: &str) -> Option<String> {
     }
     let path = path.canonicalize().ok()?;
     let value = serde_json::json!({ "open_editor": { "project_path": path } }).to_string();
-    let mut url = reqwest::Url::parse("cap-desktop://action").ok()?;
+    let mut url = reqwest::Url::parse("screencap-desktop://action").ok()?;
     url.query_pairs_mut().append_pair("value", &value);
     let url = url.to_string();
     is_forwardable_gpui_deep_link(&url).then_some(url)
@@ -473,7 +473,7 @@ fn read_macos_gpui_metadata(path: &std::path::Path, private: bool) -> std::io::R
     {
         return Err(std::io::Error::new(
             std::io::ErrorKind::PermissionDenied,
-            "Cap GPUI instance metadata is not owner controlled",
+            "Screencap GPUI instance metadata is not owner controlled",
         ));
     }
     let mut contents = String::new();
@@ -481,7 +481,7 @@ fn read_macos_gpui_metadata(path: &std::path::Path, private: bool) -> std::io::R
     if contents.len() > 128 {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
-            "Cap GPUI instance metadata changed",
+            "Screencap GPUI instance metadata changed",
         ));
     }
     Ok(contents)
@@ -523,7 +523,7 @@ fn reopen_time_remaining(
         .ok_or_else(|| {
             std::io::Error::new(
                 std::io::ErrorKind::TimedOut,
-                "Cap GPUI reopen request timed out",
+                "Screencap GPUI reopen request timed out",
             )
         })
 }
@@ -549,7 +549,7 @@ fn send_gpui_reopen(
             Ok(0) => {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::WriteZero,
-                    "Cap GPUI closed its forwarding connection",
+                    "Screencap GPUI closed its forwarding connection",
                 ));
             }
             Ok(written) => pending = &pending[written..],
@@ -568,7 +568,7 @@ fn send_gpui_reopen(
             Ok(_) => {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
-                    "Cap GPUI did not acknowledge the reopen request",
+                    "Screencap GPUI did not acknowledge the reopen request",
                 ));
             }
             Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
@@ -591,7 +591,7 @@ pub(crate) fn request_gpui_reopen(pid: u32) -> Result<(), String> {
             if !macos_reopen_incumbent(&path, pid)? {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::NotConnected,
-                    "The Cap GPUI instance changed before reopening",
+                    "The Screencap GPUI instance changed before reopening",
                 ));
             }
             match read_macos_gpui_metadata(&path.with_extension("ipc"), true) {
@@ -610,7 +610,7 @@ pub(crate) fn request_gpui_reopen(pid: u32) -> Result<(), String> {
             );
         }
     };
-    request().map_err(|error| format!("Could not confirm reopening the running Cap GPUI: {error}"))
+    request().map_err(|error| format!("Could not confirm reopening the running Screencap GPUI: {error}"))
 }
 
 #[cfg(any(target_os = "macos", test))]
@@ -644,7 +644,7 @@ fn forward_deep_links_to_gpui(pid: u32, args: &[String]) -> bool {
         endpoint
     });
     let Some(endpoint) = endpoint else {
-        warn!(pid, "could not find the Cap GPUI deep-link endpoint");
+        warn!(pid, "could not find the Screencap GPUI deep-link endpoint");
         return false;
     };
 
@@ -659,7 +659,7 @@ fn forward_deep_links_to_gpui(pid: u32, args: &[String]) -> bool {
             });
         match result {
             Ok(()) => forwarded = true,
-            Err(error) => warn!(%error, "could not forward a deep link to Cap GPUI"),
+            Err(error) => warn!(%error, "could not forward a deep link to Screencap GPUI"),
         }
     }
 
@@ -787,7 +787,7 @@ fn launch_linux_activation(
     path: Option<&std::path::Path>,
     launch: impl FnOnce(&std::path::Path, &[String]) -> Result<(), String>,
 ) -> Result<(), String> {
-    let path = path.ok_or_else(|| "Cap GPUI isn't included in this build".to_string())?;
+    let path = path.ok_or_else(|| "Screencap GPUI isn't included in this build".to_string())?;
     launch(path, &[])
 }
 
@@ -801,7 +801,7 @@ fn write_handoff_marker() {
         .map(|since| since.as_secs())
         .unwrap_or_default();
     if let Err(error) = std::fs::write(&path, stamp.to_string()) {
-        warn!(%error, "could not write the Cap GPUI handoff marker");
+        warn!(%error, "could not write the Screencap GPUI handoff marker");
     }
 }
 
@@ -829,7 +829,7 @@ fn spawn_detached(path: &std::path::Path, args: &[String]) -> Result<(), String>
             Err(_) => (Stdio::from(file), Stdio::null()),
         },
         Err(error) => {
-            warn!(%error, "could not open the Cap GPUI log; discarding its output");
+            warn!(%error, "could not open the Screencap GPUI log; discarding its output");
             (Stdio::null(), Stdio::null())
         }
     };
@@ -850,7 +850,7 @@ fn spawn_detached(path: &std::path::Path, args: &[String]) -> Result<(), String>
 
     let mut child = command
         .spawn()
-        .map_err(|error| format!("Failed to launch Cap GPUI: {error}"))?;
+        .map_err(|error| format!("Failed to launch Screencap GPUI: {error}"))?;
     // Reap the child when it exits so it never lingers as a zombie.
     std::thread::spawn(move || {
         let _ = child.wait();
@@ -891,7 +891,7 @@ pub async fn gpui_app_available(app: AppHandle) -> bool {
 #[specta::specta]
 pub async fn switch_to_gpui_app(app: AppHandle) -> Result<(), String> {
     let path =
-        binary_path(&app).ok_or_else(|| "Cap GPUI isn't included in this build".to_string())?;
+        binary_path(&app).ok_or_else(|| "Screencap GPUI isn't included in this build".to_string())?;
     crate::prepare_app_exit(&app, || {
         let uses_shared_store = own_store_is_shared(&app);
         let previous_shared_flag = if uses_shared_store {
@@ -919,11 +919,11 @@ pub async fn switch_to_gpui_app(app: AppHandle) -> Result<(), String> {
                 }
                 #[cfg(not(target_os = "linux"))]
                 activate_instance(pid);
-                info!(pid, "Cap GPUI is already running; requested its controls");
+                info!(pid, "Screencap GPUI is already running; requested its controls");
             }
             None => {
                 write_handoff_marker();
-                info!(path = %path.display(), "handing off to Cap GPUI");
+                info!(path = %path.display(), "handing off to Screencap GPUI");
                 if let Err(error) = spawn_detached(&path, &[]) {
                     let _ = std::fs::remove_file(handoff_marker());
                     if !uses_shared_store {
@@ -1041,7 +1041,7 @@ fn redirect_decision(app: &AppHandle) -> Result<bool, String> {
             if let Err(error) = GeneralSettingsStore::update(app, |settings| {
                 settings.enable_gpui_app = false;
             }) {
-                warn!(%error, "could not reconcile the Cap GPUI setting");
+                warn!(%error, "could not reconcile the Screencap GPUI setting");
             }
         }
         return Ok(false);
@@ -1068,38 +1068,38 @@ fn redirect_decision(app: &AppHandle) -> Result<bool, String> {
         activate_instance(pid);
         info!(
             pid,
-            "Cap GPUI is already running; preserving the existing instance"
+            "Screencap GPUI is already running; preserving the existing instance"
         );
         return Ok(true);
     }
 
     let marker = handoff_marker();
     if marker.exists() {
-        warn!("the last Cap GPUI session exited unexpectedly; taking back over");
+        warn!("the last Screencap GPUI session exited unexpectedly; taking back over");
         let _ = std::fs::remove_file(&marker);
         if let Err(error) = GeneralSettingsStore::update(app, |settings| {
             settings.enable_gpui_app = false;
         }) {
-            warn!(%error, "could not clear the Cap GPUI setting");
+            warn!(%error, "could not clear the Screencap GPUI setting");
         }
         if !own_store_is_shared(app) {
             write_shared_store_flag(false);
         }
         app.dialog()
             .message(
-                "The native Cap app exited unexpectedly last time, so the classic app has been restored.",
+                "The native Screencap app exited unexpectedly last time, so the classic app has been restored.",
             )
             .show(|_| {});
         return Ok(false);
     }
 
     let Some(path) = binary_path(app) else {
-        warn!("Cap GPUI is enabled but its binary was not found; starting this app instead");
+        warn!("Screencap GPUI is enabled but its binary was not found; starting this app instead");
         return Ok(false);
     };
 
     write_handoff_marker();
-    info!(path = %path.display(), "handing off to Cap GPUI at startup");
+    info!(path = %path.display(), "handing off to Screencap GPUI at startup");
     #[cfg(any(target_os = "macos", windows))]
     let args = std::env::args()
         .skip(1)
@@ -1142,18 +1142,18 @@ mod tests {
         let result = super::launch_linux_activation(None, |_, _| {
             panic!("a missing GPUI binary must not be launched")
         });
-        assert_eq!(result.unwrap_err(), "Cap GPUI isn't included in this build");
+        assert_eq!(result.unwrap_err(), "Screencap GPUI isn't included in this build");
     }
 
     #[test]
     fn linux_activation_preserves_launch_failure() {
         let path = std::path::Path::new("/opt/cap/cap-gpui");
         let result = super::launch_linux_activation(Some(path), |_, _| {
-            Err("Failed to launch Cap GPUI: permission denied".into())
+            Err("Failed to launch Screencap GPUI: permission denied".into())
         });
         assert_eq!(
             result.unwrap_err(),
-            "Failed to launch Cap GPUI: permission denied"
+            "Failed to launch Screencap GPUI: permission denied"
         );
     }
 
@@ -1309,15 +1309,16 @@ mod tests {
     #[test]
     fn forwarded_gpui_deep_links_are_scheme_and_size_limited() {
         assert!(is_forwardable_gpui_deep_link(
-            "cap-desktop://signin?token=test"
+            "screencap-desktop://signin?token=test"
         ));
-        assert!(is_forwardable_gpui_deep_link(
+        assert!(!is_forwardable_gpui_deep_link(
             "cap://action?value=%22stop_recording%22"
         ));
-        assert!(!is_forwardable_gpui_deep_link("https://cap.so/signin"));
-        assert!(!is_forwardable_gpui_deep_link("cap-desktop-other://signin"));
+        assert!(!is_forwardable_gpui_deep_link("cap-desktop://signin"));
+        assert!(!is_forwardable_gpui_deep_link("https://screencap.co/signin"));
+        assert!(!is_forwardable_gpui_deep_link("screencap-desktop-other://signin"));
         assert!(!is_forwardable_gpui_deep_link(&format!(
-            "cap://action?value={}",
+            "screencap-desktop://action?value={}",
             "x".repeat(MAX_FORWARDED_DEEP_LINK_BYTES)
         )));
     }
@@ -1336,7 +1337,7 @@ mod tests {
             .unwrap();
         let action: serde_json::Value = serde_json::from_str(&value).unwrap();
 
-        assert_eq!(url.scheme(), "cap-desktop");
+        assert_eq!(url.scheme(), "screencap-desktop");
         assert_eq!(url.host_str(), Some("action"));
         assert_eq!(
             action["open_editor"]["project_path"],
@@ -1356,8 +1357,8 @@ mod tests {
                 .is_none()
         );
         assert_eq!(
-            forwarded_gpui_argument("cap-desktop://signin?token=secret"),
-            Some("cap-desktop://signin?token=secret".to_string())
+            forwarded_gpui_argument("screencap-desktop://signin?token=secret"),
+            Some("screencap-desktop://signin?token=secret".to_string())
         );
     }
 
@@ -1390,8 +1391,8 @@ mod tests {
         let project = directory.path().join("Recording.cap");
         std::fs::create_dir(&project).unwrap();
         for argument in [
-            "cap-desktop://auth?token=fixture".to_string(),
-            "cap://action?value=%22stop_recording%22".to_string(),
+            "screencap-desktop://auth?token=fixture".to_string(),
+            "screencap-desktop://action?value=%22stop_recording%22".to_string(),
             project.to_str().unwrap().to_string(),
             reqwest::Url::from_file_path(&project).unwrap().to_string(),
         ] {

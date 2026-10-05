@@ -331,38 +331,6 @@ export function createCurrentRecordingQuery() {
 	return currentRecording;
 }
 
-export function createLicenseQuery() {
-	const query = createQuery(() => ({
-		queryKey: ["licenseQuery"],
-		queryFn: async () => {
-			const settings = await generalSettingsStore.get();
-			const auth = await authStore.get();
-
-			if (auth?.plan?.upgraded || auth?.plan?.manual)
-				return { type: "pro" as const, ...auth.plan };
-			if (settings?.commercialLicense)
-				return {
-					type: "commercial" as const,
-					...settings.commercialLicense,
-					instanceId: settings.instanceId,
-				};
-			return { type: "personal" as const };
-		},
-	}));
-
-	const generalSettingsCleanup = generalSettingsStore.listen(() =>
-		query.refetch(),
-	);
-	const authCleanup = authStore.listen(() => query.refetch());
-
-	onCleanup(() => {
-		generalSettingsCleanup.then((cleanup) => cleanup());
-		authCleanup.then((cleanup) => cleanup());
-	});
-
-	return query;
-}
-
 function inputRequestWasSuperseded(error: unknown) {
 	return String(error).includes("selection was superseded by a newer request");
 }

@@ -65,7 +65,9 @@ declare global {
 	}
 }
 
-const MAX_RECORDING_FOR_FREE = 5 * 60 * 1000;
+// Screencap's free beta caps instant recordings at 15 minutes for everyone. The server enforces the
+// same limit (SCREENCAP_MAX_RECORDING_SECONDS, see /api/upload/limits); keep the two in step.
+const MAX_RECORDING_FOR_FREE = 15 * 60 * 1000;
 const NO_MICROPHONE = "No Microphone";
 const NO_WEBCAM = "No Webcam";
 const FAKE_WINDOW_BOUNDS_NAME = "recording-controls-interactive-area";
@@ -844,11 +846,7 @@ function InProgressRecordingInner() {
 	const isMaxRecordingLimitEnabled = () => {
 		// Only enforce the limit on instant mode.
 		// We enforce it on studio mode when exporting.
-		return (
-			optionsQuery.rawOptions.mode === "instant" &&
-			// If the data is loaded and the user is not upgraded
-			authData()?.plan?.upgraded === false
-		);
+		return optionsQuery.rawOptions.mode === "instant";
 	};
 
 	let aborted = false;

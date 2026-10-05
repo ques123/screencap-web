@@ -675,7 +675,7 @@ impl CapMcpServer {
                 CallToolResult::structured_error(serde_json::to_value(error).unwrap_or_else(|_| {
                     json!({
                         "code": "TEMPORARY_UNAVAILABLE",
-                        "message": "The Cap response could not be represented",
+                        "message": "The Screencap response could not be represented",
                         "retryable": true,
                     })
                 }))
@@ -767,7 +767,7 @@ impl CapMcpServer {
             if failed {
                 return Err(AgentApiError {
                     code: "NOT_READY".to_string(),
-                    message: "Cap processing failed".to_string(),
+                    message: "Screencap processing failed".to_string(),
                     retryable: false,
                     retry_after_ms: None,
                     request_id: None,
@@ -784,7 +784,7 @@ impl CapMcpServer {
             if tokio::time::Instant::now() >= deadline {
                 return Err(AgentApiError {
                     code: "NOT_READY".to_string(),
-                    message: "Timed out waiting for Cap processing".to_string(),
+                    message: "Timed out waiting for Screencap processing".to_string(),
                     retryable: true,
                     retry_after_ms: Some(2_000),
                     request_id: None,
@@ -832,7 +832,7 @@ impl CapMcpServer {
                             .get("error")
                             .and_then(|error| error.get("message"))
                             .and_then(Value::as_str)
-                            .unwrap_or("Cap operation failed")
+                            .unwrap_or("Screencap operation failed")
                             .to_string(),
                         retryable: false,
                         retry_after_ms: None,
@@ -843,12 +843,12 @@ impl CapMcpServer {
                     });
                 }
                 Some("queued" | "running") => {}
-                _ => return Err(Self::invalid("Cap returned an invalid operation state")),
+                _ => return Err(Self::invalid("Screencap returned an invalid operation state")),
             }
             if tokio::time::Instant::now() >= deadline {
                 return Err(AgentApiError {
                     code: "NOT_READY".to_string(),
-                    message: "Timed out waiting for the Cap operation".to_string(),
+                    message: "Timed out waiting for the Screencap operation".to_string(),
                     retryable: true,
                     retry_after_ms: Some(2_000),
                     request_id: None,
@@ -886,7 +886,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_get",
-        description = "Get lightweight Cap metadata, processing state, counts, and explicit capabilities",
+        description = "Get lightweight recording metadata, processing state, counts, and explicit capabilities",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -904,7 +904,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_context",
-        description = "Get Cap content and activity. Large transcript and activity fields are returned as cap:// resources",
+        description = "Get Screencap content and activity. Large transcript and activity fields are returned as cap:// resources",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -932,7 +932,7 @@ impl CapMcpServer {
                     let uri = format!("cap://caps/{id}/{field}");
                     object.insert(field.to_string(), json!({ "resourceUri": uri }));
                     links.push(ContentBlock::resource_link(
-                        Resource::new(&uri, format!("Cap {field}"))
+                        Resource::new(&uri, format!("Recording {field}"))
                             .with_mime_type("application/json"),
                     ));
                 }
@@ -973,7 +973,7 @@ impl CapMcpServer {
     )]
     async fn caps_process(&self, Parameters(input): Parameters<ProcessInput>) -> CallToolResult {
         if let Some(result) =
-            Self::require_confirmation(input.confirmed, "start paid Cap processing")
+            Self::require_confirmation(input.confirmed, "start paid Screencap processing")
         {
             return result;
         }
@@ -1070,7 +1070,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "operations_get",
-        description = "Get the current state and result of an asynchronous Cap operation",
+        description = "Get the current state and result of an asynchronous Screencap operation",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -1095,7 +1095,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "operations_wait",
-        description = "Wait for an existing durable Cap operation to finish without starting new work",
+        description = "Wait for an existing durable Screencap operation to finish without starting new work",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -1113,7 +1113,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_duplicate",
-        description = "Queue a retry-safe Cap and media duplication after explicit user confirmation",
+        description = "Queue a retry-safe recording and media duplication after explicit user confirmation",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -1125,7 +1125,7 @@ impl CapMcpServer {
         &self,
         Parameters(input): Parameters<CapOperationInput>,
     ) -> CallToolResult {
-        if let Some(result) = Self::require_confirmation(input.confirmed, "duplicate this Cap") {
+        if let Some(result) = Self::require_confirmation(input.confirmed, "duplicate this recording") {
             return result;
         }
         let id = match cap_id(&input.cap) {
@@ -1141,7 +1141,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_delete",
-        description = "Permanently delete a Cap and its media through a retry-safe operation after explicit user confirmation",
+        description = "Permanently delete a recording and its media through a retry-safe operation after explicit user confirmation",
         annotations(
             read_only_hint = false,
             destructive_hint = true,
@@ -1154,7 +1154,7 @@ impl CapMcpServer {
         Parameters(input): Parameters<CapOperationInput>,
     ) -> CallToolResult {
         if let Some(result) =
-            Self::require_confirmation(input.confirmed, "permanently delete this Cap and its media")
+            Self::require_confirmation(input.confirmed, "permanently delete this recording and its media")
         {
             return result;
         }
@@ -1171,7 +1171,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "account_get",
-        description = "Get the authenticated Cap account and explicit account capabilities",
+        description = "Get the authenticated Screencap account and explicit account capabilities",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -1198,7 +1198,7 @@ impl CapMcpServer {
         Parameters(input): Parameters<AccountReferralsInput>,
     ) -> CallToolResult {
         if let Some(result) =
-            Self::require_confirmation(input.confirmed, "open the Cap referral portal")
+            Self::require_confirmation(input.confirmed, "open the Screencap referral portal")
         {
             return result;
         }
@@ -1350,7 +1350,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "organization_billing_checkout",
-        description = "Create a Cap Pro checkout URL after explicit user confirmation; the user completes payment in a browser",
+        description = "Create a Pro checkout URL after explicit user confirmation; the user completes payment in a browser",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -1363,7 +1363,7 @@ impl CapMcpServer {
         Parameters(input): Parameters<OrganizationBillingCheckoutInput>,
     ) -> CallToolResult {
         if let Some(result) =
-            Self::require_confirmation(input.confirmed, "create a Cap Pro checkout")
+            Self::require_confirmation(input.confirmed, "create a Pro checkout")
         {
             return result;
         }
@@ -1405,7 +1405,7 @@ impl CapMcpServer {
         Parameters(input): Parameters<OrganizationActionInput>,
     ) -> CallToolResult {
         if let Some(result) =
-            Self::require_confirmation(input.confirmed, "open the Cap billing portal")
+            Self::require_confirmation(input.confirmed, "open the Screencap billing portal")
         {
             return result;
         }
@@ -2203,7 +2203,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "analytics_get",
-        description = "Get tenant-bound organization, space, or Cap analytics for an explicit time range",
+        description = "Get tenant-bound organization, space, or recording analytics for an explicit time range",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -2742,7 +2742,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_settings_get",
-        description = "Get Cap viewer-setting overrides, effective settings, inheritance, and capabilities",
+        description = "Get recording viewer-setting overrides, effective settings, inheritance, and capabilities",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -2760,7 +2760,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_settings_update",
-        description = "Update Cap viewer settings after explicit user confirmation",
+        description = "Update recording viewer settings after explicit user confirmation",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -2773,7 +2773,7 @@ impl CapMcpServer {
         Parameters(input): Parameters<CapSettingsUpdateInput>,
     ) -> CallToolResult {
         if let Some(result) =
-            Self::require_confirmation(input.confirmed, "update these Cap viewer settings")
+            Self::require_confirmation(input.confirmed, "update these recording viewer settings")
         {
             return result;
         }
@@ -2798,7 +2798,7 @@ impl CapMcpServer {
             body.insert("defaultPlaybackSpeed".to_string(), json!(speed));
         }
         if body.is_empty() {
-            return Self::result(Err(Self::invalid("Provide at least one Cap setting")));
+            return Self::result(Err(Self::invalid("Provide at least one recording setting")));
         }
         Self::result(
             self.client
@@ -2813,7 +2813,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_shares_get",
-        description = "Get explicit organization and space sharing targets for an owned Cap",
+        description = "Get explicit organization and space sharing targets for an owned recording",
         annotations(
             read_only_hint = true,
             destructive_hint = false,
@@ -2831,7 +2831,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_move",
-        description = "Move an owned Cap within its personal, organization, or space container after explicit user confirmation",
+        description = "Move an owned recording within its personal, organization, or space container after explicit user confirmation",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -2840,7 +2840,7 @@ impl CapMcpServer {
         )
     )]
     async fn caps_move(&self, Parameters(input): Parameters<CapMoveInput>) -> CallToolResult {
-        if let Some(result) = Self::require_confirmation(input.confirmed, "move this Cap") {
+        if let Some(result) = Self::require_confirmation(input.confirmed, "move this recording") {
             return result;
         }
         if !matches!(
@@ -2882,7 +2882,7 @@ impl CapMcpServer {
         )
     )]
     async fn caps_share_set(&self, Parameters(input): Parameters<CapShareInput>) -> CallToolResult {
-        if let Some(result) = Self::require_confirmation(input.confirmed, "change this Cap share") {
+        if let Some(result) = Self::require_confirmation(input.confirmed, "change this recording share") {
             return result;
         }
         let segment = match input.target_type.as_str() {
@@ -3404,7 +3404,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_update_title",
-        description = "Change a Cap title after explicit user confirmation",
+        description = "Change a recording title after explicit user confirmation",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -3413,7 +3413,7 @@ impl CapMcpServer {
         )
     )]
     async fn caps_update_title(&self, Parameters(input): Parameters<TitleInput>) -> CallToolResult {
-        if let Some(result) = Self::require_confirmation(input.confirmed, "change this Cap title") {
+        if let Some(result) = Self::require_confirmation(input.confirmed, "change this recording title") {
             return result;
         }
         let id = match cap_id(&input.cap) {
@@ -3433,7 +3433,7 @@ impl CapMcpServer {
 
     #[tool(
         name = "caps_set_visibility",
-        description = "Set a Cap public or private after explicit user confirmation",
+        description = "Set a recording public or private after explicit user confirmation",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -3446,7 +3446,7 @@ impl CapMcpServer {
         Parameters(input): Parameters<VisibilityInput>,
     ) -> CallToolResult {
         if let Some(result) =
-            Self::require_confirmation(input.confirmed, "change this Cap visibility")
+            Self::require_confirmation(input.confirmed, "change this recording visibility")
         {
             return result;
         }
@@ -3477,7 +3477,7 @@ impl ServerHandler for CapMcpServer {
         )
         .with_server_info(Implementation::new("cap", env!("CARGO_PKG_VERSION")))
         .with_instructions(
-            "Use Cap resources for large transcript and activity data. Passwords, S3 credentials, image files, and newly issued developer credentials are never accepted or returned by MCP; use the corresponding `cap caps`, `cap organizations`, `cap account`, or `cap developers` command in a secure terminal.",
+            "Use Screencap resources for large transcript and activity data. Passwords, S3 credentials, image files, and newly issued developer credentials are never accepted or returned by MCP; use the corresponding `cap caps`, `cap organizations`, `cap account`, or `cap developers` command in a secure terminal.",
         )
     }
 
@@ -3492,9 +3492,9 @@ impl ServerHandler for CapMcpServer {
                 .map(|field| {
                     ResourceTemplate::new(
                         format!("cap://caps/{{id}}/{field}"),
-                        format!("Cap {field}"),
+                        format!("Recording {field}"),
                     )
-                    .with_description(format!("Full {field} content for a Cap"))
+                    .with_description(format!("Full {field} content for a recording"))
                     .with_mime_type("application/json")
                 })
                 .collect(),
@@ -3507,19 +3507,19 @@ impl ServerHandler for CapMcpServer {
         _context: rmcp::service::RequestContext<RoleServer>,
     ) -> Result<ReadResourceResult, ErrorData> {
         let url = url::Url::parse(&request.uri)
-            .map_err(|_| ErrorData::invalid_params("Invalid Cap resource URI", None))?;
+            .map_err(|_| ErrorData::invalid_params("Invalid Screencap resource URI", None))?;
         if url.scheme() != "cap" || url.host_str() != Some("caps") {
-            return Err(ErrorData::resource_not_found("Unknown Cap resource", None));
+            return Err(ErrorData::resource_not_found("Unknown Screencap resource", None));
         }
         let segments = url
             .path_segments()
             .map(|segments| segments.filter(|part| !part.is_empty()).collect::<Vec<_>>())
             .unwrap_or_default();
         let [id, field] = segments.as_slice() else {
-            return Err(ErrorData::resource_not_found("Unknown Cap resource", None));
+            return Err(ErrorData::resource_not_found("Unknown Screencap resource", None));
         };
         if !matches!(*field, "transcript" | "comments" | "reactions") {
-            return Err(ErrorData::resource_not_found("Unknown Cap resource", None));
+            return Err(ErrorData::resource_not_found("Unknown Screencap resource", None));
         }
         let id = cap_id(id).map_err(|error| {
             ErrorData::invalid_params(error.message.clone(), serde_json::to_value(error).ok())
@@ -3542,7 +3542,7 @@ impl ServerHandler for CapMcpServer {
         } else {
             resource
                 .get(*field)
-                .ok_or_else(|| ErrorData::resource_not_found("Cap resource is unavailable", None))?
+                .ok_or_else(|| ErrorData::resource_not_found("Screencap resource is unavailable", None))?
         };
         let text = serde_json::to_string(content)
             .map_err(|error| ErrorData::internal_error(error.to_string(), None))?;

@@ -872,7 +872,7 @@ where
 
 /// Where the shared downscaled-thumbnail cache lives: the OS cache dir under
 /// this app's own identifier (cache data is regenerable, so it belongs where
-/// backups and migration skip it), not the `so.cap.desktop` app-data dir both
+/// backups and migration skip it), not the `co.screencap.desktop` app-data dir both
 /// apps share.
 fn thumbnail_cache_dir() -> PathBuf {
     // Verification runs point CAP_GPUI_APP_DATA_DIR at a sandbox; a cache that
@@ -882,7 +882,7 @@ fn thumbnail_cache_dir() -> PathBuf {
     }
     dirs::cache_dir().map_or_else(
         || crate::store::app_data_dir().join("thumbnail-cache"),
-        |base| base.join("so.cap.desktop.gpui").join("thumbnails"),
+        |base| base.join("co.screencap.desktop.gpui").join("thumbnails"),
     )
 }
 
@@ -1412,7 +1412,7 @@ mod tests {
             &recordings,
             "studio-multi",
             &format!(
-                r#"{{"pretty_name":"Studio multi","sharing":{{"id":"abc","link":"https://cap.so/s/abc"}},"segments":[{segment},{segment},{segment}]}}"#
+                r#"{{"pretty_name":"Studio multi","sharing":{{"id":"abc","link":"https://screencap.co/s/abc"}},"segments":[{segment},{segment},{segment}]}}"#
             ),
         );
         std::thread::sleep(std::time::Duration::from_millis(6));
@@ -1491,7 +1491,7 @@ mod tests {
             RecordingStatus::Complete,
             "a MultipleSegments meta with no status key is Complete"
         );
-        assert_eq!(multi.sharing.as_deref(), Some("https://cap.so/s/abc"));
+        assert_eq!(multi.sharing.as_deref(), Some("https://screencap.co/s/abc"));
         assert!(
             multi.opens_editor(),
             "studio + Complete is the clickable row"

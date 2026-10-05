@@ -22,7 +22,7 @@ fn make_app_url_before_manage_does_not_panic_and_uses_default_server_url() {
         url,
         format!(
             "{}{}",
-            option_env!("VITE_SERVER_URL").unwrap_or("https://cap.so"),
+            option_env!("VITE_SERVER_URL").unwrap_or("https://screencap.co"),
             "/api/upload/multipart/initiate"
         )
     );

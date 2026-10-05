@@ -653,7 +653,7 @@ impl TeleprompterWindow {
                     .child(if self.playback_state.recording_paused {
                         "Scrolling paused with recording"
                     } else {
-                        "This window is hidden from Cap recordings"
+                        "This window is hidden from Screencap recordings"
                     }),
             );
 

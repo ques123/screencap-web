@@ -126,13 +126,13 @@ impl AccountArgs {
                 if body.is_empty() {
                     return Err("Provide at least one account update".to_string());
                 }
-                confirmation::require(args.yes, "Update the Cap account")?;
+                confirmation::require(args.yes, "Update the Screencap account")?;
                 agent_client::mutate(Method::PATCH, "/me", &json!(body), global_json, args.format)
                     .await
             }
             AccountCommands::Image(args) => match args.command {
                 AccountImageCommands::Set(args) => {
-                    confirmation::require(args.yes, "Update the Cap profile image")?;
+                    confirmation::require(args.yes, "Update the Screencap profile image")?;
                     let body = agent_client::image_payload(&args.image)?;
                     agent_client::mutate_confirmed(
                         Method::PUT,
@@ -144,7 +144,7 @@ impl AccountArgs {
                     .await
                 }
                 AccountImageCommands::Remove(args) => {
-                    confirmation::require(args.yes, "Remove the Cap profile image")?;
+                    confirmation::require(args.yes, "Remove the Screencap profile image")?;
                     agent_client::mutate_confirmed(
                         Method::DELETE,
                         "/me/image",
@@ -156,7 +156,7 @@ impl AccountArgs {
                 }
             },
             AccountCommands::Referrals(args) => {
-                confirmation::require(args.yes, "Open the Cap referral portal")?;
+                confirmation::require(args.yes, "Open the Screencap referral portal")?;
                 let client = AgentClient::from_credentials().map_err(|error| error.to_string())?;
                 let value = client
                     .mutate_json_confirmed(Method::POST, "/me/referrals", &json!({}))
@@ -166,7 +166,7 @@ impl AccountArgs {
                 agent_client::print_value(&value, resolve_format(global_json, args.format))
             }
             AccountCommands::SignOutAll(args) => {
-                confirmation::require(args.yes, "Sign out every Cap device and agent")?;
+                confirmation::require(args.yes, "Sign out every Screencap device and agent")?;
                 let client = AgentClient::from_credentials().map_err(|error| error.to_string())?;
                 let value = client
                     .mutate_json_confirmed(Method::POST, "/me/sign-out-all", &json!({}))

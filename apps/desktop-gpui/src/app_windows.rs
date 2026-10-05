@@ -610,7 +610,7 @@ pub fn init(main: WindowHandle<MainWindow>, session: Entity<RecordingSession>, c
     })
     .detach();
 
-    // The `cap-desktop://action` executor (see `crate::deeplink`): started
+    // The `screencap-desktop://action` executor (see `crate::deeplink`): started
     // here because the actions dispatch into this registry, which now exists.
     // The Tauri app orders it the same way -- `DeepLinkActionExecutor::new` in
     // `setup`, before `on_open_url` is wired (`lib.rs:5449`).
@@ -1151,7 +1151,7 @@ pub fn open_settings(page: Page, cx: &mut App) {
             // repositions them. (The main window returns `None` there and
             // hand-draws its own.)
             titlebar: Some(gpui::TitlebarOptions {
-                title: Some("Cap Settings".into()),
+                title: Some("Screencap Settings".into()),
                 appears_transparent: true,
                 traffic_light_position: Some(settings_window::TRAFFIC_LIGHTS),
             }),
@@ -1333,7 +1333,7 @@ pub fn open_onboarding(cx: &mut App) {
             ..Default::default()
         },
         |window, cx| {
-            window.set_window_title("Welcome to Cap");
+            window.set_window_title("Welcome to Screencap");
             cx.new(|cx| OnboardingWindow::new(window, cx))
         },
     );
@@ -1473,7 +1473,7 @@ pub fn open_mode_select(cx: &mut App) -> bool {
             // puts them and only the title is hidden (`hidden_title(true)` +
             // `TitleBarStyle::Overlay`).
             titlebar: Some(gpui::TitlebarOptions {
-                title: Some("Cap Mode Selection".into()),
+                title: Some("Screencap Mode Selection".into()),
                 appears_transparent: true,
                 traffic_light_position: mode_select_window::TRAFFIC_LIGHTS,
             }),
@@ -1591,7 +1591,7 @@ pub fn open_teleprompter(cx: &mut App) {
             // true`, `trafficLightPosition: (14, 14)` -- the real AppKit
             // buttons, moved, as on the settings window.
             titlebar: Some(gpui::TitlebarOptions {
-                title: Some("Cap Teleprompter".into()),
+                title: Some("Screencap Teleprompter".into()),
                 appears_transparent: true,
                 traffic_light_position: Some(teleprompter_window::TRAFFIC_LIGHTS),
             }),
@@ -2522,16 +2522,16 @@ impl OwnWindow {
 
     pub fn title(self) -> &'static str {
         match self {
-            Self::Main => "Cap",
-            Self::Settings => "Cap Settings",
-            Self::Controls => "Cap Recording Controls",
-            Self::Camera => "Cap Camera",
-            Self::ModeSelect => "Cap Mode Selection",
-            Self::Teleprompter => "Cap Teleprompter",
-            Self::TargetSelect => "Cap Target Select",
-            Self::Editor => "Cap Editor",
-            Self::ScreenshotEditor => "Cap Screenshot Editor",
-            Self::Onboarding => "Welcome to Cap",
+            Self::Main => "Screencap",
+            Self::Settings => "Screencap Settings",
+            Self::Controls => "Screencap Recording Controls",
+            Self::Camera => "Screencap Camera",
+            Self::ModeSelect => "Screencap Mode Selection",
+            Self::Teleprompter => "Screencap Teleprompter",
+            Self::TargetSelect => "Screencap Target Select",
+            Self::Editor => "Screencap Editor",
+            Self::ScreenshotEditor => "Screencap Screenshot Editor",
+            Self::Onboarding => "Welcome to Screencap",
         }
     }
 }
@@ -2718,7 +2718,7 @@ fn append_own_excluded_window_ids(
                 tracing::warn!(
                     title,
                     number,
-                    "excluded Cap window is not visible to CGWindowList"
+                    "excluded Screencap window is not visible to CGWindowList"
                 );
             } else {
                 tracing::debug!(title, number, "skipping a hidden excluded Cap window");
@@ -2983,11 +2983,11 @@ pub(crate) fn clean_capture_camera_message(cx: &App) -> &'static str {
         .and_then(|lease| lease.config.as_ref())
         .is_some_and(|config| config.mode == RecordingMode::Instant)
     {
-        return "Cap will hide its preview and controls. Any selected camera will appear at its preview position with the selected shape and effects. Keep the whole preview inside the capture area. Opening Cap will stop this Instant recording before showing its controls.";
+        return "Screencap will hide its preview and controls. Any selected camera will appear at its preview position with the selected shape and effects. Keep the whole preview inside the capture area. Opening Screencap will stop this Instant recording before showing its controls.";
     }
     #[cfg(not(target_os = "linux"))]
     let _ = cx;
-    "Cap will hide its camera preview and recording controls. Any selected camera will keep recording as a separate editable track."
+    "Screencap will hide its camera preview and recording controls. Any selected camera will keep recording as a separate editable track."
 }
 
 pub fn clean_capture_owned(cx: &App) -> bool {
@@ -3255,7 +3255,7 @@ fn hide_retained_capture_windows(cx: &mut App) -> anyhow::Result<CleanVisibility
         let was_visible = handle
             .update(cx, |_, window, _| window.retained_visibility())?
             .ok_or_else(|| {
-                anyhow::anyhow!("A Cap window cannot acknowledge clean capture visibility")
+                anyhow::anyhow!("A Screencap window cannot acknowledge clean capture visibility")
             })?;
         visible.push((handle, was_visible));
     }
@@ -3283,7 +3283,7 @@ fn hide_retained_capture_windows(cx: &mut App) -> anyhow::Result<CleanVisibility
                 let (_, visible) = receipt.await??;
                 anyhow::ensure!(
                     !visible,
-                    "The compositor did not acknowledge hiding a Cap window"
+                    "The compositor did not acknowledge hiding a Screencap window"
                 );
             }
             Ok::<_, anyhow::Error>(())
@@ -3780,11 +3780,11 @@ pub fn open_camera_window(cx: &mut App) {
             titlebar: None,
             #[cfg(target_os = "linux")]
             titlebar: Some(gpui::TitlebarOptions {
-                title: Some("Cap Camera".into()),
+                title: Some("Screencap Camera".into()),
                 ..Default::default()
             }),
             #[cfg(target_os = "linux")]
-            app_id: Some("Cap".into()),
+            app_id: Some("Screencap".into()),
             #[cfg(target_os = "linux")]
             window_decorations: Some(gpui::WindowDecorations::Client),
             // Non-activating panel, same as the bar: the bubble is clickable
@@ -4645,7 +4645,7 @@ fn open_editor_window(
             // `Some(Some(LogicalPosition::new(20.0, 32.0)))`, and the header's
             // left group reserves an `h-full w-16` spacer for them.
             titlebar: Some(gpui::TitlebarOptions {
-                title: Some("Cap Editor".into()),
+                title: Some("Screencap Editor".into()),
                 appears_transparent: true,
                 traffic_light_position: editor_window::TRAFFIC_LIGHTS,
             }),
@@ -5852,7 +5852,7 @@ pub(crate) fn request_editor_deletion(
             platform::alert_dialog("Recording retained", &error);
             return;
         }
-        if !platform::confirm_dialog("Cap", "Are you sure you want to delete this recording?", "Yes", "No", false) {
+        if !platform::confirm_dialog("Screencap", "Are you sure you want to delete this recording?", "Yes", "No", false) {
             return;
         }
         let prepared = cx.update(|cx| {
@@ -5916,7 +5916,7 @@ pub(crate) fn request_editor_deletion(
         let result = match futures_util::future::select(&mut task, &mut notice).await {
             futures_util::future::Either::Left((result, _)) => result,
             futures_util::future::Either::Right(_) => {
-                platform::alert_dialog("Deletion is still finishing", "Cap is waiting for recording cleanup to finish before completing this deletion.");
+                platform::alert_dialog("Deletion is still finishing", "Screencap is waiting for recording cleanup to finish before completing this deletion.");
                 task.await
             }
         }.unwrap_or_else(|error| Err(format!("Recording deletion failed: {error}")));
@@ -6406,7 +6406,7 @@ pub fn open_screenshot_editor(path: PathBuf, cx: &mut App) {
         WindowOptions {
             window_bounds: Some(WindowBounds::Windowed(bounds)),
             titlebar: Some(gpui::TitlebarOptions {
-                title: Some("Cap Screenshot Editor".into()),
+                title: Some("Screencap Screenshot Editor".into()),
                 appears_transparent: true,
                 traffic_light_position: None,
             }),
@@ -7491,16 +7491,16 @@ mod tests {
     #[test]
     fn own_window_titles_match_cap_window_id() {
         let expected = [
-            (OwnWindow::Main, "Cap"),
-            (OwnWindow::Settings, "Cap Settings"),
-            (OwnWindow::Controls, "Cap Recording Controls"),
-            (OwnWindow::Camera, "Cap Camera"),
-            (OwnWindow::ModeSelect, "Cap Mode Selection"),
-            (OwnWindow::Teleprompter, "Cap Teleprompter"),
-            (OwnWindow::TargetSelect, "Cap Target Select"),
-            (OwnWindow::Editor, "Cap Editor"),
-            (OwnWindow::ScreenshotEditor, "Cap Screenshot Editor"),
-            (OwnWindow::Onboarding, "Welcome to Cap"),
+            (OwnWindow::Main, "Screencap"),
+            (OwnWindow::Settings, "Screencap Settings"),
+            (OwnWindow::Controls, "Screencap Recording Controls"),
+            (OwnWindow::Camera, "Screencap Camera"),
+            (OwnWindow::ModeSelect, "Screencap Mode Selection"),
+            (OwnWindow::Teleprompter, "Screencap Teleprompter"),
+            (OwnWindow::TargetSelect, "Screencap Target Select"),
+            (OwnWindow::Editor, "Screencap Editor"),
+            (OwnWindow::ScreenshotEditor, "Screencap Screenshot Editor"),
+            (OwnWindow::Onboarding, "Welcome to Screencap"),
         ];
         assert_eq!(OwnWindow::ALL.len(), expected.len());
         for (kind, title) in expected {
@@ -7512,7 +7512,7 @@ mod tests {
     /// How the table lines up with `DEFAULT_EXCLUDED_WINDOW_TITLES`
     /// (`general_settings.rs:104-114`): the defaults name three windows this
     /// app does not have, and four of ours are deliberately not in the defaults
-    /// -- "Cap Target Select" carries a comment over there explaining why it
+    /// -- "Screencap Target Select" carries a comment over there explaining why it
     /// must not be added (a Windows ghost-overlay bug), and the editors and
     /// onboarding are simply not excluded by default.
     #[test]
@@ -7526,12 +7526,12 @@ mod tests {
         assert_eq!(
             shared,
             vec![
-                &"Cap",
-                &"Cap Settings",
-                &"Cap Recording Controls",
-                &"Cap Camera",
-                &"Cap Mode Selection",
-                &"Cap Teleprompter",
+                &"Screencap",
+                &"Screencap Settings",
+                &"Screencap Recording Controls",
+                &"Screencap Camera",
+                &"Screencap Mode Selection",
+                &"Screencap Teleprompter",
             ]
         );
 
@@ -7542,9 +7542,9 @@ mod tests {
         assert_eq!(
             defaults_without_a_window,
             vec![
-                &"Cap Window Capture Occluder",
-                &"Cap Capture Area",
-                &"Cap Recordings Overlay",
+                &"Screencap Window Capture Occluder",
+                &"Screencap Capture Area",
+                &"Screencap Recordings Overlay",
             ]
         );
 
@@ -7602,15 +7602,15 @@ mod tests {
     #[test]
     fn the_teleprompter_rule_is_always_present_and_never_duplicated() {
         let from_nothing = own_window_exclusion_rules(Vec::new(), RecordingMode::Instant);
-        assert_eq!(from_nothing, vec![title_rule("Cap Teleprompter")]);
+        assert_eq!(from_nothing, vec![title_rule("Screencap Teleprompter")]);
         assert_eq!(
             excluded_own_windows(&from_nothing),
             vec![OwnWindow::Teleprompter]
         );
 
         let already_configured =
-            own_window_exclusion_rules(vec![title_rule("Cap Teleprompter")], RecordingMode::Studio);
-        assert_eq!(already_configured, vec![title_rule("Cap Teleprompter")]);
+            own_window_exclusion_rules(vec![title_rule("Screencap Teleprompter")], RecordingMode::Studio);
+        assert_eq!(already_configured, vec![title_rule("Screencap Teleprompter")]);
     }
 
     /// Our own windows are matched on title *alone*
@@ -7621,16 +7621,16 @@ mod tests {
     fn rules_that_need_more_than_a_title_never_match_our_windows() {
         let by_identity = vec![
             WindowExclusion {
-                bundle_identifier: Some("so.cap.desktop".to_string()),
+                bundle_identifier: Some("co.screencap.desktop".to_string()),
                 ..Default::default()
             },
             WindowExclusion {
-                owner_name: Some("Cap".to_string()),
+                owner_name: Some("Screencap".to_string()),
                 ..Default::default()
             },
             WindowExclusion {
-                owner_name: Some("Cap".to_string()),
-                window_title: Some("Cap".to_string()),
+                owner_name: Some("Screencap".to_string()),
+                window_title: Some("Screencap".to_string()),
                 ..Default::default()
             },
         ];

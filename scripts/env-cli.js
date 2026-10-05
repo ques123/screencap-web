@@ -151,8 +151,8 @@ async function main() {
 					if (!hasWeb)
 						return text({
 							message: "VITE_SERVER_URL",
-							placeholder: "https://cap.so",
-							defaultValue: "https://cap.so",
+							placeholder: "https://screencap.co",
+							defaultValue: "https://screencap.co",
 						});
 				},
 				VITE_VERCEL_AUTOMATION_BYPASS_SECRET: () => {

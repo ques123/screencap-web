@@ -64,7 +64,7 @@ app.get(
 		const params = new URLSearchParams({ ...data, user_id: user.id });
 		const localhostUrl =
 			port !== undefined ? buildLoopbackCallbackUrl(port, params) : undefined;
-		const deepLinkUrl = `cap-desktop://signin?${params}`;
+		const deepLinkUrl = `screencap-desktop://signin?${params}`;
 
 		if (platform === "web" && localhostUrl) {
 			return Response.redirect(localhostUrl);

@@ -426,7 +426,7 @@ impl AgentsArgs {
                 match format {
                     OutputFormat::Json => write_json(&result),
                     OutputFormat::Text => {
-                        println!("Installed Cap agent components for {}.", result.target);
+                        println!("Installed Screencap agent components for {}.", result.target);
                         Ok(())
                     }
                 }

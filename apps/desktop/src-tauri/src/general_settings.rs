@@ -104,18 +104,18 @@ impl MainWindowRecordingStartBehaviour {
     }
 }
 
-// NOTE: Do not add "Cap Target Select" here — on Windows, WDA_EXCLUDEFROMCAPTURE applied to that
+// NOTE: Do not add "Screencap Target Select" here — on Windows, WDA_EXCLUDEFROMCAPTURE applied to that
 // hidden window causes it to reappear as a ghost overlay after recording ends.
 const DEFAULT_EXCLUDED_WINDOW_TITLES: &[&str] = &[
-    "Cap",
-    "Cap Settings",
-    "Cap Recording Controls",
-    "Cap Camera",
-    "Cap Window Capture Occluder",
-    "Cap Capture Area",
-    "Cap Mode Selection",
-    "Cap Recordings Overlay",
-    "Cap Teleprompter",
+    "Screencap",
+    "Screencap Settings",
+    "Screencap Recording Controls",
+    "Screencap Camera",
+    "Screencap Window Capture Occluder",
+    "Screencap Capture Area",
+    "Screencap Mode Selection",
+    "Screencap Recordings Overlay",
+    "Screencap Teleprompter",
 ];
 
 pub fn default_excluded_windows() -> Vec<WindowExclusion> {
@@ -295,7 +295,7 @@ fn default_crash_recovery_recording() -> bool {
 
 fn default_transcription_hints() -> Vec<String> {
     vec![
-        "Cap".to_string(),
+        "Screencap".to_string(),
         "TypeScript".to_string(),
         "My Brand Name".to_string(),
         "mywebsite.com".to_string(),
@@ -304,7 +304,7 @@ fn default_transcription_hints() -> Vec<String> {
 
 fn default_server_url() -> String {
     std::option_env!("VITE_SERVER_URL")
-        .unwrap_or("https://cap.so")
+        .unwrap_or("https://screencap.co")
         .to_string()
 }
 
@@ -684,7 +684,7 @@ pub fn init(app: &AppHandle) {
     {
         store
             .excluded_windows
-            .retain(|w| w.window_title.as_deref() != Some("Cap Target Select"));
+            .retain(|w| w.window_title.as_deref() != Some("Screencap Target Select"));
         raw_store.set(REMOVE_TARGET_SELECT_MIGRATION_KEY, json!(true));
     }
 
@@ -968,7 +968,7 @@ mod tests {
     #[test]
     fn appends_missing_default_excluded_windows() {
         let mut excluded_windows = vec![
-            title_exclusion("Cap"),
+            title_exclusion("Screencap"),
             WindowExclusion {
                 bundle_identifier: None,
                 owner_name: Some("Preview".to_string()),

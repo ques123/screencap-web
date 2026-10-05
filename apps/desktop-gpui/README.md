@@ -803,7 +803,7 @@ Feedback, Changelog. **General** and **Recordings** are built.
 
 `general.tsx` writes through `generalSettingsStore`, i.e. the
 tauri-plugin-store file `Store.load("store")` — `store` (no extension) inside
-`so.cap.desktop`'s app-data dir. This app writes the same file, and every
+`co.screencap.desktop`'s app-data dir. This app writes the same file, and every
 write is a read-modify-write on the raw JSON that replaces exactly
 `store[section][key]`: `store::set_store_setting`. Serializing a typed struct
 back over the file would silently drop `auth`, `presets`, the migration flags
@@ -930,9 +930,9 @@ reports written in the same second have indistinguishable mtimes.
 ### File logging
 
 `main.rs` now installs a `tracing_appender::rolling::daily` layer alongside
-the existing stdout one, into `~/Library/Logs/so.cap.desktop` on macOS (the
+the existing stdout one, into `~/Library/Logs/co.screencap.desktop` on macOS (the
 directory the Tauri app already writes into) and
-`<local data>/so.cap.desktop/logs` elsewhere. The filename prefix is
+`<local data>/co.screencap.desktop/logs` elsewhere. The filename prefix is
 **`cap-gpui.log`**, deliberately not the Tauri app's `cap-desktop.log`: the
 two apps share the directory, and a shared prefix would interleave two
 processes' lines into one file and make either app's "newest log" lookup pick
@@ -2377,5 +2377,5 @@ panel it filters.
 `CAP_GPUI_TAURI_STORE=<path>` points every settings read and write at another
 file. Use it for anything that toggles a setting: the default is the store the
 shipping app is also writing, and a probe run should not be editing the real
-one. `cp "$HOME/Library/Application Support/so.cap.desktop/store" /tmp/probe`
+one. `cp "$HOME/Library/Application Support/co.screencap.desktop/store" /tmp/probe`
 first, so the copy carries the real unknown keys.

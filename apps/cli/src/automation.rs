@@ -14,7 +14,7 @@ use cap_automation::{
 use cap_recording::screen_capture::ScreenCaptureTarget;
 use serde_json::Value;
 
-const DESKTOP_BUNDLE_IDS: [&str; 2] = ["so.cap.desktop", "so.cap.desktop.dev"];
+const DESKTOP_BUNDLE_IDS: [&str; 2] = ["co.screencap.desktop", "co.screencap.desktop.dev"];
 
 const WEBHOOK_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 const COMMAND_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(300);
@@ -31,7 +31,7 @@ pub fn load_store() -> Option<AutomationsStore> {
     cap_automation::load_store_from_json(&load_desktop_store_value()?)
 }
 
-/// `(total_rules, enabled_rules)` configured in Cap Desktop, for `cap doctor`.
+/// `(total_rules, enabled_rules)` configured in Screencap Desktop, for `cap doctor`.
 pub fn rule_counts() -> (usize, usize) {
     let store = load_store().unwrap_or_default();
     let enabled = store.rules.iter().filter(|r| r.enabled).count();
@@ -353,12 +353,12 @@ impl AutomationHost for CliAutomationHost {
             .as_ref()
             .ok_or("No project path for preset")?;
 
-        let store = load_desktop_store_value().ok_or("Cap Desktop store not found")?;
+        let store = load_desktop_store_value().ok_or("Screencap Desktop store not found")?;
         let presets = store
             .get("presets")
             .and_then(|p| p.get("presets"))
             .and_then(Value::as_array)
-            .ok_or("No presets found in Cap Desktop store")?;
+            .ok_or("No presets found in Screencap Desktop store")?;
 
         let preset = presets
             .iter()
@@ -535,7 +535,7 @@ pub async fn run_upload_completed(project_path: &Path, link: &str, id: &str) {
     run_trigger(Trigger::UploadCompleted, ctx).await;
 }
 
-/// `cap automations list` — print the automation rules shared with Cap Desktop.
+/// `cap automations list` — print the automation rules shared with Screencap Desktop.
 pub fn list(format: crate::OutputFormat) -> Result<(), String> {
     let store = load_store().unwrap_or_default();
 
@@ -544,7 +544,7 @@ pub fn list(format: crate::OutputFormat) -> Result<(), String> {
         crate::OutputFormat::Text => {
             if store.rules.is_empty() {
                 println!(
-                    "No automations configured. Add them in Cap Desktop under Settings > Automations."
+                    "No automations configured. Add them in Screencap Desktop under Settings > Automations."
                 );
                 return Ok(());
             }

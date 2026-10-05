@@ -11,7 +11,7 @@ use crate::{OutputFormat, write_json};
 const MACOS_UPDATE_SCRIPT: &str = r#"set -eu
 tmp="$(mktemp "${TMPDIR:-/tmp}/cap-update.XXXXXX")"
 trap 'rm -f "$tmp"' EXIT HUP INT TERM
-curl -fsSL https://cap.so/install-cli.sh -o "$tmp"
+curl -fsSL https://screencap.co/install-cli.sh -o "$tmp"
 CAP_DESKTOP_FORCE_INSTALL=1 sh "$tmp"
 "#;
 
@@ -22,7 +22,7 @@ try {
 	Wait-Process -Id $parentPid -Timeout 30 -ErrorAction SilentlyContinue
 } catch {}
 $env:CAP_DESKTOP_FORCE_INSTALL = "1"
-irm https://cap.so/install-cli.ps1 | iex
+irm https://screencap.co/install-cli.ps1 | iex
 "#;
 
 #[derive(Serialize)]
@@ -44,7 +44,7 @@ pub fn run(format: OutputFormat) -> Result<(), String> {
                 installer: installer_url(),
             }),
             OutputFormat::Text => {
-                println!("Cap update started. It will continue after this command exits.");
+                println!("Screencap update started. It will continue after this command exits.");
                 Ok(())
             }
         }
@@ -54,7 +54,7 @@ pub fn run(format: OutputFormat) -> Result<(), String> {
     {
         let output = update_command()?
             .output()
-            .map_err(|e| format!("Could not start Cap update installer: {e}"))?;
+            .map_err(|e| format!("Could not start Screencap update installer: {e}"))?;
 
         if !output.status.success() {
             return Err(update_error(&output));
@@ -97,22 +97,22 @@ fn start_windows_update() -> Result<(), String> {
     command
         .spawn()
         .map(|_| ())
-        .map_err(|e| format!("Could not start Cap update installer: {e}"))
+        .map_err(|e| format!("Could not start Screencap update installer: {e}"))
 }
 
 #[cfg(not(any(target_os = "macos", windows)))]
 fn update_command() -> Result<Command, String> {
-    Err("Cap Desktop updates are only supported on macOS and Windows".to_string())
+    Err("Screencap Desktop updates are only supported on macOS and Windows".to_string())
 }
 
 #[cfg(target_os = "macos")]
 const fn installer_url() -> &'static str {
-    "https://cap.so/install-cli.sh"
+    "https://screencap.co/install-cli.sh"
 }
 
 #[cfg(windows)]
 const fn installer_url() -> &'static str {
-    "https://cap.so/install-cli.ps1"
+    "https://screencap.co/install-cli.ps1"
 }
 
 #[cfg(not(any(target_os = "macos", windows)))]
@@ -132,7 +132,7 @@ fn update_error(output: &Output) -> String {
         return stdout.trim().to_string();
     }
 
-    format!("Cap update installer exited with {}", output.status)
+    format!("Screencap update installer exited with {}", output.status)
 }
 
 #[cfg(not(windows))]

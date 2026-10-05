@@ -736,7 +736,7 @@ impl EditorWindow {
             .summary()
             .map(|summary| summary.pretty_name.clone())
             .filter(|name| !name.trim().is_empty())
-            .unwrap_or_else(|| "Cap Recording".into());
+            .unwrap_or_else(|| "Screencap Recording".into());
         let Some(ui) = self.export.as_mut() else {
             return;
         };
@@ -1076,7 +1076,6 @@ impl EditorWindow {
 
         let upgraded = store::auth_snapshot().is_upgraded();
         if !upgraded && duration >= 300.0 {
-            cx.open_url(crate::auth::PRICING_URL);
             return;
         }
 
@@ -1274,9 +1273,6 @@ impl EditorWindow {
                                     ui.phase = ExportPhase::Idle;
                                 }
                                 cx.notify();
-                            });
-                            let _ = this.update(cx, |_, cx| {
-                                cx.open_url(crate::auth::PRICING_URL);
                             });
                             platform::alert_dialog(
                                 "Upgrade required",
@@ -2502,7 +2498,7 @@ impl EditorWindow {
                                     .child(if ui.reuploading {
                                         "Your latest edit is ready at the same link"
                                     } else {
-                                        "Your Cap has been uploaded successfully"
+                                        "Your recording has been uploaded successfully"
                                     }),
                             )
                         },

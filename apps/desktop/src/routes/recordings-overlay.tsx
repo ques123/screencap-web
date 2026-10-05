@@ -680,7 +680,7 @@ function createRecordingMutations(
 			}
 
 			const defaultName = isRecording
-				? "Cap Recording"
+				? "Screencap Recording"
 				: media.path.split(".cap/")[1];
 			const suggestedName = meta.pretty_name || defaultName;
 
@@ -781,7 +781,6 @@ function createRecordingMutations(
 
 			if (!canShare.allowed) {
 				if (canShare.reason === "upgrade_required") {
-					await commands.showWindow("Upgrade");
 					throw new Error(
 						"Upgrade required to share recordings longer than 5 minutes",
 					);

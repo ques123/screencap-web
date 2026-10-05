@@ -39,7 +39,7 @@ if (forceStory && forceStory !== "click" && forceStory !== "scroll") {
 mkdirSync(outDir, { recursive: true });
 
 // --- binary resolution --------------------------------------------------------
-// Cap binary: env CAP_BIN, else `cap` on PATH, else a clear error.
+// Screencap binary: env CAP_BIN, else `cap` on PATH, else a clear error.
 function resolveCap() {
 	if (process.env.CAP_BIN) return process.env.CAP_BIN;
 	try {
@@ -47,7 +47,7 @@ function resolveCap() {
 		if (p) return p;
 	} catch {}
 	throw new Error(
-		"cap CLI not found on PATH. Install Cap Desktop (https://cap.so) or set CAP_BIN.",
+		"cap CLI not found on PATH. Install Screencap Desktop (https://screencap.co) or set CAP_BIN.",
 	);
 }
 const CAP = resolveCap();
