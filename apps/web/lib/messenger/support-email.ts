@@ -8,7 +8,7 @@ import { messengerSupportEmails, users } from "@cap/database/schema";
 import type { User } from "@cap/web-domain";
 import { and, count, eq, gte } from "drizzle-orm";
 
-const SUPPORT_EMAIL_TO = "hello@cap.so";
+const SUPPORT_EMAIL_TO = "email@screencap.co";
 const SUPPORT_EMAIL_FROM = () => {
 	const from = process.env.EMAIL_FROM;
 	return from

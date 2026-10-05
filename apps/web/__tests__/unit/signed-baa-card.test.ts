@@ -262,7 +262,7 @@ describe("Signed BAA payment and signing", () => {
 		expect(container.querySelector("input")?.value).toBe(details.entityName);
 		expect(button("Sign BAA")?.disabled).toBe(true);
 		expect(container.textContent).toContain("no additional charge");
-		expect(container.textContent).not.toContain("authorize Cap to charge");
+		expect(container.textContent).not.toContain("authorize Screencap to charge");
 		expect(button("Sign & pay $99/mo")).toBeUndefined();
 
 		await click("Cancel");
@@ -408,7 +408,7 @@ describe("Signed BAA payment and signing", () => {
 		await waitFor(() => expect(button("Get Signed BAA")?.disabled).toBe(false));
 		expect(container.querySelector('[role="dialog"]')).toBeNull();
 		await click("Get Signed BAA");
-		expect(container.textContent).toContain("authorize Cap to charge");
+		expect(container.textContent).toContain("authorize Screencap to charge");
 		await click("Draw signature");
 		await click("Sign & pay $99/mo");
 		await waitFor(() => expect(purchaseSignedBaa).toHaveBeenCalledOnce());

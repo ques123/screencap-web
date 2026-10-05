@@ -180,7 +180,7 @@ describe("content transfer planning", () => {
 				...input,
 				bucketOrganizationId: null,
 			}),
-		).toBe("The Cap uses a personal storage bucket owned by another user");
+		).toBe("The recording uses a personal storage bucket owned by another user");
 		expect(
 			getContentTransferStorageBlockReason({
 				...input,

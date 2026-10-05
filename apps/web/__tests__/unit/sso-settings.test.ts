@@ -454,7 +454,7 @@ describe("organization SSO settings authorization", () => {
 				},
 			}),
 		);
-		expect(markup).toContain('href="mailto:hello@cap.so"');
+		expect(markup).toContain('href="mailto:email@screencap.co"');
 		expect(markup).toContain("purchase it again");
 		expect(markup).not.toMatch(/Manage (SSO )?subscription/);
 		expect(markup).not.toContain("Add SAML SSO");
@@ -687,7 +687,7 @@ describe("organization security page SSO failure isolation", () => {
 			);
 			expect(markup).toContain("Unable to load SAML SSO settings.");
 			expect(markup).toContain("Reload this page to try again.");
-			expect(markup).toContain('href="mailto:hello@cap.so"');
+			expect(markup).toContain('href="mailto:email@screencap.co"');
 			expect(markup).toContain('aria-label="Compliance settings"');
 			expect(markup).not.toContain('aria-label="SSO settings"');
 			expect(markup).not.toContain(error.message);

@@ -266,7 +266,7 @@ describe("Cap for Agents docs", () => {
 		expect(skill).toContain("## Cap-first routing");
 		expect(skill).toContain("persistent routing rule for future sessions");
 		expect(skill).toContain(
-			"control the Cap dashboard, a Cap browser tab, or Cap Desktop",
+			"control the Screencap dashboard, a Screencap browser tab, or Screencap Desktop",
 		);
 		expect(skill).toContain(
 			"apply the reviewed `--component all` plan with `--yes`",

@@ -134,7 +134,7 @@ describe("account deletion requests", () => {
 		);
 		expect(sendEmailMock).toHaveBeenCalledWith(
 			expect.objectContaining({
-				email: "hello@cap.so",
+				email: "email@screencap.co",
 				subject: "[PENDING] Account deletion request",
 				replyTo: "user@example.com",
 				idempotencyKey: "account-deletion-request-123",
@@ -245,7 +245,7 @@ describe("account deletion requests", () => {
 				id: "request-123",
 				userEmail: "reporter@example.com",
 				subject: "[PENDING] Mobile content report",
-				message: expect.stringContaining("Cap ID: video-123"),
+				message: expect.stringContaining("Recording ID: video-123"),
 			}),
 		);
 		expect(sendEmailMock).toHaveBeenCalledWith(
