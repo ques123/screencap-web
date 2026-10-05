@@ -23,6 +23,28 @@ type LinkAccountData = Parameters<NonNullable<Adapter["linkAccount"]>>[0];
 type UnlinkAccountData = Parameters<NonNullable<Adapter["unlinkAccount"]>>[0];
 type UpdateSessionData = Parameters<NonNullable<Adapter["updateSession"]>>[0];
 
+// Sign-in codes are 6 digits and the verify path is a plain GET, so without a cap anyone who knows
+// an address could keep guessing for the code's whole 10-minute life. After MAX_CODE_FAILURES wrong
+// guesses for one address, every outstanding code for it is deleted and the user must request a new
+// one. Counts live in memory (one web process); a restart only resets them, it never weakens a code.
+const MAX_CODE_FAILURES = 5;
+const CODE_FAILURE_WINDOW_MS = 15 * 60 * 1000;
+const codeFailures = new Map<string, { count: number; resetAt: number }>();
+
+function noteCodeFailure(identifier: string) {
+	const now = Date.now();
+	for (const [key, entry] of codeFailures) {
+		if (entry.resetAt <= now) codeFailures.delete(key);
+	}
+	const entry = codeFailures.get(identifier);
+	const count = entry && entry.resetAt > now ? entry.count + 1 : 1;
+	codeFailures.set(identifier, {
+		count,
+		resetAt: now + CODE_FAILURE_WINDOW_MS,
+	});
+	return count >= MAX_CODE_FAILURES;
+}
+
 function getProvisionedUserName(email: string) {
 	return (
 		email
@@ -456,22 +478,32 @@ export function DrizzleAdapter(
 			return row;
 		},
 		async useVerificationToken({ identifier, token }) {
+			const normalizedIdentifier = identifier?.toLowerCase() ?? "";
+			const fail = async (reason: string) => {
+				console.warn(`[useVerificationToken] ${reason}`);
+				if (normalizedIdentifier && noteCodeFailure(normalizedIdentifier)) {
+					codeFailures.delete(normalizedIdentifier);
+					await db
+						.delete(verificationTokens)
+						.where(eq(verificationTokens.identifier, normalizedIdentifier));
+					console.warn(
+						"[useVerificationToken] Too many wrong codes; outstanding codes revoked",
+					);
+				}
+				return null;
+			};
 			const rows = await db
 				.select()
 				.from(verificationTokens)
 				.where(eq(verificationTokens.token, token))
 				.limit(1);
 			const row = rows[0];
-			if (!row) {
-				console.warn("[useVerificationToken] No token found");
-				return null;
-			}
-			const normalizedIdentifier = identifier?.toLowerCase() ?? "";
+			if (!row) return fail("No token found");
 			const storedIdentifier = row.identifier?.toLowerCase() ?? "";
 			if (normalizedIdentifier !== storedIdentifier) {
-				console.warn("[useVerificationToken] Identifier mismatch");
-				return null;
+				return fail("Identifier mismatch");
 			}
+			codeFailures.delete(normalizedIdentifier);
 			await db
 				.delete(verificationTokens)
 				.where(
