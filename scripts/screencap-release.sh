@@ -7,7 +7,8 @@
 #
 # Tauri only signs here. This script notarizes, because Tauri waits on notarytool --wait, which gives up
 # on one network hiccup and then never produces the DMG (and a team's first submissions can take hours):
-#   1. per target: build (or reuse the build with --skip-build), bundle app + DMG, sign the DMG, submit it
+#   1. per target: build (or reuse the build with --skip-build), bundle the app, make the DMG with
+#      dmgbuild (no Finder scripting, so it works on a locked Mac), sign the DMG, submit it
 #   2. per target: poll until Apple accepts, staple the DMG and the app, then pack and sign the updater
 #      archive from the stapled app
 #   3. write latest.json and publish the GitHub release
@@ -25,6 +26,13 @@ TAG="screencap-v$VERSION"; OUT="target/screencap-release/$VERSION"; mkdir -p "$O
 AUTH=(--key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER")
 echo "Screencap $VERSION for: $TARGETS"
 
+# dmgbuild (MIT, pinned) in a local venv, and the 1x/2x installer backgrounds it merges for Retina.
+DMGBUILD=target/dmgbuild-venv/bin/dmgbuild
+[ -x "$DMGBUILD" ] || { python3 -m venv target/dmgbuild-venv && target/dmgbuild-venv/bin/pip install -q dmgbuild==1.6.7; }
+DMG_ASSETS=target/screencap-release/dmg-assets; mkdir -p "$DMG_ASSETS"
+cp apps/desktop/src-tauri/assets/dmg-background.png "$DMG_ASSETS/background@2x.png"
+sips -z 379 660 "$DMG_ASSETS/background@2x.png" --out "$DMG_ASSETS/background.png" >/dev/null
+
 arch_of() { case "$1" in aarch64-apple-darwin) echo aarch64 ;; x86_64-apple-darwin) echo x64 ;; *) echo "bad target $1" >&2; exit 2 ;; esac; }
 # Run Tauri without the notarization variables so it signs but does not notarize.
 tauri_no_notary() { env -u APPLE_API_KEY -u APPLE_API_ISSUER -u APPLE_API_KEY_PATH "$@"; }
@@ -32,28 +40,29 @@ tauri_no_notary() { env -u APPLE_API_KEY -u APPLE_API_ISSUER -u APPLE_API_KEY_PA
 # Phase 1: build, bundle, sign and submit each DMG.
 for T in $TARGETS; do
   A=$(arch_of "$T"); B="target/$T/release/bundle"; APP="$B/macos/Screencap.app"
-  rm -rf "$B/dmg" "$B/macos"/*.tar.gz*
+  rm -rf "$B/macos"/*.tar.gz*
   # cap-setup reuses an extracted native-deps folder whatever its architecture, so clear it per target;
   # RUST_TARGET_TRIPLE must also reach tauri:build, or the sidecars are built for this Mac's CPU.
   rm -rf target/native-deps target/Frameworks
   export RUST_TARGET_TRIPLE=$T
   bun run cap-setup
   if [ $SKIP_BUILD = 0 ]; then
-    tauri_no_notary bun run tauri:build -- --target "$T"
+    tauri_no_notary bun run tauri:build -- --target "$T" --bundles app
   else
     # Re-bundle the binaries an earlier `tauri build` produced (no compile).
     (cd apps/desktop && tauri_no_notary bunx dotenv -e ../../.env -- bunx tauri bundle \
-      --config src-tauri/tauri.prod.conf.json --target "$T" --bundles app,dmg)
+      --config src-tauri/tauri.prod.conf.json --target "$T" --bundles app)
   fi
-  DMG=$(ls "$B"/dmg/*.dmg | head -1)
-  [ -f "$DMG" ] && [ -d "$APP" ] || { echo "missing build artifacts in $B"; exit 1; }
+  [ -d "$APP" ] || { echo "missing $APP"; exit 1; }
   codesign --verify --deep --strict "$APP"
   want=$([ "$A" = x64 ] && echo x86_64 || echo arm64)
   for f in "$APP/Contents/MacOS/"* "$APP/Contents/Frameworks/Spacedrive.framework/Libraries/"*.dylib; do
     [ -f "$f" ] || continue
     [ "$(lipo -archs "$f")" = "$want" ] || { echo "wrong architecture: $f"; exit 1; }
   done
-  cp "$DMG" "$OUT/Screencap_$A.dmg"
+  rm -f "$OUT/Screencap_$A.dmg"
+  "$DMGBUILD" -s scripts/screencap-dmg-settings.py -D app="$APP" -D background="$DMG_ASSETS/background.png" \
+    -D icon=apps/desktop/src-tauri/icons/macos/icon.icns Screencap "$OUT/Screencap_$A.dmg"
   codesign --force --sign "$APPLE_SIGNING_IDENTITY" --timestamp "$OUT/Screencap_$A.dmg"
   xcrun notarytool submit "$OUT/Screencap_$A.dmg" "${AUTH[@]}" --output-format json \
     | python3 -c 'import sys,json;print(json.load(sys.stdin)["id"])' > "$OUT/Screencap_$A.notary-id"
