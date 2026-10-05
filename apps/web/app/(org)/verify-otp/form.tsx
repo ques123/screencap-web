@@ -1,6 +1,5 @@
 "use client";
 
-import { buildEnv } from "@cap/env";
 import { Button, LogoBadge } from "@cap/ui";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -229,29 +228,27 @@ export function VerifyOTPForm({
 				</button>
 			</div>
 
-			{/* No Screencap terms: self-hosted builds skip Cap's legal links. */}
-			{buildEnv.NEXT_PUBLIC_IS_CAP === "true" && (
-				<p className="mt-6 text-xs text-center text-gray-9">
-					By entering your email, you acknowledge that you have both read and
-					agree to Screencap's{" "}
-					<Link
-						href="/terms"
-						target="_blank"
-						className="text-xs font-semibold text-gray-12 hover:text-blue-300"
-					>
-						Terms of Service
-					</Link>{" "}
-					and{" "}
-					<Link
-						href="/privacy"
-						target="_blank"
-						className="text-xs font-semibold text-gray-12 hover:text-blue-300"
-					>
-						Privacy Policy
-					</Link>
-					.
-				</p>
-			)}
+			{/* Links go to Screencap's own static legal pages (site/ in the deploy repo). */}
+			<p className="mt-6 text-xs text-center text-gray-9">
+				By entering your email, you acknowledge that you have both read and
+				agree to Screencap's{" "}
+				<Link
+					href="/terms"
+					target="_blank"
+					className="text-xs font-semibold text-gray-12 hover:text-blue-300"
+				>
+					Terms of Service
+				</Link>{" "}
+				and{" "}
+				<Link
+					href="/privacy"
+					target="_blank"
+					className="text-xs font-semibold text-gray-12 hover:text-blue-300"
+				>
+					Privacy Policy
+				</Link>
+				.
+			</p>
 		</motion.div>
 	);
 }

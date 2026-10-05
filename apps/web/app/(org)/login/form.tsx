@@ -1,6 +1,5 @@
 "use client";
 
-import { buildEnv } from "@cap/env";
 import { Button, Input, LogoBadge } from "@cap/ui";
 import {
 	faArrowLeft,
@@ -436,32 +435,30 @@ export function LoginForm() {
 								)}
 							</motion.div>
 						</AnimatePresence>
-						{/* No Screencap terms: self-hosted builds skip Cap's legal links. */}
-						{buildEnv.NEXT_PUBLIC_IS_CAP === "true" && (
-							<motion.p
-								layout="position"
-								className="pt-3 text-xs text-center text-gray-9"
+						{/* Links go to Screencap's own static legal pages (site/ in the deploy repo). */}
+						<motion.p
+							layout="position"
+							className="pt-3 text-xs text-center text-gray-9"
+						>
+							By typing your email and clicking continue, you acknowledge that
+							you have both read and agree to Screencap's{" "}
+							<Link
+								href="/terms"
+								target="_blank"
+								className="text-xs font-semibold text-gray-12 hover:text-blue-300"
 							>
-								By typing your email and clicking continue, you acknowledge that
-								you have both read and agree to Screencap's{" "}
-								<Link
-									href="/terms"
-									target="_blank"
-									className="text-xs font-semibold text-gray-12 hover:text-blue-300"
-								>
-									Terms of Service
-								</Link>{" "}
-								and{" "}
-								<Link
-									href="/privacy"
-									target="_blank"
-									className="text-xs font-semibold text-gray-12 hover:text-blue-300"
-								>
-									Privacy Policy
-								</Link>
-								.
-							</motion.p>
-						)}
+								Terms of Service
+							</Link>{" "}
+							and{" "}
+							<Link
+								href="/privacy"
+								target="_blank"
+								className="text-xs font-semibold text-gray-12 hover:text-blue-300"
+							>
+								Privacy Policy
+							</Link>
+							.
+						</motion.p>
 					</motion.div>
 				</Suspense>
 			</motion.div>

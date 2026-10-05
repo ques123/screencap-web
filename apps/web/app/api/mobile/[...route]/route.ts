@@ -171,7 +171,7 @@ const sendMobileEmailCode = async (email: string, code: string) => {
 
 	await sendEmail({
 		email,
-		subject: "Your Cap Verification Code",
+		subject: "Your Screencap sign-in code",
 		react: OTPEmail({ code, email }),
 	});
 };

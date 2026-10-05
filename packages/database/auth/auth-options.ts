@@ -186,7 +186,7 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 							const email = OTPEmail({ code: token, email: identifier });
 							await sendEmail({
 								email: identifier,
-								subject: `Your Cap Verification Code`,
+								subject: `Your Screencap sign-in code`,
 								react: email,
 							});
 						}
