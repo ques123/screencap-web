@@ -57,14 +57,8 @@
 			"icons/icon.ico"
 		],
 		"resources": {
-			"assets/backgrounds/macOS/*": "assets/backgrounds/macOS/",
-			"assets/backgrounds/blue/*": "assets/backgrounds/blue/",
-			"assets/backgrounds/cities/*": "assets/backgrounds/cities/",
-			"assets/backgrounds/dark/*": "assets/backgrounds/dark/",
-			"assets/backgrounds/orange/*": "assets/backgrounds/orange/",
-			"assets/backgrounds/purple/*": "assets/backgrounds/purple/",
-			"../src/assets/rive/*.riv": "assets/rive/",
-			"../src/assets/music/*.mp3": "assets/music/"
+			"assets/backgrounds/screencap/*": "assets/backgrounds/screencap/",
+			"../src/assets/rive/*.riv": "assets/rive/"
 		},
 		"macOS": {
 			"minimumSystemVersion": "12.3",

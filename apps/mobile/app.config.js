@@ -81,9 +81,9 @@ module.exports = ({ config }) => ({
 			"expo-font",
 			{
 				fonts: [
-					"./assets/fonts/NeueMontreal-Regular.otf",
-					"./assets/fonts/NeueMontreal-Medium.otf",
-					"./assets/fonts/NeueMontreal-Bold.otf",
+					"./assets/fonts/Geist-Regular.ttf",
+					"./assets/fonts/Geist-Medium.ttf",
+					"./assets/fonts/Geist-Bold.ttf",
 				],
 			},
 		],

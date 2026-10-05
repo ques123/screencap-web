@@ -541,9 +541,9 @@ vi.mock("@/theme", () => ({
 		yellow9: "#f5d90a",
 	},
 	fonts: {
-		bold: "NeueMontreal-Bold",
-		medium: "NeueMontreal-Medium",
-		regular: "NeueMontreal-Regular",
+		bold: "Geist-Bold",
+		medium: "Geist-Medium",
+		regular: "Geist-Regular",
 	},
 	radius: {
 		full: 999,

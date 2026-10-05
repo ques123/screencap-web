@@ -76,71 +76,18 @@ const BACKGROUND_GRADIENTS = [
 ] satisfies Array<{ from: RGBColor; to: RGBColor }>;
 
 const WALLPAPER_NAMES = [
-	"macOS/tahoe-dusk-min",
-	"macOS/tahoe-dawn-min",
-	"macOS/tahoe-day-min",
-	"macOS/tahoe-night-min",
-	"macOS/tahoe-dark",
-	"macOS/tahoe-light",
-	"macOS/sequoia-dark",
-	"macOS/sequoia-light",
-	"macOS/sonoma-clouds",
-	"macOS/sonoma-dark",
-	"macOS/sonoma-evening",
-	"macOS/sonoma-fromabove",
-	"macOS/sonoma-horizon",
-	"macOS/sonoma-light",
-	"macOS/sonoma-river",
-	"macOS/ventura-dark",
-	"macOS/ventura-semi-dark",
-	"macOS/ventura",
-	"blue/1",
-	"blue/2",
-	"blue/3",
-	"blue/4",
-	"blue/5",
-	"blue/6",
-	"purple/1",
-	"purple/2",
-	"purple/3",
-	"purple/4",
-	"purple/5",
-	"purple/6",
-	"cities/liverpool",
-	"cities/santorini",
-	"cities/miami",
-	"cities/monaco",
-	"cities/london",
-	"cities/rome",
-	"cities/sf",
-	"cities/nyc",
-	"dark/1",
-	"dark/2",
-	"dark/3",
-	"dark/4",
-	"dark/5",
-	"dark/6",
-	"orange/1",
-	"orange/2",
-	"orange/3",
-	"orange/4",
-	"orange/5",
-	"orange/6",
-	"orange/7",
-	"orange/8",
-	"orange/9",
-	"orange/10",
+	"screencap/1",
+	"screencap/2",
+	"screencap/3",
+	"screencap/4",
+	"screencap/5",
+	"screencap/6",
 ] as const;
 
 type WallpaperName = (typeof WALLPAPER_NAMES)[number];
 
 const BACKGROUND_THEMES = {
-	macOS: "macOS",
-	dark: "Dark",
-	blue: "Blue",
-	cities: "Cities",
-	purple: "Purple",
-	orange: "Orange",
+	screencap: "Screencap",
 };
 
 export function BackgroundSettingsPopover() {
@@ -156,7 +103,7 @@ export function BackgroundSettingsPopover() {
 
 	// Background tabs
 	const [backgroundTab, setBackgroundTab] =
-		createSignal<keyof typeof BACKGROUND_THEMES>("macOS");
+		createSignal<keyof typeof BACKGROUND_THEMES>("screencap");
 
 	const [wallpapers] = createResource(async () => {
 		// Only load visible wallpapers initially

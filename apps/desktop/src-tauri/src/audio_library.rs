@@ -9,23 +9,11 @@ use crate::editor_window::WindowEditorInstance;
 
 const AUDIO_IMPORT_EXTENSIONS: &[&str] = &["ogg", "m4a", "mp3", "wav", "aac", "flac"];
 
-/// Built-in music tracks bundled as Tauri resources under `assets/music/{id}.mp3`.
-/// `id` doubles as the bundled file stem so the resource path is derivable.
-const AUDIO_LIBRARY: &[(&str, &str)] = &[
-    ("lofi-beats-mirostar", "Lofi Beats"),
-    ("raindrops-lofi-sleep-bluelike", "Raindrops"),
-    ("sunday-mood-lofi-cafe-upbeat-bluelike", "Sunday Mood"),
-    ("good-night-lofi-cozy-chill-fassounds", "Good Night"),
-    (
-        "ambient-trap-empty-streets-dreamstate-openmindaudio",
-        "Empty Streets",
-    ),
-    ("lofi-study-calm-peaceful-chill-hop-fassounds", "Study"),
-    ("lofi-cinematic-pulsebox", "Cinematic"),
-    ("lofi-hip-hop-leberch", "Hip Hop"),
-    ("cassette-retrositive", "Cassette"),
-    ("lofi-smooth-pulsebox", "Smooth"),
-];
+/// Built-in music tracks would be bundled as Tauri resources under
+/// `assets/music/{id}.mp3`, with `id` doubling as the bundled file stem.
+/// Screencap bundles no music (the inherited tracks had no redistribution
+/// licence on file), so the library is empty and users import their own audio.
+const AUDIO_LIBRARY: &[(&str, &str)] = &[];
 
 const AUDIO_LIBRARY_CATEGORY: &str = "Lo-Fi";
 

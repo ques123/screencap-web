@@ -1,5 +1,4 @@
 import { Button } from "@cap/ui-solid";
-import { makePersisted } from "@solid-primitives/storage";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ask, message as showMessage } from "@tauri-apps/plugin-dialog";
 import { type as ostype } from "@tauri-apps/plugin-os";
@@ -15,7 +14,6 @@ import {
 	onMount,
 	Show,
 } from "solid-js";
-import { createStore } from "solid-js/store";
 import { generalSettingsStore } from "~/store";
 import {
 	isPermissionGranted as isPermitted,
@@ -47,12 +45,9 @@ import IconLucideCopy from "~icons/lucide/copy";
 import IconLucideExternalLink from "~icons/lucide/external-link";
 import IconLucideSave from "~icons/lucide/save";
 import IconLucideShield from "~icons/lucide/shield";
-import IconLucideVolume2 from "~icons/lucide/volume-2";
-import IconLucideVolumeX from "~icons/lucide/volume-x";
 import cloud1 from "../../assets/illustrations/cloud-1.png";
 import cloud2 from "../../assets/illustrations/cloud-2.png";
 import cloud3 from "../../assets/illustrations/cloud-3.png";
-import startupAudio from "../../assets/tears-and-fireflies-adi-goldstein.mp3";
 import { WindowChromeHeader } from "./Context";
 
 type ModeId = "instant" | "studio" | "screenshot";
@@ -1700,12 +1695,6 @@ function StartupOverlay(props: {
 	isExiting: boolean;
 	onGetStarted: () => void;
 }) {
-	const [audioState, setAudioState] = makePersisted(
-		createStore({ isMuted: false }),
-		{ name: "audioSettings" },
-	);
-
-	let audioEl: HTMLAudioElement | undefined;
 	let cloud1Animation: Animation | undefined;
 	let cloud2Animation: Animation | undefined;
 	let cloud3Animation: Animation | undefined;
@@ -1779,38 +1768,12 @@ function StartupOverlay(props: {
 	};
 
 	onMount(() => {
-		audioEl = new Audio(startupAudio);
-		audioEl.preload = "auto";
-		audioEl.loop = false;
-		audioEl.muted = audioState.isMuted;
-
-		const tryPlay = () => {
-			if (!audioEl || audioEl.muted) return;
-			void audioEl.play().catch(() => {});
-		};
-
-		tryPlay();
-		const resumeAudio = () => tryPlay();
-		window.addEventListener("pointerdown", resumeAudio, { passive: true });
-
 		onCleanup(() => {
-			window.removeEventListener("pointerdown", resumeAudio);
 			cloud1Animation?.cancel();
 			cloud2Animation?.cancel();
 			cloud3Animation?.cancel();
-			audioEl?.pause();
-			audioEl = undefined;
 		});
 	});
-
-	const toggleMute = () => {
-		const next = !audioState.isMuted;
-		setAudioState("isMuted", next);
-		if (audioEl) {
-			audioEl.muted = next;
-			if (!next) void audioEl.play().catch(() => {});
-		}
-	};
 
 	const handleGetStarted = () => {
 		cloud1Animation?.cancel();
@@ -1839,28 +1802,6 @@ function StartupOverlay(props: {
 			)}
 		>
 			<div class="startup-grain" />
-
-			<div
-				class="absolute top-3 z-210"
-				style={{
-					[ostype() === "macos" ? "right" : "left"]: "12px",
-				}}
-			>
-				<button
-					type="button"
-					onClick={toggleMute}
-					class={cx(
-						"mx-1 text-solid-white hover:text-[#DDD] transition-colors p-1",
-						props.isExiting && "opacity-0",
-					)}
-				>
-					{audioState.isMuted ? (
-						<IconLucideVolumeX class="w-6 h-6" />
-					) : (
-						<IconLucideVolume2 class="w-6 h-6" />
-					)}
-				</button>
-			</div>
 
 			<div
 				ref={bindCloud1}

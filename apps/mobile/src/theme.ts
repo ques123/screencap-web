@@ -59,9 +59,9 @@ export const colors = {
 };
 
 export const fonts = {
-	regular: "NeueMontreal-Regular",
-	medium: "NeueMontreal-Medium",
-	bold: "NeueMontreal-Bold",
+	regular: "Geist-Regular",
+	medium: "Geist-Medium",
+	bold: "Geist-Bold",
 };
 
 export const radius = {

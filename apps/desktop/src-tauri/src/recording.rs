@@ -6739,7 +6739,7 @@ fn apply_recording_presentation_defaults(
     let default_wallpaper_path = if using_default_config {
         stored_desktop_background_path.or_else(|| {
             app.path()
-                .resolve("assets/backgrounds/cities/sf.jpg", BaseDirectory::Resource)
+                .resolve("assets/backgrounds/screencap/1.jpg", BaseDirectory::Resource)
                 .ok()
                 .map(|path| path.to_string_lossy().into_owned())
         })

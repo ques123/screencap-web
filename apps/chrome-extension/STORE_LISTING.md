@@ -106,7 +106,7 @@ Store sources live in `store-assets/`. PNGs are full-bleed with square corners, 
 - promo-small.png: 440x280 small promo tile (required).
 - promo-marquee.png: 1400x560 marquee tile (optional, needed for feature placement).
 
-The SVG sources use the Neue Montreal fonts bundled in `public/fonts`. Regenerate with a fontconfig file that points at that directory:
+The SVG sources use the Geist fonts bundled in `public/fonts`. Regenerate with a fontconfig file that points at that directory:
 
 ```sh
 cat > /tmp/cap-fonts.conf <<'EOF'
