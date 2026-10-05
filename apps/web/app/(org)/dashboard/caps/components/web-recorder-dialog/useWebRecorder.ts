@@ -602,7 +602,28 @@ export const useWebRecorder = ({
 		[deleteVideo],
 	);
 
-	const isFreePlan = !isProUser;
+	// Server-configured limit (SCREENCAP_MAX_RECORDING_SECONDS) applies to everyone;
+	// otherwise fall back to the upstream free-plan cap for non-Pro users.
+	const [configuredLimitMs, setConfiguredLimitMs] = useState<number | null>(
+		null,
+	);
+	useEffect(() => {
+		let cancelled = false;
+		fetch("/api/upload/limits")
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data) => {
+				if (cancelled) return;
+				const secs = data?.maxRecordingSeconds;
+				if (typeof secs === "number" && secs > 0) setConfiguredLimitMs(secs * 1000);
+			})
+			.catch(() => {});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+	const recordingLimitMs =
+		configuredLimitMs ?? (isProUser ? null : FREE_PLAN_MAX_RECORDING_MS);
+	const isFreePlan = recordingLimitMs !== null;
 
 	const stopInstantChunkInterval = useCallback(() => {
 		if (!dataRequestIntervalRef.current) return;
@@ -1451,18 +1472,19 @@ export const useWebRecorder = ({
 		}
 
 		if (
-			durationMs >= FREE_PLAN_MAX_RECORDING_MS &&
+			recordingLimitMs !== null &&
+			durationMs >= recordingLimitMs &&
 			!freePlanAutoStopTriggeredRef.current
 		) {
 			freePlanAutoStopTriggeredRef.current = true;
 			toast.info(
-				"Free plan recordings are limited to 5 minutes. Recording stopped automatically.",
+				`Recordings are limited to ${Math.round((recordingLimitMs / 60000) * 10) / 10} minutes. Recording stopped automatically.`,
 			);
 			stopRecording().catch((error) => {
 				console.error("Failed to stop recording at free plan limit", error);
 			});
 		}
-	}, [durationMs, isFreePlan, phase, stopRecording]);
+	}, [durationMs, isFreePlan, recordingLimitMs, phase, stopRecording]);
 
 	const restartRecording = useCallback(async () => {
 		if (isRestarting) return;
@@ -1518,6 +1540,7 @@ export const useWebRecorder = ({
 	const isBusyState = isBusyPhase || isRestarting || isSettingUp;
 
 	return {
+		recordingLimitMs,
 		phase,
 		durationMs,
 		videoId,

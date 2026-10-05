@@ -2,6 +2,7 @@
 
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { buildEnv } from "@cap/env";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo } from "react";
@@ -27,33 +28,33 @@ export default function Stepper({
 		if (currentPath === "/onboarding/download") return "Download";
 	}, [currentPath]);
 
+	const showCustomDomain = buildEnv.NEXT_PUBLIC_IS_CAP === "true";
 	const steps = [
 		{
-			id: "1",
 			name: "Welcome",
 			completed: completedSteps.welcome || false,
 		},
 		{
-			id: "2",
 			name: "Organization Setup",
 			completed: completedSteps.organizationSetup || false,
 		},
+		...(showCustomDomain
+			? [
+					{
+						name: "Custom Domain",
+						completed: completedSteps.customDomain || false,
+					},
+				]
+			: []),
 		{
-			id: "3",
-			name: "Custom Domain",
-			completed: completedSteps.customDomain || false,
-		},
-		{
-			id: "4",
 			name: "Invite your team",
 			completed: completedSteps.inviteTeam || false,
 		},
 		{
-			id: "5",
 			name: "Download",
 			completed: completedSteps.download || false,
 		},
-	];
+	].map((step, idx) => ({ ...step, id: String(idx + 1) }));
 
 	return (
 		<>
@@ -141,7 +142,7 @@ const MobileStepper = ({
 			</div>
 			<div>
 				<p className="text-[13px] text-gray-10">
-					Step <span className="text-gray-11">{activeStep.id}/5</span>
+					Step <span className="text-gray-11">{activeStep.id}/{steps.length}</span>
 				</p>
 			</div>
 		</div>

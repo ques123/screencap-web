@@ -18,7 +18,7 @@ export function SsoErrorNotice({
 					check out our codebase on{" "}
 					<a
 						className="font-semibold underline"
-						href="https://github.com/CapSoftware/Cap"
+						href="https://github.com/ques123/screencap-web"
 						rel="noreferrer"
 						target="_blank"
 					>
@@ -30,6 +30,17 @@ export function SsoErrorNotice({
 					</a>
 					, the founder, directly.
 				</p>
+			</div>
+		);
+	}
+
+	if (error === "SignupCountryBlocked") {
+		return (
+			<div
+				role="alert"
+				className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+			>
+				Screencap isn't available for new sign-ups in your country yet.
 			</div>
 		);
 	}

@@ -274,7 +274,7 @@ app.post(
 				}),
 				cc: userEmail,
 				replyTo: userEmail,
-				fromOverride: "Richie from Cap <richie@send.cap.so>",
+				fromOverride: undefined,
 			});
 
 			return c.json({

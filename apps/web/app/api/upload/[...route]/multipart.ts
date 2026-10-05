@@ -35,6 +35,7 @@ import {
 	hasCompleteRecordingParts,
 	matchesCompletedRecordingParts,
 } from "@/lib/recording-multipart-integrity";
+import { checkRecordingLength } from "@/lib/screencap-limits";
 import { runPromise } from "@/lib/server";
 import { startVideoProcessingWorkflow } from "@/lib/video-processing";
 import { stringOrNumberOptional } from "@/utils/zod";
@@ -497,7 +498,16 @@ app.post(
 					Video.FREE_PLAN_MAX_RECORDING_SECONDS +
 						FREE_PLAN_DURATION_GRACE_SECONDS;
 
-			if (missingRequiredDuration || exceedsFreePlanLimit) {
+			const configuredLengthCheck = checkRecordingLength(
+				reportedDuration,
+				FREE_PLAN_DURATION_GRACE_SECONDS,
+			);
+
+			if (
+				missingRequiredDuration ||
+				exceedsFreePlanLimit ||
+				!configuredLengthCheck.ok
+			) {
 				const [orgOwner] = yield* db.use((db) =>
 					db
 						.select({
@@ -511,7 +521,7 @@ app.post(
 						.limit(1),
 				);
 
-				if (!userIsPro(orgOwner)) {
+				if (!userIsPro(orgOwner) || !configuredLengthCheck.ok) {
 					// The uploaded parts must not linger as incomplete-MPU storage
 					// (S3 bills them until the upload is aborted), and the stale
 					// videoUploads row would otherwise keep the video in a phantom
@@ -564,7 +574,9 @@ app.post(
 
 					c.status(403);
 					return c.text(
-						reportedDuration === null
+						!configuredLengthCheck.ok
+							? configuredLengthCheck.message
+							: reportedDuration === null
 							? "Recording duration is required to complete a free plan upload."
 							: "Recording exceeds the free plan duration limit. Upgrade to Cap Pro to upload longer recordings.",
 					);

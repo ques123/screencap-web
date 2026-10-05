@@ -35,10 +35,7 @@ import { useDevicePreferences } from "./useDevicePreferences";
 import { useDialogInteractions } from "./useDialogInteractions";
 import { useMicrophoneDevices } from "./useMicrophoneDevices";
 import { useWebRecorder } from "./useWebRecorder";
-import {
-	dialogVariants,
-	FREE_PLAN_MAX_RECORDING_MS,
-} from "./web-recorder-constants";
+import { dialogVariants } from "./web-recorder-constants";
 import { WebRecorderDialogHeader } from "./web-recorder-dialog-header";
 
 const recoveredRecordingTimeFormatter = new Intl.DateTimeFormat(undefined, {
@@ -174,6 +171,7 @@ export const WebRecorderDialog = () => {
 		restartRecording,
 		resetState,
 		dismissRecoveredDownload,
+		recordingLimitMs,
 	} = useWebRecorder({
 		organisationId,
 		selectedMicId,
@@ -269,9 +267,10 @@ export const WebRecorderDialog = () => {
 	const showCameraPreview =
 		selectedCameraId &&
 		(recordingMode !== "camera" || (!isSettingUp && !isBusy));
-	const recordingTimerDisplayMs = user.isPro
-		? durationMs
-		: Math.max(0, FREE_PLAN_MAX_RECORDING_MS - durationMs);
+	const recordingTimerDisplayMs =
+		recordingLimitMs === null
+			? durationMs
+			: Math.max(0, recordingLimitMs - durationMs);
 
 	return (
 		<>

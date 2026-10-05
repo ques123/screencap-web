@@ -97,7 +97,7 @@ export function LoginForm() {
 			} else if (error === "SsoMissingProfileAttributes") {
 				setShowOrgInput(true);
 				return;
-			} else if (error === "SignupBlocked") {
+			} else if (error === "SignupBlocked" || error === "SignupCountryBlocked") {
 				return;
 			} else if (error === "SsoSessionExpired") {
 				setShowOrgInput(true);

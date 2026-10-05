@@ -14,7 +14,12 @@ import type { User, Video } from "@cap/web-domain";
 import { and, eq, or } from "drizzle-orm";
 
 const ACCOUNT_DELETION_EMAIL_TO = "email@screencap.co";
-const ACCOUNT_DELETION_EMAIL_FROM = "Screencap Support <richie@send.cap.so>";
+const ACCOUNT_DELETION_EMAIL_FROM = () => {
+	const from = process.env.EMAIL_FROM;
+	return from
+		? `Screencap Support <${from}>`
+		: "Screencap Support <richie@send.cap.so>";
+};
 export const ACCOUNT_DELETION_PENDING_SUBJECT =
 	"[PENDING] Account deletion request";
 export const MOBILE_CONTENT_REPORT_PENDING_SUBJECT =
@@ -161,7 +166,7 @@ export const createAccountDeletionRequest = async ({
 			message: request.message,
 		}),
 		replyTo: normalizedUser.email,
-		fromOverride: ACCOUNT_DELETION_EMAIL_FROM,
+		fromOverride: ACCOUNT_DELETION_EMAIL_FROM(),
 		idempotencyKey: `account-deletion-${request.id}`,
 	})
 		.then(() => true)
@@ -261,7 +266,7 @@ export const createMobileContentReport = async ({
 			message,
 		}),
 		replyTo: normalizedReporter.email,
-		fromOverride: ACCOUNT_DELETION_EMAIL_FROM,
+		fromOverride: ACCOUNT_DELETION_EMAIL_FROM(),
 		idempotencyKey: `mobile-content-report-${request.id}`,
 	})
 		.then(() => true)

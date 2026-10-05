@@ -11,7 +11,7 @@ import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 import type { Provider } from "next-auth/providers/index";
 import WorkOSProvider from "next-auth/providers/workos";
-import { sendEmail } from "../emails/config.ts";
+import { isEmailConfigured, sendEmail } from "../emails/config.ts";
 import { db } from "../index.ts";
 import { users } from "../schema.ts";
 import {
@@ -29,6 +29,24 @@ import {
 import { ssoLoginErrorPath } from "./sso-state.ts";
 
 export const maxDuration = 120;
+
+// Reads Cloudflare's CF-IPCountry header for the current request. "XX"/"T1"
+// (unknown/Tor) and anything unreadable count as allowed.
+async function isSignupCountryBlocked(): Promise<boolean> {
+	const blocked = serverEnv()
+		.SCREENCAP_SIGNUP_BLOCKED_COUNTRIES?.split(",")
+		.map((c) => c.trim().toUpperCase())
+		.filter(Boolean);
+	if (!blocked?.length) return false;
+	try {
+		const { headers } = await import("next/headers");
+		const country = (await headers()).get("cf-ipcountry")?.trim().toUpperCase();
+		if (!country || country === "XX" || country === "T1") return false;
+		return blocked.includes(country);
+	} catch {
+		return false;
+	}
+}
 
 const OTP_CODE_MAX_AGE_SECONDS = 10 * 60;
 
@@ -145,7 +163,7 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 						return crypto.randomInt(100000, 1000000).toString();
 					},
 					async sendVerificationRequest({ identifier, token }) {
-						if (!serverEnv().RESEND_API_KEY) {
+						if (!isEmailConfigured()) {
 							console.log("\n");
 							console.log(
 								"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
@@ -246,7 +264,10 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 				}
 
 				const allowedDomains = serverEnv().CAP_ALLOWED_SIGNUP_DOMAINS;
-				if (!allowedDomains) return true;
+				const countryRuleActive = Boolean(
+					serverEnv().SCREENCAP_SIGNUP_BLOCKED_COUNTRIES?.trim(),
+				);
+				if (!allowedDomains && !countryRuleActive) return true;
 
 				const [existingUser] = await db()
 					.select()
@@ -257,10 +278,18 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 				// Only apply domain restrictions for new users, existing ones can always sign in
 				if (
 					!existingUser &&
+					allowedDomains &&
 					!isEmailAllowedForSignup(userEmail, allowedDomains)
 				) {
 					console.warn(`Signup blocked for email domain: ${userEmail}`);
 					return false;
+				}
+
+				// Country rule: new accounts only. This also runs on the email
+				// verificationRequest step (before a code is sent) and on OAuth.
+				if (!existingUser && (await isSignupCountryBlocked())) {
+					console.warn(`Signup blocked for country: ${userEmail}`);
+					return "/login?error=SignupCountryBlocked";
 				}
 
 				return true;

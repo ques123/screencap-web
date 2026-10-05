@@ -1,5 +1,6 @@
 "use client";
 
+import { buildEnv } from "@cap/env";
 import { Button, LogoBadge } from "@cap/ui";
 import { useDetectPlatform } from "hooks/useDetectPlatform";
 import { Clapperboard, Zap } from "lucide-react";
@@ -36,6 +37,10 @@ export function DownloadPage() {
 	const { platform, isIntel } = useDetectPlatform();
 	const loading = platform === null;
 	const router = useRouter();
+	// Self-hosted builds only ship a Mac app; other platforms record in the browser.
+	const browserOnly =
+		buildEnv.NEXT_PUBLIC_IS_CAP !== "true" &&
+		(platform === "windows" || platform === "linux");
 
 	return (
 		<div className="flex flex-col gap-12 justify-center items-center min-h-fit lg:gap-20">
@@ -67,15 +72,26 @@ export function DownloadPage() {
 				</div>
 			</div>
 			<div className="flex flex-wrap gap-4 justify-center">
-				<Button
-					variant="blue"
-					size="lg"
-					href={getDownloadUrl(platform, isIntel)}
-					className="hidden justify-center items-center py-6 font-medium text-white lg:flex"
-				>
-					{!loading && getPlatformIcon(platform)}
-					{getDownloadButtonText(platform, loading, isIntel)}
-				</Button>
+				{browserOnly ? (
+					<Button
+						variant="blue"
+						size="lg"
+						href="/dashboard/caps/record"
+						className="hidden justify-center items-center py-6 font-medium text-white lg:flex"
+					>
+						Record in your browser
+					</Button>
+				) : (
+					<Button
+						variant="blue"
+						size="lg"
+						href={getDownloadUrl(platform, isIntel)}
+						className="hidden justify-center items-center py-6 font-medium text-white lg:flex"
+					>
+						{!loading && getPlatformIcon(platform)}
+						{getDownloadButtonText(platform, loading, isIntel)}
+					</Button>
+				)}
 				<Button
 					onClick={() =>
 						router.push(consumeOnboardingNextPath("/dashboard/caps"))

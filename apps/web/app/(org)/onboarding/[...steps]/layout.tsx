@@ -1,3 +1,4 @@
+import { buildEnv } from "@cap/env";
 import { getCurrentUser } from "@cap/database/auth/session";
 import { redirect } from "next/navigation";
 
@@ -17,14 +18,18 @@ export default async function OnboardingStepLayout({
 	const steps = user.onboardingSteps || {};
 	const currentStep = (await params).steps?.[0] ?? "welcome";
 
-	const ordered = [
+	const allSteps = [
 		"welcome",
 		"organization-setup",
 		"custom-domain",
 		"invite-team",
 		"download",
 	] as const;
-	const isComplete = (s: (typeof ordered)[number]) =>
+	// The custom-domain step is a Pro upsell that does nothing on self-hosted builds.
+	const ordered = allSteps.filter(
+		(s) => s !== "custom-domain" || buildEnv.NEXT_PUBLIC_IS_CAP === "true",
+	);
+	const isComplete = (s: (typeof allSteps)[number]) =>
 		s === "welcome"
 			? Boolean(steps.welcome && user.name)
 			: s === "organization-setup"

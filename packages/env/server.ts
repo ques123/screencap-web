@@ -30,6 +30,23 @@ function createServerEnv() {
 			RESEND_API_KEY: z.string().optional(),
 			RESEND_FROM_DOMAIN: z.string().optional(),
 
+			// Screencap: Brevo transactional email (preferred over Resend when set)
+			BREVO_API_KEY: z.string().optional(),
+			EMAIL_FROM: z.string().optional().describe("From address, e.g. auth@screencap.co"),
+			EMAIL_FROM_NAME: z.string().optional().describe("From display name"),
+
+			// Screencap: usage limits and sign-up rules (all off when unset)
+			SCREENCAP_MAX_RECORDING_SECONDS: z.string().optional(),
+			SCREENCAP_MAX_STORAGE_SECONDS: z.string().optional(),
+			SCREENCAP_SIGNUP_BLOCKED_COUNTRIES: z
+				.string()
+				.optional()
+				.describe(
+					"Comma-separated ISO-3166 alpha-2 codes that cannot create an account",
+				),
+			TELEGRAM_ALERT_BOT_TOKEN: z.string().optional(),
+			TELEGRAM_ALERT_CHAT_ID: z.string().optional(),
+
 			/// S3 configuration
 			// Though they are prefixed with `CAP_AWS`, these don't have to be
 			// for AWS, and can instead be for any S3-compatible service

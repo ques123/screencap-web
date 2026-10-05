@@ -23,6 +23,11 @@ import { after } from "next/server";
 import { z } from "zod";
 import { invalidateGoogleDriveStorageQuotaCache } from "@/lib/google-drive-storage-quota";
 import { maybeStartLiveTranscription } from "@/lib/live-transcribe";
+import {
+	checkCanCreateRecording,
+	checkRecordingLength,
+	RECORDING_LIMIT_ERROR,
+} from "@/lib/screencap-limits";
 import { runPromise } from "@/lib/server";
 import {
 	GOOGLE_DRIVE_UPLOAD_FEATURE,
@@ -110,6 +115,13 @@ app.get(
 
 			const isCapPro = userIsPro(user);
 
+			const lengthCheck = checkRecordingLength(durationInSecs);
+			if (!lengthCheck.ok)
+				return c.json(
+					{ error: RECORDING_LIMIT_ERROR, message: lengthCheck.message },
+					{ status: 403 },
+				);
+
 			if (!isCapPro && durationInSecs && durationInSecs > /* 5 min */ 5 * 60)
 				return c.json({ error: "upgrade_required" }, { status: 403 });
 
@@ -183,6 +195,13 @@ app.get(
 					});
 				}
 			}
+
+			const storageCheck = await checkCanCreateRecording(user.id);
+			if (!storageCheck.ok)
+				return c.json(
+					{ error: RECORDING_LIMIT_ERROR, message: storageCheck.message },
+					{ status: 403 },
+				);
 
 			const [ownedOrganizations, memberOrganizations] = await Promise.all([
 				db()

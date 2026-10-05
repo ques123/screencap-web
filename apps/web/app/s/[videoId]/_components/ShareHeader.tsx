@@ -62,6 +62,7 @@ import { usePublicEnv } from "@/utils/public-env";
 import { navigateWithTransition } from "@/utils/view-transition";
 import type { SharePageBranding, VideoData } from "../types";
 import { DashboardBackLink } from "./DashboardBackLink";
+import { ReportRecordingButton } from "./ReportRecordingDialog";
 import { describeShareAudience } from "./share-audience";
 import { useVideoDownload } from "./use-video-download";
 import { fromNow } from "./utils/from-now";
@@ -1063,6 +1064,12 @@ export const ShareHeader = ({
 											<Suspense fallback={null}>
 												<ViewCount views={views} />
 											</Suspense>
+										)}
+										{!isOwner && (
+											<>
+												{" · "}
+												<ReportRecordingButton videoId={data.id} />
+											</>
 										)}
 									</p>
 								</div>

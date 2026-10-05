@@ -3,6 +3,7 @@
 import { Button, Input } from "@cap/ui";
 import { faImage } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { buildEnv } from "@cap/env";
 import { Effect } from "effect";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -62,7 +63,11 @@ export function OrganizationSetupPage({
 			}),
 		onSuccess: () => {
 			startTransition(() => {
-				router.push("/onboarding/custom-domain");
+				router.push(
+					buildEnv.NEXT_PUBLIC_IS_CAP === "true"
+						? "/onboarding/custom-domain"
+						: "/onboarding/invite-team",
+				);
 				router.refresh();
 			});
 		},
