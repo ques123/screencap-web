@@ -16,7 +16,7 @@ VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' apps/desktop/src-tauri/Cargo.toml 
 TAG="screencap-v$VERSION"; OUT="target/screencap-release/$VERSION"; mkdir -p "$OUT"
 echo "Screencap $VERSION for: $TARGETS"
 
-notarize() { xcrun notarytool submit "$1" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" --wait --timeout 30m; }
+notarize() { xcrun notarytool submit "$1" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" --wait --timeout 12h; }
 
 for T in $TARGETS; do
   case "$T" in aarch64-apple-darwin) A=aarch64; P=darwin-aarch64 ;; x86_64-apple-darwin) A=x64; P=darwin-x86_64 ;; *) echo "bad target $T"; exit 2 ;; esac
@@ -58,7 +58,7 @@ FILES=$(ls "$OUT"/Screencap_* "$OUT/latest.json")
 if gh release view "$TAG" -R ques123/screencap-web >/dev/null 2>&1; then
   gh release upload "$TAG" $FILES --clobber -R ques123/screencap-web
 else
-  gh release create "$TAG" $FILES -R ques123/screencap-web $DRAFT --title "Screencap $VERSION" \
+  gh release create "$TAG" $FILES -R ques123/screencap-web --target "$(git rev-parse HEAD)" $DRAFT --title "Screencap $VERSION" \
     --notes "Screencap for Mac $VERSION. Download from https://screencap.co/download. Built from this tag; signed by Dharma Loop LLC and notarized by Apple."
 fi
 echo "released $TAG"
