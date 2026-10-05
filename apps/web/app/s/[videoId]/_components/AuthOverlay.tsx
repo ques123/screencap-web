@@ -1,4 +1,4 @@
-import { NODE_ENV } from "@cap/env";
+import { buildEnv, NODE_ENV } from "@cap/env";
 import { Button, Dialog, DialogContent, Input, LogoBadge } from "@cap/ui";
 import { faArrowLeft, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -87,26 +87,29 @@ export const AuthOverlay: React.FC<AuthOverlayProps> = ({
 								setLastResendTime={setLastResendTime}
 							/>
 						)}
-						<p className="mt-6 text-xs text-center text-gray-9">
-							By entering your email, you acknowledge that you have both read
-							and agree to Screencap's{" "}
-							<Link
-								href="/terms"
-								target="_blank"
-								className="text-xs font-semibold text-gray-12 hover:text-blue-300"
-							>
-								Terms of Service
-							</Link>{" "}
-							and{" "}
-							<Link
-								href="/privacy"
-								target="_blank"
-								className="text-xs font-semibold text-gray-12 hover:text-blue-300"
-							>
-								Privacy Policy
-							</Link>
-							.
-						</p>
+						{/* No Screencap terms: self-hosted builds skip Cap's legal links. */}
+						{buildEnv.NEXT_PUBLIC_IS_CAP === "true" && (
+							<p className="mt-6 text-xs text-center text-gray-9">
+								By entering your email, you acknowledge that you have both read
+								and agree to Screencap's{" "}
+								<Link
+									href="/terms"
+									target="_blank"
+									className="text-xs font-semibold text-gray-12 hover:text-blue-300"
+								>
+									Terms of Service
+								</Link>{" "}
+								and{" "}
+								<Link
+									href="/privacy"
+									target="_blank"
+									className="text-xs font-semibold text-gray-12 hover:text-blue-300"
+								>
+									Privacy Policy
+								</Link>
+								.
+							</p>
+						)}
 					</div>
 				</div>
 			</DialogContent>
