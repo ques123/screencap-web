@@ -70,14 +70,21 @@ export async function proxy(request: NextRequest) {
 				path.startsWith("/self-hosting") ||
 				path.startsWith("/download") ||
 				path.startsWith("/verify-otp") ||
+				path.startsWith("/admin") ||
+				path.startsWith("/messenger") ||
+				path.startsWith("/dev/") ||
+				path.startsWith("/mobile/") ||
 				path.startsWith("/embed/") ||
 				path.startsWith("/.well-known/workflow/") ||
 				path.startsWith("/.well-known/oauth-")
 			) &&
 			process.env.NODE_ENV !== "development"
-		)
-			return NextResponse.redirect(new URL("/login", url.origin));
-		else return NextResponse.next();
+		) {
+			// Only "/" (nginx serves the landing page there, this is the fallback) goes to the
+			// sign-in page. Any other unknown path must be a real 404 so crawlers do not index it.
+			if (path === "/") return NextResponse.redirect(new URL("/login", url.origin));
+			return NextResponse.rewrite(new URL("/_screencap-not-found", url.origin));
+		} else return NextResponse.next();
 	}
 
 	if (mainOrigins.some((d) => url.origin.startsWith(d))) {
