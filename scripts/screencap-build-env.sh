@@ -8,3 +8,7 @@ export APPLE_API_ISSUER="$(sed -n 's/^ISSUER = "\(.*\)"/\1/p' "$HOME/.appstoreco
 export TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/screencap-updater.key")"
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(cat "$HOME/.tauri/screencap-updater.password")"
 export VITE_SERVER_URL=https://screencap.co
+
+# Turbo caches the desktop frontend by files under apps/desktop only, so edits in shared packages
+# (e.g. packages/ui-solid/icons) would ship a stale UI. Always rebuild for releases.
+export TURBO_FORCE=true
