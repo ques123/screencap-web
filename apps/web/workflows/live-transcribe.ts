@@ -11,6 +11,8 @@ import {
 import { AssemblyAI } from "assemblyai";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { Either, Option, Schema } from "effect";
+import { getByokTranscription } from "@/lib/ai/byok";
+import { draftLiveTitle } from "@/lib/ai/live-title";
 import { isAiGenerationEnabledForUser } from "@/lib/ai-generation-entitlement";
 import {
 	ASSEMBLYAI_SPEECH_MODELS,
@@ -27,16 +29,24 @@ import {
 	applyChunkToLiveTranscript,
 	canPromoteLiveTranscript,
 	createEmptyLiveTranscript,
+	getLiveTargetSeconds,
 	getLiveTranscriptObjectKey,
 	isNoSpokenAudioError,
 	LIVE_TRANSCRIBE,
 	LIVE_TRANSCRIPT_NO_SEGMENTS,
+	type LiveChunkWordInput,
+	type LiveTranscribeEngine,
 	type LiveTranscriptState,
+	liveTranscriptText,
 	liveTranscriptToEditTranscript,
 	offsetChunkWords,
+	openRouterWordsToChunkInput,
 	parseLiveTranscript,
 	planNextLiveChunk,
+	shouldDraftLiveTitle,
+	toOpenRouterLanguage,
 } from "@/lib/live-transcribe-core";
+import { transcribeAudioChunk } from "@/lib/openrouter/client";
 import { downloadConcatenatedSegmentsToBuffer } from "@/lib/segments-audio-download";
 import { transcribeVideo } from "@/lib/transcribe";
 import { decodeStorageVideo } from "@/lib/video-storage";
@@ -55,6 +65,9 @@ type InitResult =
 			transcribedDurationMs: number;
 			languageCode: string | null;
 			orgLanguage: AiGenerationLanguage;
+			engine: LiveTranscribeEngine;
+			/** Transcription model name (not a secret) for usage reporting. */
+			model: string | null;
 	  };
 
 type ChunkStepResult =
@@ -67,6 +80,11 @@ type ChunkStepResult =
 			 * and coverage is now full, so promotion can start immediately
 			 * without another poll round-trip. */
 			recordingComplete?: boolean;
+			/** Words in the live transcript so far (plain number for the loop). */
+			wordCount: number;
+			/** OpenRouter spend for this chunk; zero for AssemblyAI. */
+			costUsd: number;
+			audioSeconds: number;
 	  }
 	| { outcome: "chunk-failed"; failedAtIndex: number; reason: string }
 	| { outcome: "waiting" }
@@ -74,6 +92,14 @@ type ChunkStepResult =
 	| { outcome: "no-audio" }
 	| { outcome: "canonical-done" }
 	| { outcome: "gone" };
+
+type DraftTitleStepResult = { status: "updated" | "skipped" | "failed" };
+
+type ByokUsageSummary = {
+	model: string;
+	costUsd: number;
+	audioSeconds: number;
+};
 
 /**
  * Live transcription for an instant-mode recording. Polls the segment
@@ -110,6 +136,11 @@ export async function liveTranscribeWorkflow(
 	let idleSteps = 0;
 	let failuresAtIndex = 0;
 	let outcome = "chunk-limit";
+	let wordCount = 0;
+	let lastDraftAtMs = 0;
+	let draftCount = 0;
+	let usageCostUsd = 0;
+	let usageSeconds = 0;
 
 	try {
 		while (chunkCount < LIVE_TRANSCRIBE.MAX_CHUNKS) {
@@ -118,10 +149,7 @@ export async function liveTranscribeWorkflow(
 				break;
 			}
 
-			const targetSeconds =
-				chunkCount < LIVE_TRANSCRIBE.GROW_AFTER_CHUNKS
-					? LIVE_TRANSCRIBE.INITIAL_CHUNK_SECONDS
-					: LIVE_TRANSCRIBE.MAX_CHUNK_SECONDS;
+			const targetSeconds = getLiveTargetSeconds(init.engine, chunkCount);
 
 			const result = await processNextLiveChunk({
 				videoId,
@@ -142,9 +170,30 @@ export async function liveTranscribeWorkflow(
 				chunkCount++;
 				idleSteps = 0;
 				failuresAtIndex = 0;
+				wordCount = Math.max(wordCount, result.wordCount);
+				usageCostUsd += result.costUsd;
+				usageSeconds += result.audioSeconds;
 				if (result.recordingComplete) {
 					outcome = "done";
 					break;
+				}
+
+				// Draft a title from the partial transcript while still recording.
+				// Skipped on the final chunk (promotion + full AI generation runs
+				// next); the step never throws, so it cannot stall the loop.
+				if (
+					shouldDraftLiveTitle({
+						transcribedMs,
+						wordCount,
+						lastDraftAtMs,
+						draftCount,
+					})
+				) {
+					await draftLiveTitleStep(videoId, userId);
+					// Every attempt counts, even skipped/failed ones, so a disabled or
+					// broken provider is not retried on every chunk.
+					draftCount++;
+					lastDraftAtMs = transcribedMs;
 				}
 				continue;
 			}
@@ -183,7 +232,17 @@ export async function liveTranscribeWorkflow(
 		// Full gap-free coverage: promote the live transcript to canonical and
 		// skip the duplicate full transcription pass entirely. On any failure
 		// the full-pass fallback is queued so transcription still lands fast.
-		const promotion = await promoteLiveTranscript(videoId, userId);
+		const promotion = await promoteLiveTranscript(
+			videoId,
+			userId,
+			init.engine === "openrouter" && init.model && usageSeconds > 0
+				? {
+						model: init.model,
+						costUsd: usageCostUsd,
+						audioSeconds: usageSeconds,
+					}
+				: null,
+		);
 		if (promotion.promoted) {
 			return {
 				success: true,
@@ -210,8 +269,13 @@ async function initLiveTranscription(
 ): Promise<InitResult> {
 	"use step";
 
-	if (!serverEnv().ASSEMBLY_API_KEY) {
-		return { ok: false, reason: "missing ASSEMBLY_API_KEY" };
+	// Same precedence as the full pass: BYOK OpenRouter first, then the
+	// server's AssemblyAI. Only the engine name and model cross the step
+	// boundary, never the key.
+	const byok = await getByokTranscription(userId);
+	const engine: LiveTranscribeEngine = byok ? "openrouter" : "assemblyai";
+	if (!byok && !serverEnv().ASSEMBLY_API_KEY) {
+		return { ok: false, reason: "no transcription engine configured" };
 	}
 
 	const [row] = await db()
@@ -271,6 +335,8 @@ async function initLiveTranscription(
 		orgLanguage: parseAiGenerationLanguage(
 			row.orgSettings?.aiGenerationLanguage,
 		),
+		engine,
+		model: byok?.model ?? null,
 	};
 }
 
@@ -412,6 +478,9 @@ async function processNextLiveChunk(options: {
 			lastAudioSegmentIndex: chunkEndIndex,
 			transcribedDurationMs: decision.startMs + decision.durationMs,
 			languageCode: null,
+			wordCount: 0,
+			costUsd: 0,
+			audioSeconds: 0,
 		};
 	}
 
@@ -433,32 +502,59 @@ async function processNextLiveChunk(options: {
 		// ffmpeg — the binary doesn't exist in the serverless runtime.
 		const audioBuffer = await downloadConcatenatedSegmentsToBuffer(segmentUrls);
 
-		const client = new AssemblyAI({
-			apiKey: serverEnv().ASSEMBLY_API_KEY as string,
-		});
-		const language = (
-			ASSEMBLYAI_SUPPORTED_LANGUAGES as readonly string[]
-		).includes(options.language)
-			? (options.language as AiGenerationLanguage)
-			: ("auto" as AiGenerationLanguage);
-		const transcript = await client.transcripts.transcribe({
-			audio: audioBuffer,
-			...getAssemblyAITranscriptionOptions(language),
-			disfluencies: true,
-		});
+		// Resolved inside the step so the key never crosses a step boundary.
+		const byok = await getByokTranscription(video.ownerId);
+		let chunkWords: LiveChunkWordInput[];
+		let chunkLanguageCode: string | null;
+		let costUsd = 0;
+		let audioSeconds = 0;
 
-		const noSpokenAudio = isNoSpokenAudioError(transcript);
-		if (transcript.status === "error" && !noSpokenAudio) {
-			throw new Error(transcript.error ?? "AssemblyAI chunk failed");
+		if (byok) {
+			const result = await transcribeAudioChunk({
+				apiKey: byok.apiKey,
+				model: byok.model,
+				audio: audioBuffer,
+				format: "m4a",
+				language: toOpenRouterLanguage(options.language),
+				zeroDataRetention: byok.zeroDataRetention,
+			});
+			// Empty text is a silent chunk, same as AssemblyAI's "no spoken audio".
+			chunkWords = result.text ? openRouterWordsToChunkInput(result.words) : [];
+			chunkLanguageCode = result.language;
+			costUsd = result.costUsd ?? 0;
+			audioSeconds = result.seconds ?? decision.durationMs / 1000;
+		} else {
+			const client = new AssemblyAI({
+				apiKey: serverEnv().ASSEMBLY_API_KEY as string,
+			});
+			const language = (
+				ASSEMBLYAI_SUPPORTED_LANGUAGES as readonly string[]
+			).includes(options.language)
+				? (options.language as AiGenerationLanguage)
+				: ("auto" as AiGenerationLanguage);
+			const transcript = await client.transcripts.transcribe({
+				audio: audioBuffer,
+				...getAssemblyAITranscriptionOptions(language),
+				disfluencies: true,
+			});
+
+			const noSpokenAudio = isNoSpokenAudioError(transcript);
+			if (transcript.status === "error" && !noSpokenAudio) {
+				throw new Error(transcript.error ?? "AssemblyAI chunk failed");
+			}
+
+			chunkWords = noSpokenAudio ? [] : (transcript.words ?? []);
+			chunkLanguageCode =
+				typeof transcript.language_code === "string"
+					? transcript.language_code
+					: null;
 		}
 
-		const words = noSpokenAudio
-			? []
-			: offsetChunkWords(
-					transcript.words,
-					decision.startMs,
-					decision.durationMs,
-				);
+		const words = offsetChunkWords(
+			chunkWords,
+			decision.startMs,
+			decision.durationMs,
+		);
 
 		const artifactKey = getLiveTranscriptObjectKey(video.ownerId, videoId);
 		const existing = await bucket
@@ -474,10 +570,7 @@ async function processNextLiveChunk(options: {
 			durationMs: decision.durationMs,
 			lastAudioSegmentIndex: chunkEndIndex,
 			words,
-			languageCode:
-				typeof transcript.language_code === "string"
-					? transcript.language_code
-					: null,
+			languageCode: chunkLanguageCode,
 			nowIso: new Date().toISOString(),
 		});
 
@@ -526,6 +619,9 @@ async function processNextLiveChunk(options: {
 			transcribedDurationMs: updated.transcribedDurationMs,
 			languageCode: updated.languageCode,
 			recordingComplete: next.action === "done",
+			wordCount: updated.words.length,
+			costUsd,
+			audioSeconds,
 		};
 	} catch (error) {
 		const reason = error instanceof Error ? error.message : String(error);
@@ -537,6 +633,55 @@ async function processNextLiveChunk(options: {
 			failedAtIndex: lastProcessedIndex,
 			reason,
 		};
+	}
+}
+
+/**
+ * Draft a title from the partial live transcript. Loads the artifact text
+ * itself (nothing sensitive crosses the step boundary) and never throws: a
+ * failed draft must not fail or stall the live loop.
+ */
+async function draftLiveTitleStep(
+	videoId: string,
+	userId: string,
+): Promise<DraftTitleStepResult> {
+	"use step";
+
+	try {
+		const [video] = await db()
+			.select()
+			.from(videos)
+			.where(eq(videos.id, videoId as Video.VideoId));
+		if (!video || video.ownerId !== userId) {
+			return { status: "skipped" };
+		}
+		// Final pass is already underway or done; nothing to draft.
+		if (video.transcriptionStatus !== null) {
+			return { status: "skipped" };
+		}
+
+		const [bucket] = await Storage.getAccessForVideo(
+			decodeStorageVideo(video),
+		).pipe(runWorkflowPromise);
+		const existing = await bucket
+			.getObject(getLiveTranscriptObjectKey(video.ownerId, videoId))
+			.pipe(runWorkflowPromise)
+			.catch(() => Option.none<string>());
+		const artifact = Option.isSome(existing)
+			? parseLiveTranscript(existing.value)
+			: null;
+		if (!artifact) return { status: "skipped" };
+
+		const result = await draftLiveTitle({
+			videoId,
+			ownerId: video.ownerId,
+			transcriptText: liveTranscriptText(artifact.words),
+			language: artifact.languageCode,
+		});
+		return { status: result.status };
+	} catch (error) {
+		console.warn(`[liveTranscribe] Title draft failed for ${videoId}`, error);
+		return { status: "failed" };
 	}
 }
 
@@ -579,6 +724,7 @@ type PromotionResult = { promoted: boolean; reason?: string };
 async function promoteLiveTranscript(
 	videoId: string,
 	userId: string,
+	byokUsage: ByokUsageSummary | null,
 ): Promise<PromotionResult> {
 	"use step";
 
@@ -715,6 +861,26 @@ async function promoteLiveTranscript(
 		}
 
 		// Post-COMPLETE housekeeping: never fatal, never releases the claim.
+		if (byokUsage) {
+			try {
+				const entry = JSON.stringify({
+					...byokUsage,
+					at: new Date().toISOString(),
+				});
+				await db()
+					.update(videos)
+					.set({
+						metadata: sql`JSON_SET(COALESCE(${videos.metadata}, JSON_OBJECT()), '$.byokUsage', JSON_SET(COALESCE(JSON_EXTRACT(COALESCE(${videos.metadata}, JSON_OBJECT()), '$.byokUsage'), JSON_OBJECT()), '$.transcription', CAST(${entry} AS JSON)))`,
+						updatedAt: sql`${videos.updatedAt}`,
+					})
+					.where(eq(videos.id, videoId as Video.VideoId));
+			} catch (error) {
+				console.warn(
+					`[liveTranscribe] Failed to record BYOK usage for ${videoId}`,
+					error,
+				);
+			}
+		}
 		try {
 			await bucket.deleteObject(artifactKey).pipe(runWorkflowPromise);
 		} catch (error) {

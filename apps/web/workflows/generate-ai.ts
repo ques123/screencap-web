@@ -3,9 +3,7 @@ import { organizations, videos } from "@cap/database/schema";
 import type { VideoMetadata } from "@cap/database/types";
 import { Storage } from "@cap/web-backend/src/Storage/index";
 import {
-	AI_GENERATION_LANGUAGE_AUTO,
 	type AiGenerationLanguage,
-	getAiGenerationLanguageName,
 	parseAiGenerationLanguage,
 	type Video,
 } from "@cap/web-domain";
@@ -19,10 +17,17 @@ import {
 	isAiConfiguredForUser,
 } from "@/lib/ai/byok";
 import { AiUnavailableError, runWithAiProviders } from "@/lib/ai/run";
+import {
+	getAiLanguageInstruction,
+	LEGACY_AI_TITLE_FALLBACK,
+	shouldReplaceVideoTitle,
+} from "@/lib/ai/video-title";
 import { setGeneratedAiContent } from "@/lib/ai-content-metadata";
 import { enqueueVideoStorageNameSync } from "@/lib/sync-video-storage-names";
 import { decodeStorageVideo } from "@/lib/video-storage";
 import { runWorkflowPromise } from "@/lib/workflow-runtime";
+
+export { getAiLanguageInstruction, shouldReplaceVideoTitle };
 
 interface GenerateAiWorkflowPayload {
 	videoId: string;
@@ -62,36 +67,8 @@ const getAffectedRows = (result: unknown) => {
 };
 
 const MAX_CHARS_PER_CHUNK = 24000;
-const LEGACY_AI_TITLE_FALLBACK = "Generated Title";
 const LEGACY_AI_SUMMARY_FALLBACK =
 	"The AI was unable to generate a proper summary for this content.";
-const GENERATED_TITLE_PATTERN =
-	/^(Cap (Recording|Upload) - .+|Cap \d{4}-\d{2}-\d{2} at \d{2}[.:]\d{2}[.:]\d{2}|Untitled|\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}|.+ \((Display|Window|Area|Camera)\) \d{4}-\d{2}-\d{2} \d{2}:\d{2} [AP]M)$/;
-
-export function shouldReplaceVideoTitle({
-	currentTitle,
-	previousAiTitle,
-	nextAiTitle,
-	sourceName,
-	titleManuallyEdited,
-}: {
-	currentTitle: string | null;
-	previousAiTitle?: string | null;
-	nextAiTitle?: string | null;
-	sourceName?: string | null;
-	titleManuallyEdited?: boolean | null;
-}) {
-	const nextTitle = nextAiTitle?.trim();
-	if (!nextTitle) return false;
-	if (titleManuallyEdited) return false;
-
-	const title = currentTitle?.trim();
-	if (!title) return true;
-	if (previousAiTitle?.trim() && title === previousAiTitle.trim()) return true;
-	if (sourceName?.trim() && title === sourceName.trim()) return true;
-	if (title === LEGACY_AI_TITLE_FALLBACK) return true;
-	return GENERATED_TITLE_PATTERN.test(title);
-}
 
 export async function generateAiWorkflow(payload: GenerateAiWorkflowPayload) {
 	"use workflow";
@@ -287,16 +264,6 @@ async function generateWithAi(
 	}
 
 	return result;
-}
-
-export function getAiLanguageInstruction(
-	language: AiGenerationLanguage,
-): string {
-	if (language === AI_GENERATION_LANGUAGE_AUTO) {
-		return "Write the title, summary, chapter titles, section summaries, and key points in the same language as the transcript.";
-	}
-
-	return `Write the title, summary, chapter titles, section summaries, and key points in ${getAiGenerationLanguageName(language)}.`;
 }
 
 export function getAiContentGuidelines(videoDuration: number): {

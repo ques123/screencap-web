@@ -137,7 +137,7 @@ export async function transcribeAudioChunk(opts: {
 	apiKey: string;
 	model: string;
 	audio: Buffer;
-	format: "mp3";
+	format: "mp3" | "m4a";
 	language?: string;
 	zeroDataRetention?: boolean;
 	signal?: AbortSignal;

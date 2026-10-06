@@ -60,6 +60,7 @@ import { getSharePageBranding } from "@/lib/share-branding";
 import { parseShareCallToAction } from "@/lib/share-call-to-action";
 import { getShareDashboardDestination } from "@/lib/share-dashboard-destination";
 import { getSharePlaybackUrl } from "@/lib/share-playback";
+import { waitForGeneratedTitle } from "@/lib/share-title-wait";
 import { buildShareVideoMetadata } from "@/lib/share-video-metadata";
 import { resolveShareWebUrl } from "@/lib/share-web-url";
 import { isVideoOverShareableLinkLimit } from "@/lib/shareable-link-quota";
@@ -264,6 +265,10 @@ export async function generateMetadata(
 	const shouldAdvertiseIframelyPlayer =
 		isIframelyCrawlerUserAgent(requestUserAgent) &&
 		(await getPublicShareVideo(videoId).catch(() => null)) !== null;
+	// A crawler hitting a just-recorded video waits briefly for the AI title.
+	const generatedTitle = isSocialCrawlerUserAgent(requestUserAgent)
+		? await waitForGeneratedTitle(videoId)
+		: null;
 	// Share pages also serve verified custom domains. Metadata has to point at
 	// the host the visitor used, or Slack drops the preview image.
 	const webUrl = await resolveShareWebUrl(headersList);
@@ -287,7 +292,7 @@ export async function generateMetadata(
 					return {
 						...buildShareVideoMetadata({
 							videoId,
-							name: video.name,
+							name: generatedTitle ?? video.name,
 							sourceType: video.source.type,
 							webUrl,
 							canonicalWebUrl: buildEnv.NEXT_PUBLIC_WEB_URL,
