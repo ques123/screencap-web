@@ -26,8 +26,6 @@ interface TrackPayload {
 	occurredAt?: string;
 }
 
-const VIEW_TRACKING_DELAY_MS = 2 * 60 * 1000;
-
 const sanitizeString = (value?: string | null) => {
 	const trimmed = value?.trim();
 	return trimmed && trimmed !== "unknown" ? trimmed.slice(0, 256) : undefined;
@@ -145,11 +143,11 @@ export async function POST(request: NextRequest) {
 				return;
 			}
 
-			if (
-				videoRecord &&
-				(videoRecord.activeUploadVideoId ||
-					Date.now() - videoRecord.updatedAt.getTime() < VIEW_TRACKING_DELAY_MS)
-			) {
+			// Skip only while an upload is still running. Upstream also skipped any
+			// video updated in the last 2 minutes, which drops real viewers right
+			// after the AI title (or the first-view email stamp) updates the row,
+			// i.e. exactly when a fresh link is being shared.
+			if (videoRecord?.activeUploadVideoId) {
 				return;
 			}
 

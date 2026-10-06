@@ -165,6 +165,36 @@ describe("analytics track route", () => {
 		expect(state.appendEvents).toHaveBeenCalledTimes(1);
 	});
 
+	it("records views of a video updated seconds ago (fresh share links)", async () => {
+		state.videoRows = [
+			{
+				ownerId: "owner1",
+				firstViewEmailSentAt: new Date(),
+				videoName: "v",
+				createdAt: OLD,
+				updatedAt: new Date(Date.now() - 10_000),
+				activeUploadVideoId: null,
+			},
+		];
+		await POST(makeRequest({}, { orgId: "org1" }));
+		expect(state.insertValues).toHaveBeenCalledTimes(1);
+	});
+
+	it("skips views while an upload is still running", async () => {
+		state.videoRows = [
+			{
+				ownerId: "owner1",
+				firstViewEmailSentAt: new Date(),
+				videoName: "v",
+				createdAt: OLD,
+				updatedAt: OLD,
+				activeUploadVideoId: "vid1",
+			},
+		];
+		await POST(makeRequest({}, { orgId: "org1" }));
+		expect(state.insertValues).not.toHaveBeenCalled();
+	});
+
 	it("falls back to vercel headers and blanks Cloudflare XX", async () => {
 		await POST(
 			makeRequest({
