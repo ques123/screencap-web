@@ -3141,7 +3141,7 @@ function Page() {
 						fallback={
 							<div class="flex items-center space-x-1">
 								<a
-									class="*:w-[92px] *:h-auto text-(--text-primary)"
+									class="*:w-[124px] *:h-auto text-(--text-primary)"
 									target="_blank"
 									href={
 										auth.data
