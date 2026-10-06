@@ -840,6 +840,17 @@ export const s3Buckets = mysqlTable(
 	}),
 );
 
+export const userAiSettings = mysqlTable("user_ai_settings", {
+	userId: nanoId("userId").notNull().primaryKey().$type<User.UserId>(),
+	openRouterKey: encryptedTextNullable("openRouterKey"),
+	openRouterKeyLabel: varchar("openRouterKeyLabel", { length: 64 }),
+	transcriptionModel: varchar("transcriptionModel", { length: 128 }),
+	summaryModel: varchar("summaryModel", { length: 128 }),
+	zeroDataRetention: boolean("zeroDataRetention").notNull().default(false),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+});
+
 export const storageIntegrations = mysqlTable(
 	"storage_integrations",
 	{

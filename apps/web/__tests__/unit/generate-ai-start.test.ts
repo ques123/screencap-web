@@ -34,6 +34,13 @@ vi.mock("drizzle-orm", () => ({
 	})),
 }));
 
+vi.mock("@/lib/ai/byok", () => ({
+	getByokGeneration: vi.fn(async () => null),
+	isAiConfiguredForUser: async () => serverEnvMock().GROQ_API_KEY !== undefined,
+}));
+
+vi.mock("server-only", () => ({}));
+
 vi.mock("workflow/api", () => ({
 	start: mockStart,
 }));
@@ -96,6 +103,7 @@ describe("startAiGeneration", () => {
 	});
 	it("fails fast when no AI provider is configured", async () => {
 		serverEnvMock.mockReturnValue({});
+		mockDb.mockReturnValueOnce(makeSelectChain(video));
 
 		const { startAiGeneration } = await import("@/lib/generate-ai");
 		const result = await startAiGeneration("video-1" as never, "user-1");
@@ -104,7 +112,7 @@ describe("startAiGeneration", () => {
 			success: false,
 			message: "No AI provider configured",
 		});
-		expect(mockDb).not.toHaveBeenCalled();
+		expect(mockDb).toHaveBeenCalledTimes(1);
 		expect(mockStart).not.toHaveBeenCalled();
 	});
 

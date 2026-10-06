@@ -13,6 +13,8 @@ vi.mock("server-only", () => ({}));
 
 vi.mock("@/lib/ai/provider", () => ({
 	getAiProviderChain: getAiProviderChainMock,
+	getAiProviderChainWithByok: (...args: unknown[]) =>
+		getAiProviderChainMock(...args),
 }));
 
 vi.mock("@/lib/messenger/supermemory", () => ({

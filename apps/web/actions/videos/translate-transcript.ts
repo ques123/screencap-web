@@ -7,7 +7,7 @@ import { Policy, type Video } from "@cap/web-domain";
 import { generateText } from "ai";
 import { eq } from "drizzle-orm";
 import { Effect, Exit, Option } from "effect";
-import { isAiConfigured } from "@/lib/ai/provider";
+import { getByokGeneration, isAiConfiguredForUser } from "@/lib/ai/byok";
 import { runWithAiProviders } from "@/lib/ai/run";
 import { isRateLimited, RATE_LIMIT_IDS } from "@/lib/rate-limit";
 import * as EffectRuntime from "@/lib/server";
@@ -42,13 +42,6 @@ export async function translateTranscript(
 		};
 	}
 
-	if (!isAiConfigured()) {
-		return {
-			success: false,
-			message: "Translation service not configured",
-		};
-	}
-
 	if (await isRateLimited(RATE_LIMIT_IDS.TRANSLATE_TRANSCRIPT)) {
 		return { success: false, message: "Too many requests" };
 	}
@@ -72,6 +65,13 @@ export async function translateTranscript(
 	}
 
 	const { video } = query[0];
+
+	if (!(await isAiConfiguredForUser("generation", video.ownerId))) {
+		return {
+			success: false,
+			message: "Translation service not configured",
+		};
+	}
 
 	const translatedKey = `${video.ownerId}/${videoId}/transcription.${targetLanguage}.vtt`;
 
@@ -110,6 +110,7 @@ export async function translateTranscript(
 	const translatedVtt = await translateVttContent(
 		originalVtt.value,
 		targetLanguage,
+		video.ownerId,
 	);
 
 	if (!translatedVtt) {
@@ -139,8 +140,11 @@ export async function translateTranscript(
 async function translateVttContent(
 	vttContent: string,
 	targetLanguage: LanguageCode,
+	ownerId: string,
 ): Promise<string | null> {
 	const targetLanguageName = SUPPORTED_LANGUAGES[targetLanguage];
+
+	const byok = await getByokGeneration(ownerId);
 
 	const prompt = `Translate the following WebVTT subtitle file to ${targetLanguageName}.
 
@@ -158,22 +162,26 @@ VTT content to translate:
 ${vttContent}`;
 
 	try {
-		return await runWithAiProviders("generation", async (selection) => {
-			const response = await generateText({
-				model: selection.model(),
-				prompt,
-				maxOutputTokens: 8000,
-				...(selection.supportsTemperature ? { temperature: 0.3 } : {}),
-			});
+		return await runWithAiProviders(
+			"generation",
+			async (selection) => {
+				const response = await generateText({
+					model: selection.model(),
+					prompt,
+					maxOutputTokens: 8000,
+					...(selection.supportsTemperature ? { temperature: 0.3 } : {}),
+				});
 
-			// Validate inside the provider loop so a fulfilled response that
-			// dropped the WEBVTT header falls through to the next provider.
-			if (!response.text.includes("WEBVTT")) {
-				throw new Error("translation response did not contain WEBVTT");
-			}
+				// Validate inside the provider loop so a fulfilled response that
+				// dropped the WEBVTT header falls through to the next provider.
+				if (!response.text.includes("WEBVTT")) {
+					throw new Error("translation response did not contain WEBVTT");
+				}
 
-			return response.text.trim();
-		});
+				return response.text.trim();
+			},
+			{ byok },
+		);
 	} catch (error) {
 		console.error("[translateVttContent] Translation error:", error);
 		return null;

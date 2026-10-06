@@ -12,6 +12,8 @@ const buildDocsAskSystemPromptMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/ai/provider", () => ({
 	getAiProviderChain: getAiProviderChainMock,
+	getAiProviderChainWithByok: (...args: unknown[]) =>
+		getAiProviderChainMock(...args),
 	isAiConfigured: isAiConfiguredMock,
 }));
 

@@ -6,6 +6,7 @@ import { type User, Video } from "@cap/web-domain";
 import { and, eq } from "drizzle-orm";
 import { sleep } from "workflow";
 import { z } from "zod";
+import { isTranscriptionAvailable } from "@/lib/ai/byok";
 import { isAiGenerationEnabledForUser } from "@/lib/ai-generation-entitlement";
 import { observeDesktopRecordingJob } from "@/lib/desktop-recording-job-status";
 import {
@@ -751,7 +752,7 @@ async function queueFinalizedRecordingTranscription(
 ): Promise<boolean> {
 	"use step";
 
-	if (!serverEnv().ASSEMBLY_API_KEY) return true;
+	if (!(await isTranscriptionAvailable(userId))) return true;
 	try {
 		const [[owner], [video]] = await Promise.all([
 			db()

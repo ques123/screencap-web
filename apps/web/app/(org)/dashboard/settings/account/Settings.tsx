@@ -16,7 +16,8 @@ import {
 import { type ImageUpload, Organisation } from "@cap/web-domain";
 import { useMutation } from "@tanstack/react-query";
 import { Effect, Option } from "effect";
-import { LogOut } from "lucide-react";
+import { LogOut, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useEffect, useId, useState } from "react";
@@ -292,10 +293,27 @@ export const Settings = () => {
 			</form>
 			<Card className="flex flex-col gap-4 mt-6 md:flex-row md:items-center md:justify-between">
 				<div className="space-y-1">
+					<CardTitle>AI & transcription</CardTitle>
+					<CardDescription>
+						Connect your OpenRouter key to get transcripts, summaries and
+						chapters, and choose the models.
+					</CardDescription>
+				</div>
+				<Button
+					asChild
+					size="sm"
+					variant="gray"
+					icon={<Sparkles className="size-4" />}
+				>
+					<Link href="/dashboard/settings/ai">AI settings</Link>
+				</Button>
+			</Card>
+			<Card className="flex flex-col gap-4 mt-6 md:flex-row md:items-center md:justify-between">
+				<div className="space-y-1">
 					<CardTitle>Sign out of all devices</CardTitle>
 					<CardDescription>
-						Invalidate every Screencap web session, desktop app authentication token,
-						and CLI API key connected to your account.
+						Invalidate every Screencap web session, desktop app authentication
+						token, and CLI API key connected to your account.
 					</CardDescription>
 				</div>
 				<Button
@@ -324,8 +342,8 @@ export const Settings = () => {
 							You will be signed out of this browser after the reset completes.
 						</p>
 						<p>
-							The desktop app may need you to click Sign out, then sign in
-							again before uploads and settings sync work.
+							The desktop app may need you to click Sign out, then sign in again
+							before uploads and settings sync work.
 						</p>
 					</div>
 					<DialogFooter>

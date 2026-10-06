@@ -4,7 +4,7 @@ import type { VideoMetadata } from "@cap/database/types";
 import type { Video } from "@cap/web-domain";
 import { and, eq, sql } from "drizzle-orm";
 import { start } from "workflow/api";
-import { isAiConfigured } from "@/lib/ai/provider";
+import { isAiConfiguredForUser } from "@/lib/ai/byok";
 import { generateAiWorkflow } from "@/workflows/generate-ai";
 
 type GenerateAiResult = {
@@ -29,13 +29,6 @@ export async function startAiGeneration(
 	videoId: Video.VideoId,
 	userId: string,
 ): Promise<GenerateAiResult> {
-	if (!isAiConfigured()) {
-		return {
-			success: false,
-			message: "No AI provider configured",
-		};
-	}
-
 	if (!userId || !videoId) {
 		return {
 			success: false,
@@ -53,6 +46,14 @@ export async function startAiGeneration(
 	}
 
 	const { video } = query[0];
+
+	// The video owner's BYOK settings (if any) decide availability.
+	if (!(await isAiConfiguredForUser("generation", video.ownerId))) {
+		return {
+			success: false,
+			message: "No AI provider configured",
+		};
+	}
 
 	if (video.transcriptionStatus !== "COMPLETE") {
 		return {

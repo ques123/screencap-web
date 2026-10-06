@@ -8,6 +8,10 @@ vi.mock("@cap/env", () => ({
 	serverEnv: serverEnvMock,
 }));
 
+vi.mock("@/lib/ai/byok", () => ({
+	getByokGeneration: vi.fn(async () => null),
+}));
+
 import {
 	getAiModel,
 	getAiProviderChain,

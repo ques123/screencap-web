@@ -1,8 +1,9 @@
 import { APICallError } from "ai";
+import type { ByokModelAccess } from "./byok";
 import {
 	type AiModelRole,
 	type AiModelSelection,
-	getAiProviderChain,
+	getAiProviderChainWithByok,
 } from "./provider";
 
 export class AiUnavailableError extends Error {
@@ -20,6 +21,11 @@ export interface RunWithAiProvidersOptions {
 	 */
 	stopOnError?: (error: unknown, selection: AiModelSelection) => boolean;
 	onProviderError?: (error: unknown, selection: AiModelSelection) => void;
+	/**
+	 * The content owner's resolved OpenRouter access (BYOK), tried first
+	 * ahead of the server-level providers.
+	 */
+	byok?: ByokModelAccess | null;
 }
 
 /**
@@ -32,7 +38,7 @@ export async function runWithAiProviders<T>(
 	run: (selection: AiModelSelection) => Promise<T>,
 	options: RunWithAiProvidersOptions = {},
 ): Promise<T> {
-	const chain = getAiProviderChain(role);
+	const chain = getAiProviderChainWithByok(role, options.byok);
 	if (chain.length === 0) {
 		throw new AiUnavailableError(
 			`No AI provider configured for the "${role}" role`,

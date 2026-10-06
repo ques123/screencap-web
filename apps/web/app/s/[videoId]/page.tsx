@@ -45,7 +45,7 @@ import {
 	type OrganizationSettings,
 	type Spaces,
 } from "@/app/(org)/dashboard/dashboard-data";
-import { isAiConfigured } from "@/lib/ai/provider";
+import { isAiConfiguredForUser, isTranscriptionAvailable } from "@/lib/ai/byok";
 import { completeDesktopSegmentsManifestAndQueue } from "@/lib/desktop-segments-recovery";
 import { createNotification } from "@/lib/Notification";
 import {
@@ -844,12 +844,14 @@ async function AuthorizedContent({
 		organizationSettings: video.orgSettings,
 		spaces: sharedSpaces.filter((space) => space.id !== space.organizationId),
 	});
-	const env = serverEnv();
 	const transcriptionGenerationAvailable =
 		!video.isScreenshot &&
-		Boolean(env.ASSEMBLY_API_KEY) &&
+		(await isTranscriptionAvailable(video.owner.id)) &&
 		!rules.settings.disableTranscript;
-	const aiProviderAvailable = isAiConfigured();
+	const aiProviderAvailable = await isAiConfiguredForUser(
+		"generation",
+		video.owner.id,
+	);
 
 	if (
 		transcriptionGenerationAvailable &&
