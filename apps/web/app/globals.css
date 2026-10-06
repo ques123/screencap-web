@@ -1076,7 +1076,7 @@ footer a {
 }
 
 /* Screencap "Open Sky": tinted sky photo with two slowly drifting cloud strips, used behind the
-   dashboard content (same look as the Mac app's main window). The clouds move with transform only
+   dashboard's sidebar and top bar (the recordings panel stays solid on top of it). The clouds move with transform only
    (no repaints) and stay still when the system asks for reduced motion. Images in /public/sky are
    generated for Screencap. */
 .sc-sky {
@@ -1084,7 +1084,7 @@ footer a {
 	isolation: isolate;
 	background-color: #dcebfa;
 	background-image:
-		linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
+		linear-gradient(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.58)),
 		url("/sky/sky.webp");
 	background-size: auto, cover;
 	background-position: center, center 30%;

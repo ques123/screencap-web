@@ -118,7 +118,7 @@ export default async function DashboardLayout({
 					shareableLinkUsage={shareableLinkUsage}
 				>
 					<DashboardPasteImport />
-					<div className="bg-gray-2 dashboard-grid">
+					<div className="bg-gray-2 dashboard-grid sc-sky">
 						<DesktopNav />
 						<div className="flex h-full [grid-area:main] focus:outline-none">
 							<MobileNav />
