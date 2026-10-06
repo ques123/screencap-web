@@ -13,7 +13,6 @@ import {
 	videos,
 	videoUploads,
 } from "@cap/database/schema";
-import { serverEnv } from "@cap/env";
 import {
 	Database,
 	ImageUploads,
@@ -430,9 +429,7 @@ export default async function SharedCapsPage(props: {
 				count={totalCount}
 				spaceData={resolvedSpace}
 				spaceId={params.spaceId as Space.SpaceIdOrOrganisationId}
-				analyticsEnabled={Boolean(
-					serverEnv().TINYBIRD_TOKEN && serverEnv().TINYBIRD_HOST,
-				)}
+				analyticsEnabled
 				spaceMembers={spaceMembersData}
 				organizationMembers={organizationMembersData}
 				currentUserId={user.id}
@@ -568,9 +565,7 @@ export default async function SharedCapsPage(props: {
 				hideSharedWith
 				organizationData={organization}
 				spaceId={params.spaceId as Space.SpaceIdOrOrganisationId}
-				analyticsEnabled={Boolean(
-					serverEnv().TINYBIRD_TOKEN && serverEnv().TINYBIRD_HOST,
-				)}
+				analyticsEnabled
 				organizationMembers={organizationMembersData}
 				currentUserId={user.id}
 				folders={foldersData}

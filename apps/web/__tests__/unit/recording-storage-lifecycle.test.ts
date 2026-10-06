@@ -291,6 +291,7 @@ function databaseFixture(video = recording()) {
 		}),
 		delete: (table: unknown) => ({
 			where: async (condition: SQL) => {
+				if (table === Db.videoViews) return [{ affectedRows: 0 }];
 				if (table !== Db.storageObjects)
 					throw new Error("Unexpected direct delete");
 				objectDeleteConditions.push(condition);

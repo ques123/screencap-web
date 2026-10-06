@@ -108,6 +108,8 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 			if (_providers) return _providers;
 			const appleClientId = serverEnv().APPLE_CLIENT_ID;
 			const appleClientSecret = serverEnv().APPLE_CLIENT_SECRET;
+			const googleClientId = serverEnv().GOOGLE_CLIENT_ID;
+			const googleClientSecret = serverEnv().GOOGLE_CLIENT_SECRET;
 			_providers = [
 				...(appleClientId && appleClientSecret
 					? [
@@ -117,19 +119,23 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 							}),
 						]
 					: []),
-				GoogleProvider({
-					clientId: serverEnv().GOOGLE_CLIENT_ID as string,
-					clientSecret: serverEnv().GOOGLE_CLIENT_SECRET as string,
-					authorization: {
-						params: {
-							scope: [
-								"https://www.googleapis.com/auth/userinfo.email",
-								"https://www.googleapis.com/auth/userinfo.profile",
-							].join(" "),
-							prompt: "select_account",
-						},
-					},
-				}),
+				...(googleClientId && googleClientSecret
+					? [
+							GoogleProvider({
+								clientId: googleClientId,
+								clientSecret: googleClientSecret,
+								authorization: {
+									params: {
+										scope: [
+											"https://www.googleapis.com/auth/userinfo.email",
+											"https://www.googleapis.com/auth/userinfo.profile",
+										].join(" "),
+										prompt: "select_account",
+									},
+								},
+							}),
+						]
+					: []),
 				...(serverEnv().WORKOS_CLIENT_ID && serverEnv().WORKOS_API_KEY
 					? [
 							WorkOSProvider({

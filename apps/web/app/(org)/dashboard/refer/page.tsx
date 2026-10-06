@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@cap/database/auth/session";
 import { serverEnv } from "@cap/env";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { isHiddenOnScreencap } from "@/lib/screencap-hidden";
 import ReferClient from "./ReferClient";
 
 export const metadata = {
@@ -40,6 +41,9 @@ async function generateEmbedToken(
 }
 
 export default async function ReferPage() {
+	// The referral program is not available on Screencap.
+	if (isHiddenOnScreencap()) notFound();
+
 	// Check if Dub Partners is available
 	if (!serverEnv().DUB_API_KEY) {
 		redirect("/dashboard/caps");

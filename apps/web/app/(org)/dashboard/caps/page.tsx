@@ -11,7 +11,6 @@ import {
 	videos,
 	videoUploads,
 } from "@cap/database/schema";
-import { serverEnv } from "@cap/env";
 import {
 	Database,
 	ImageUploads,
@@ -331,9 +330,7 @@ export default async function CapsPage(props: PageProps<"/dashboard/caps">) {
 			data={processedVideoData}
 			folders={foldersData}
 			count={totalCount}
-			analyticsEnabled={Boolean(
-				serverEnv().TINYBIRD_TOKEN && serverEnv().TINYBIRD_HOST,
-			)}
+			analyticsEnabled
 		/>
 	);
 }

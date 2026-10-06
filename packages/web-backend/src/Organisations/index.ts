@@ -204,6 +204,17 @@ export class Organisations extends Effect.Service<Organisations>()(
 								.where(Dz.inArray(Db.spaceVideos.videoId, videoIds));
 						}
 
+						await tx
+							.delete(Db.videoViews)
+							.where(
+								Dz.inArray(Db.videoViews.tenantId, [id, organisation.ownerId]),
+							);
+						if (videoIds.length > 0) {
+							await tx
+								.delete(Db.videoViews)
+								.where(Dz.inArray(Db.videoViews.videoId, videoIds));
+						}
+
 						if (spaceIds.length > 0) {
 							await tx
 								.delete(Db.spaceVideos)

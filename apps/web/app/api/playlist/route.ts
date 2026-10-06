@@ -401,14 +401,8 @@ const getPlaylistResponse = (
 			Option.isSome(urlParams.fileType) &&
 			urlParams.fileType.value === "enhanced-audio"
 		) {
-			const enhancedAudioKey = `${video.ownerId}/${video.id}/enhanced-audio.mp3`;
-			return yield* bucket.getSignedObjectUrl(enhancedAudioKey).pipe(
-				Effect.map(HttpServerResponse.redirect),
-				Effect.catchTag("StorageError", () =>
-					Effect.fail(new HttpApiError.NotFound()),
-				),
-				Effect.withSpan("fetchEnhancedAudio"),
-			);
+			// Enhanced audio is not available on Screencap.
+			return yield* Effect.fail(new HttpApiError.NotFound());
 		}
 
 		yield* Effect.log("Resolving path with custom bucket");

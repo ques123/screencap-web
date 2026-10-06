@@ -9,11 +9,13 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireOrganizationSettingsManager } from "./authorization";
 import { addDomain, checkDomainStatus } from "./domain-utils";
+import { assertAvailableOnScreencap } from "./unavailable";
 
 export async function updateDomain(
 	domain: string,
 	organizationId: Organisation.OrganisationId,
 ) {
+	assertAvailableOnScreencap();
 	const user = await getCurrentUser();
 
 	if (!user) {

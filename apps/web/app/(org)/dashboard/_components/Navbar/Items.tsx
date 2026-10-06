@@ -18,11 +18,7 @@ import {
 	PopoverTrigger,
 } from "@cap/ui";
 import { classNames } from "@cap/utils";
-import {
-	faBuilding,
-	faCircleInfo,
-	faLink,
-} from "@fortawesome/free-solid-svg-icons";
+import { faBuilding } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import clsx from "clsx";
 import { motion } from "framer-motion";
@@ -186,10 +182,6 @@ const AdminNavItems = ({ toggleMobileNav }: Props) => {
 		return pathname === basePath;
 	};
 
-	const isDomainSetupVerified =
-		activeOrg?.organization.customDomain &&
-		activeOrg?.organization.domainVerified;
-
 	return (
 		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 			<div className="flex flex-col flex-1 w-full min-h-0">
@@ -259,34 +251,6 @@ const AdminNavItems = ({ toggleMobileNav }: Props) => {
 														/>
 													)}
 												</div>
-												{!sidebarCollapsed && (
-													<Link
-														href={
-															isDomainSetupVerified
-																? `https://${activeOrg.organization.customDomain}`
-																: "/dashboard/settings/organization"
-														}
-														rel={
-															isDomainSetupVerified
-																? "noopener noreferrer"
-																: undefined
-														}
-														target={isDomainSetupVerified ? "_blank" : "_self"}
-														className="flex truncate w-full overflow-hidden flex-1 gap-1.5 items-center self-start"
-													>
-														<FontAwesomeIcon
-															icon={
-																isDomainSetupVerified ? faLink : faCircleInfo
-															}
-															className="duration-200 size-3 text-gray-10"
-														/>
-														<p className="w-full text-[11px] flex-1 duration-200 truncate leading-0 text-gray-11">
-															{isDomainSetupVerified
-																? activeOrg?.organization.customDomain
-																: "No custom domain set"}
-														</p>
-													</Link>
-												)}
 											</div>
 										</div>
 									</div>

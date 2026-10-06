@@ -1,7 +1,7 @@
 import { db } from "@cap/database";
-import { videos, videoUploads } from "@cap/database/schema";
+import { videos, videoUploads, videoViews } from "@cap/database/schema";
 import { provideOptionalAuth, Tinybird } from "@cap/web-backend";
-import { CurrentUser, Video } from "@cap/web-domain";
+import { CurrentUser, type User, Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import type { NextRequest } from "next/server";
@@ -13,6 +13,7 @@ import {
 	sendFirstViewEmail,
 } from "@/lib/Notification";
 import { runPromise } from "@/lib/server";
+import { isBotUserAgent } from "@/lib/view-bots";
 
 interface TrackPayload {
 	videoId: string;
@@ -30,6 +31,11 @@ const VIEW_TRACKING_DELAY_MS = 2 * 60 * 1000;
 const sanitizeString = (value?: string | null) => {
 	const trimmed = value?.trim();
 	return trimmed && trimmed !== "unknown" ? trimmed.slice(0, 256) : undefined;
+};
+
+const cleanCountry = (value?: string | null) => {
+	const code = sanitizeString(value)?.toUpperCase();
+	return code && code !== "XX" && code !== "T1" ? code.slice(0, 8) : "";
 };
 
 const decodeUrlEncodedHeaderValue = (value?: string | null) => {
@@ -63,6 +69,9 @@ export async function POST(request: NextRequest) {
 		sanitizeString(request.headers.get("user-agent")) ||
 		sanitizeString(body.userAgent) ||
 		"unknown";
+	if (isBotUserAgent(userAgent)) {
+		return Response.json({ success: true });
+	}
 	const parser = new UAParser(userAgent);
 	const browserName = parser.getBrowser().name ?? "unknown";
 	const osName = parser.getOS().name ?? "unknown";
@@ -70,14 +79,14 @@ export async function POST(request: NextRequest) {
 
 	const timestamp = body.occurredAt ? new Date(body.occurredAt) : new Date();
 
+	const header = (name: string) =>
+		sanitizeString(decodeUrlEncodedHeaderValue(request.headers.get(name)));
 	const country =
-		sanitizeString(request.headers.get("x-vercel-ip-country")) || "";
+		cleanCountry(request.headers.get("cf-ipcountry")) ||
+		cleanCountry(request.headers.get("x-vercel-ip-country"));
 	const region =
-		sanitizeString(request.headers.get("x-vercel-ip-country-region")) || "";
-	const city =
-		sanitizeString(
-			decodeUrlEncodedHeaderValue(request.headers.get("x-vercel-ip-city")),
-		) || "";
+		header("cf-region") || header("x-vercel-ip-country-region") || "";
+	const city = header("cf-ipcity") || header("x-vercel-ip-city") || "";
 
 	const hostname =
 		sanitizeString(body.hostname) ||
@@ -169,6 +178,33 @@ export async function POST(request: NextRequest) {
 					user_id: userId,
 				},
 			]);
+
+			yield* Effect.tryPromise(() =>
+				db()
+					.insert(videoViews)
+					.values({
+						videoId: Video.VideoId.make(body.videoId),
+						tenantId,
+						ownerId: (videoRecord?.ownerId ??
+							body.ownerId ??
+							null) as User.UserId | null,
+						sessionId: sessionId ?? "anon",
+						viewerUserId: userId as User.UserId | null,
+						country,
+						region: region.slice(0, 128),
+						city: city.slice(0, 128),
+						browser: browserName.slice(0, 64),
+						os: osName.slice(0, 64),
+						device: deviceType.slice(0, 32),
+						// Server time: the client-sent occurredAt can't be trusted for counts.
+						createdAt: new Date(),
+					}),
+			).pipe(
+				Effect.catchAll((error) => {
+					console.error("Failed to record video view:", error);
+					return Effect.void;
+				}),
+			);
 
 			const isNewVideo =
 				videoRecord && videoRecord.createdAt >= ANON_NOTIF_CUTOFF;
