@@ -246,10 +246,12 @@ export function AiSettings({
 					</div>
 				) : (
 					<div className="space-y-4">
-						<Button asChild size="sm" variant="primary">
-							<a href="/api/integrations/openrouter/start">
-								Connect OpenRouter
-							</a>
+						<Button
+							href="/api/integrations/openrouter/start"
+							size="sm"
+							variant="primary"
+						>
+							Connect OpenRouter
 						</Button>
 						<form
 							className="space-y-2"

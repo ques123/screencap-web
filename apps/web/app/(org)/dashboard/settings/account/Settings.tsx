@@ -17,7 +17,6 @@ import { type ImageUpload, Organisation } from "@cap/web-domain";
 import { useMutation } from "@tanstack/react-query";
 import { Effect, Option } from "effect";
 import { LogOut, Sparkles } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useEffect, useId, useState } from "react";
@@ -300,12 +299,12 @@ export const Settings = () => {
 					</CardDescription>
 				</div>
 				<Button
-					asChild
+					href="/dashboard/settings/ai"
 					size="sm"
 					variant="gray"
 					icon={<Sparkles className="size-4" />}
 				>
-					<Link href="/dashboard/settings/ai">AI settings</Link>
+					AI settings
 				</Button>
 			</Card>
 			<Card className="flex flex-col gap-4 mt-6 md:flex-row md:items-center md:justify-between">
