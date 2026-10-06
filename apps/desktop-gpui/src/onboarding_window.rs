@@ -840,12 +840,12 @@ impl OnboardingWindow {
             .right(px(-160.))
             .opacity(0.7)
             .child(
-                img("onboarding/cloud-1.png")
+                img("onboarding/cloud-1.webp")
                     .w(px(cloud_width))
                     .h(px(cloud_width * 1138. / 1657.)),
             );
         let second = div().absolute().top_0().left(px(-160.)).opacity(0.7).child(
-            img("onboarding/cloud-2.png")
+            img("onboarding/cloud-2.webp")
                 .w(px(cloud_width))
                 .h(px(cloud_width * 892. / 1923.)),
         );
@@ -856,7 +856,7 @@ impl OnboardingWindow {
             .bottom(px(-height * 0.15))
             .opacity(0.7)
             .child(
-                img("onboarding/cloud-3.png")
+                img("onboarding/cloud-3.webp")
                     .w(px(third_width))
                     .h(px(third_width * 703. / 3007.)),
             );
