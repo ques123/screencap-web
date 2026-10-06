@@ -2,22 +2,23 @@
    Images are codex-generated for Screencap (see ASSETS.md); the font is Instrument Serif (OFL). */
 
 @font-face {
-	font-family: "Instrument Serif";
-	src: url("../assets/fonts/InstrumentSerif-Regular.woff2") format("woff2");
-	font-weight: 400;
+	font-family: "Bricolage Grotesque";
+	src: url("../assets/fonts/BricolageGrotesque-Variable.woff2") format("woff2");
+	font-weight: 200 800;
 	font-style: normal;
 	font-display: swap;
 }
 
+/* Headline face (sticker style). The class name predates the switch from Instrument Serif. */
 .font-sky-serif {
-	font-family: "Instrument Serif", Georgia, "Times New Roman", serif;
-	font-weight: 400;
-	letter-spacing: -0.01em;
+	font-family: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+	font-weight: 800;
+	letter-spacing: -0.045em;
 }
 
 /* Full sky photo, used behind the welcome screen. */
 .cap-sky-photo {
-	background: #6fa8e6 url("../assets/illustrations/sky.webp") center 35% / cover no-repeat;
+	background: #6fa8e6 url("../assets/illustrations/peaks-sea.webp") center 66% / cover no-repeat;
 }
 
 /* Main window: sky photo with a light tint so text stays readable, plus two cloud layers that
@@ -32,9 +33,9 @@
 	background-color: #dcebfa;
 	background-image:
 		linear-gradient(rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.38)),
-		url("../assets/illustrations/sky.webp");
+		url("../assets/illustrations/peaks-sea.webp");
 	background-size: auto, cover;
-	background-position: center, center 30%;
+	background-position: center, center 72%;
 	background-repeat: no-repeat;
 }
 
@@ -90,7 +91,7 @@
 	background-color: #0b1a2c;
 	background-image:
 		linear-gradient(rgba(8, 18, 32, 0.62), rgba(8, 18, 32, 0.62)),
-		url("../assets/illustrations/sky.webp");
+		url("../assets/illustrations/peaks-sea.webp");
 }
 
 .dark .cap-sky::before,
