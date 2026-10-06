@@ -14,6 +14,7 @@ import { DashboardPasteImport } from "./_components/DashboardPasteImport";
 import MobileTab from "./_components/MobileTab";
 import DesktopNav from "./_components/Navbar/Desktop";
 import MobileNav from "./_components/Navbar/Mobile";
+import { SupportChat } from "./_components/SupportChat";
 import { DashboardContexts } from "./Contexts";
 import { UploadingProvider } from "./caps/UploadingContext";
 import {
@@ -118,6 +119,7 @@ export default async function DashboardLayout({
 					shareableLinkUsage={shareableLinkUsage}
 				>
 					<DashboardPasteImport />
+					<SupportChat userId={user.id} email={user.email} name={user.name} />
 					<div className="bg-gray-2 dashboard-grid sc-sky">
 						<DesktopNav />
 						<div className="flex h-full [grid-area:main] focus:outline-none">
