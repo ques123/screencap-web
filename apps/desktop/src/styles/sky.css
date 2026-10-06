@@ -21,7 +21,7 @@
 }
 
 /* Main window: sky photo with a light tint so text stays readable, plus two cloud layers that
-   drift slowly. The layers are pseudo-elements moved with transform only (compositor work, no
+   drift slowly. Each strip is a cloud image next to its mirror image, so it tiles without seams. The layers are pseudo-elements moved with transform only (compositor work, no
    repaints), and they stop for people who ask the system to reduce motion. */
 .cap-sky,
 .cap-window-shell.cap-sky,
@@ -44,7 +44,7 @@
 	position: absolute;
 	z-index: -1;
 	left: 0;
-	width: 200%;
+	width: 400%; /* two tiles; each tile is two window widths, so -50% moves exactly one tile */
 	pointer-events: none;
 	background-repeat: repeat-x;
 	will-change: transform;
@@ -53,21 +53,21 @@
 .cap-sky::before {
 	top: -6%;
 	height: 62%;
-	background-image: url("../assets/illustrations/cloud-2.webp");
+	background-image: url("../assets/illustrations/sky-drift-top.webp");
 	background-size: 50% auto;
 	background-position: 0 0;
 	opacity: 0.75;
-	animation: cap-sky-drift 140s linear infinite;
+	animation: cap-sky-drift 280s linear infinite;
 }
 
 .cap-sky::after {
 	bottom: -10%;
 	height: 55%;
-	background-image: url("../assets/illustrations/cloud-3.webp");
+	background-image: url("../assets/illustrations/sky-drift-bottom.webp");
 	background-size: 50% auto;
 	background-position: 0 100%;
 	opacity: 0.85;
-	animation: cap-sky-drift 90s linear infinite reverse;
+	animation: cap-sky-drift 180s linear infinite reverse;
 }
 
 @keyframes cap-sky-drift {
