@@ -9,5 +9,6 @@ The full licence text for each family is in this folder.
 | `Instrument-Sans-OFL.txt` | Instrument Sans | `apps/web/lib/og/fonts/InstrumentSans-*.ttf` |
 | `Source-Serif-4-OFL.txt` | Source Serif 4 | `apps/web/lib/og/fonts/SourceSerif4-*.ttf` |
 | `DM-Mono-OFL.txt` | DM Mono | `apps/web/lib/og/fonts/DMMono-*.ttf` |
+| `InstrumentSerif-OFL.txt` | Instrument Serif | `apps/desktop/src/assets/fonts/InstrumentSerif-Regular.woff2` |
 
 Geist has no italic styles, so italic slots in the Chrome extension CSS reuse the upstream upright files.
