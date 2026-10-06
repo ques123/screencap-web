@@ -1,5 +1,4 @@
 import {
-	SCREENCAP_BRACKET_STROKE,
 	SCREENCAP_BRACKETS,
 	SCREENCAP_DOT,
 	SCREENCAP_LOGO_VIEWBOX,
@@ -7,6 +6,36 @@ import {
 	SCREENCAP_RED,
 	SCREENCAP_WORDMARK_PATH,
 } from "./screencap-brand";
+
+// The "Open Sky" mark: the viewfinder brackets and record dot in white/red on a small sky tile
+// with soft clouds (a vector take on the app icon). Plain shapes only, no gradient or clip ids,
+// because several logos can share a page.
+export const SkyMark = () => (
+	<>
+		<rect x="0.5" y="0.5" width="39" height="39" rx="10" fill="#3F8FE8" />
+		<path
+			d="M0.5 18H39.5V29.5A10 10 0 0 1 29.5 39.5H10.5A10 10 0 0 1 0.5 29.5Z"
+			fill="#FFFFFF"
+			fillOpacity="0.28"
+		/>
+		<ellipse cx="12" cy="33" rx="8" ry="3.5" fill="#FFFFFF" fillOpacity="0.9" />
+		<ellipse cx="28" cy="34.5" rx="9" ry="3.5" fill="#FFFFFF" fillOpacity="0.9" />
+		<ellipse cx="31" cy="9" rx="5" ry="2" fill="#FFFFFF" fillOpacity="0.55" />
+		<g
+			transform="translate(8 8) scale(0.6)"
+			stroke="#FFFFFF"
+			strokeWidth={5}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			fill="none"
+		>
+			{SCREENCAP_BRACKETS.map((d) => (
+				<path key={d} d={d} />
+			))}
+		</g>
+		<circle cx={SCREENCAP_DOT.cx} cy={SCREENCAP_DOT.cy} r={4.4} fill={SCREENCAP_RED} />
+	</>
+);
 
 export const Logo = ({
 	className,
@@ -23,6 +52,7 @@ export const Logo = ({
 	showBeta?: boolean;
 	white?: boolean;
 	hideLogoName?: boolean;
+	/** Kept for callers; the sky mark is always a squared tile now. */
 	squaredMark?: boolean;
 	style?: React.CSSProperties;
 	viewBoxDimensions?: `${string} ${string} ${string} ${string}`;
@@ -45,31 +75,7 @@ export const Logo = ({
 				aria-label="Screencap"
 				className={className}
 			>
-				{squaredMark && (
-					<rect
-						width="39.5"
-						height="39.5"
-						x="0.25"
-						y="0.25"
-						fill="#fff"
-						stroke="#E7EAF0"
-						strokeWidth="0.5"
-						rx="7.75"
-					/>
-				)}
-				<g
-					className={squaredMark ? "text-[#14161A]" : white ? "text-white" : "text-gray-12"}
-					stroke="currentColor"
-					strokeWidth={SCREENCAP_BRACKET_STROKE}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					fill="none"
-				>
-					{SCREENCAP_BRACKETS.map((d) => (
-						<path key={d} d={d} />
-					))}
-				</g>
-				<circle {...SCREENCAP_DOT} fill={SCREENCAP_RED} />
+				<SkyMark />
 				{!hideLogoName && (
 					<path
 						className={white ? "fill-white" : "fill-gray-12"}
