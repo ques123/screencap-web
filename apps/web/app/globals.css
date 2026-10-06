@@ -1085,9 +1085,9 @@ footer a {
 	background-color: #dcebfa;
 	background-image:
 		linear-gradient(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.58)),
-		url("/sky/sky.webp");
+		url("/sky/peaks-sea.webp");
 	background-size: auto, cover;
-	background-position: center, center 30%;
+	background-position: center, center 70%;
 	background-repeat: no-repeat;
 }
 .sc-sky::before,
@@ -1128,7 +1128,7 @@ footer a {
 	background-color: #0b1a2c;
 	background-image:
 		linear-gradient(rgba(8, 18, 32, 0.7), rgba(8, 18, 32, 0.7)),
-		url("/sky/sky.webp");
+		url("/sky/peaks-sea.webp");
 }
 .dark .sc-sky::before,
 .dark .sc-sky::after {
