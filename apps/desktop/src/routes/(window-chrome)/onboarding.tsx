@@ -43,9 +43,10 @@ import IconLucideChevronDown from "~icons/lucide/chevron-down";
 import IconLucideCopy from "~icons/lucide/copy";
 import IconLucideSave from "~icons/lucide/save";
 import IconLucideShield from "~icons/lucide/shield";
-import cloud1 from "../../assets/illustrations/cloud-1.png";
-import cloud2 from "../../assets/illustrations/cloud-2.png";
-import cloud3 from "../../assets/illustrations/cloud-3.png";
+import "~/styles/sky.css";
+import cloud1 from "../../assets/illustrations/cloud-1.webp";
+import cloud2 from "../../assets/illustrations/cloud-2.webp";
+import cloud3 from "../../assets/illustrations/cloud-3.webp";
 import { WindowChromeHeader } from "./Context";
 
 type ModeId = "instant" | "studio" | "screenshot";
@@ -260,7 +261,7 @@ function OnboardingAmbientBackdrop() {
 			class="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.1]"
 			aria-hidden="true"
 		>
-			<div class="absolute inset-0 custom-bg" />
+			<div class="absolute inset-0 cap-sky-photo" />
 			<div class="startup-grain" />
 			<div
 				ref={bindCloud1}
@@ -436,7 +437,7 @@ export default function OnboardingPage() {
 			<Show when={ready()}>
 				<style>
 					{`
-					.custom-bg {
+					.cap-sky-photo {
 						transition: all 600ms cubic-bezier(0.4, 0, 0.2, 1);
 					}
 					.startup-grain {
@@ -1776,7 +1777,7 @@ function StartupOverlay(props: {
 	return (
 		<div
 			class={cx(
-				"absolute inset-0 z-50 flex flex-col min-h-full h-full overflow-hidden custom-bg transition-all duration-600 text-solid-white bg-white",
+				"absolute inset-0 z-50 flex flex-col min-h-full h-full overflow-hidden cap-sky-photo transition-all duration-600 text-solid-white",
 				props.isExiting && "opacity-0 scale-105 pointer-events-none",
 			)}
 		>
@@ -1839,11 +1840,11 @@ function StartupOverlay(props: {
 							)}
 						/>
 					</div>
-					<h1 class="text-5xl md:text-5xl font-bold mb-4 mt-8 drop-shadow-[0_0_20px_rgba(0,0,0,0.2)]">
+					<h1 class="font-sky-serif text-6xl md:text-7xl mb-4 mt-8 drop-shadow-[0_0_20px_rgba(0,0,0,0.25)]">
 						Welcome to Screencap
 					</h1>
 					<p class="text-xl md:text-2xl opacity-80 mx-auto drop-shadow-[0_0_20px_rgba(0,0,0,0.2)] whitespace-nowrap">
-						Beautiful screen recordings, owned by you.
+						Screen recordings, one link away.
 					</p>
 				</div>
 

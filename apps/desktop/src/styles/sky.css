@@ -1,0 +1,114 @@
+/* Screencap "Open Sky" look: the sky photo, drifting cloud layers and the serif headline.
+   Images are codex-generated for Screencap (see ASSETS.md); the font is Instrument Serif (OFL). */
+
+@font-face {
+	font-family: "Instrument Serif";
+	src: url("../assets/fonts/InstrumentSerif-Regular.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+.font-sky-serif {
+	font-family: "Instrument Serif", Georgia, "Times New Roman", serif;
+	font-weight: 400;
+	letter-spacing: -0.01em;
+}
+
+/* Full sky photo, used behind the welcome screen. */
+.cap-sky-photo {
+	background: #6fa8e6 url("../assets/illustrations/sky.webp") center 35% / cover no-repeat;
+}
+
+/* Main window: sky photo with a light tint so text stays readable, plus two cloud layers that
+   drift slowly. The layers are pseudo-elements moved with transform only (compositor work, no
+   repaints), and they stop for people who ask the system to reduce motion. */
+.cap-sky,
+.cap-window-shell.cap-sky,
+[data-macos-native-material] .cap-window-shell.cap-sky,
+[data-macos-visual-system] .cap-window-shell.cap-sky {
+	position: relative;
+	isolation: isolate;
+	background-color: #dcebfa;
+	background-image:
+		linear-gradient(rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.38)),
+		url("../assets/illustrations/sky.webp");
+	background-size: auto, cover;
+	background-position: center, center 30%;
+	background-repeat: no-repeat;
+}
+
+.cap-sky::before,
+.cap-sky::after {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	left: 0;
+	width: 200%;
+	pointer-events: none;
+	background-repeat: repeat-x;
+	will-change: transform;
+}
+
+.cap-sky::before {
+	top: -6%;
+	height: 62%;
+	background-image: url("../assets/illustrations/cloud-2.webp");
+	background-size: 50% auto;
+	background-position: 0 0;
+	opacity: 0.75;
+	animation: cap-sky-drift 140s linear infinite;
+}
+
+.cap-sky::after {
+	bottom: -10%;
+	height: 55%;
+	background-image: url("../assets/illustrations/cloud-3.webp");
+	background-size: 50% auto;
+	background-position: 0 100%;
+	opacity: 0.85;
+	animation: cap-sky-drift 90s linear infinite reverse;
+}
+
+@keyframes cap-sky-drift {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(-50%, 0, 0);
+	}
+}
+
+.dark .cap-sky,
+.dark .cap-window-shell.cap-sky,
+.dark [data-macos-native-material] .cap-window-shell.cap-sky,
+[data-macos-native-material].dark .cap-window-shell.cap-sky,
+.dark[data-macos-native-material] .cap-window-shell.cap-sky {
+	background-color: #0b1a2c;
+	background-image:
+		linear-gradient(rgba(8, 18, 32, 0.62), rgba(8, 18, 32, 0.62)),
+		url("../assets/illustrations/sky.webp");
+}
+
+.dark .cap-sky::before,
+.dark .cap-sky::after {
+	opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cap-sky::before,
+	.cap-sky::after {
+		animation: none;
+	}
+}
+
+/* Let the sky run under the title bar and soften the divider below it. */
+.cap-sky .cap-window-header,
+[data-macos-native-material] .cap-sky .cap-window-header,
+:root.dark[data-macos-native-material] .cap-sky .cap-window-header {
+	background: transparent;
+}
+
+.cap-window-shell.cap-sky > * + * {
+	border-color: rgba(255, 255, 255, 0.45);
+}

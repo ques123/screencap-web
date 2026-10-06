@@ -14,6 +14,7 @@ import { AbsoluteInsetLoader } from "~/components/Loader";
 import CaptionControlsMacOS from "~/components/titlebar/controls/CaptionControlsMacOS";
 import CaptionControlsWindows11 from "~/components/titlebar/controls/CaptionControlsWindows11";
 import { applyMacOSWindowMaterial } from "~/utils/macos-window-material";
+import "~/styles/sky.css";
 import {
 	useWindowChromeContext,
 	WindowChromeContext,
@@ -58,6 +59,7 @@ export default function (props: RouteSectionProps) {
 				class={cx(
 					"cap-window-shell flex overflow-hidden flex-col w-screen h-screen max-h-screen divide-y divide-gray-5 bg-gray-1",
 					isMacOS && "rounded-[16px]",
+					location.pathname === "/" && "cap-sky",
 				)}
 			>
 				<Header />
