@@ -225,9 +225,9 @@ const IMAGES: &[(&str, &[u8])] = assets!("images":
 );
 
 const ONBOARDING: &[(&str, &[u8])] = &[
-    ("onboarding/cloud-1.png", include_bytes!("../../desktop/src/assets/illustrations/cloud-1.png")),
-    ("onboarding/cloud-2.png", include_bytes!("../../desktop/src/assets/illustrations/cloud-2.png")),
-    ("onboarding/cloud-3.png", include_bytes!("../../desktop/src/assets/illustrations/cloud-3.png")),
+    ("onboarding/cloud-1.webp", include_bytes!("../../desktop/src/assets/illustrations/cloud-1.webp")),
+    ("onboarding/cloud-2.webp", include_bytes!("../../desktop/src/assets/illustrations/cloud-2.webp")),
+    ("onboarding/cloud-3.webp", include_bytes!("../../desktop/src/assets/illustrations/cloud-3.webp")),
     ("onboarding/logo.svg", include_bytes!("../../../packages/ui-solid/icons/logo.svg")),
     ("onboarding/cursor-macos.svg", include_bytes!("../../../packages/ui-solid/icons/cursor-macos.svg")),
     ("onboarding/cursor-windows.svg", include_bytes!("../../../packages/ui-solid/icons/cursor-windows.svg")),
