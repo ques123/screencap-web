@@ -133,6 +133,8 @@ const createProps = (
 		ownerId: "owner-id" as EmbedVideoProps["data"]["ownerId"],
 		orgId: "org-id" as EmbedVideoProps["data"]["orgId"],
 		name: "Test video",
+		e2ee: null,
+		keyFingerprint: null,
 		bucket: null,
 		storageIntegrationId: null,
 		duration: 60,
@@ -173,7 +175,9 @@ const expectChromeVisible = (container: HTMLElement) => {
 
 const expectChromeHidden = (container: HTMLElement) => {
 	expect(container.textContent).not.toContain("Test video");
-	expect(container.querySelector('[aria-label="Powered by Screencap"]')).toBeNull();
+	expect(
+		container.querySelector('[aria-label="Powered by Screencap"]'),
+	).toBeNull();
 };
 
 describe("EmbedVideo playback chrome", () => {
@@ -389,7 +393,9 @@ describe.each([
 			const expectBranding = () => {
 				expect(container.textContent).toContain("Test video");
 				expect(
-					Boolean(container.querySelector('[aria-label="Powered by Screencap"]')),
+					Boolean(
+						container.querySelector('[aria-label="Powered by Screencap"]'),
+					),
 				).toBe(expected === "cap");
 				expect(Boolean(container.querySelector("[data-cap-logo]"))).toBe(
 					expected === "cap",

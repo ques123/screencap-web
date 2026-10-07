@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog, NcmecSteps } from "../_components/ConfirmDialog";
+import { OpenWithKeyForm } from "../_components/OpenWithKeyForm";
 import {
 	blockFromReportAction,
 	dismissReportAction,
@@ -18,6 +19,8 @@ export function ReportActions({
 	ownerId,
 	ownerEmail,
 	recordingRemoved,
+	e2ee = false,
+	keyIncluded = false,
 }: {
 	reportId: number;
 	videoId: string;
@@ -25,6 +28,8 @@ export function ReportActions({
 	ownerId: string | null;
 	ownerEmail: string | null;
 	recordingRemoved: boolean;
+	e2ee?: boolean;
+	keyIncluded?: boolean;
 }) {
 	const router = useRouter();
 	const [pending, start] = useTransition();
@@ -42,6 +47,9 @@ export function ReportActions({
 				>
 					Open recording
 				</Button>
+				{e2ee && keyIncluded && (
+					<OpenWithKeyForm videoId={videoId} reportId={reportId} />
+				)}
 				{!recordingRemoved && (
 					<>
 						<ConfirmDialog

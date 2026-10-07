@@ -20,6 +20,11 @@ import type { ShareCallToAction } from "@/lib/share-call-to-action";
 import { CallToActionOverlay } from "./call-to-action/CallToActionOverlay";
 import { bindCaptionTrackCueText } from "./caption-tracks";
 import { scheduleReadyRefresh } from "./deferred-ready-refresh";
+import { createDecryptingLoader } from "./e2ee/decrypting-loader";
+import {
+	E2EE_DECRYPT_FAILED_MESSAGE,
+	E2EE_UNSUPPORTED_MESSAGE,
+} from "./e2ee/key-acquisition";
 import { waitForSegmentPlayback } from "./segment-playback-probe";
 import {
 	canRetryFailedProcessing,
@@ -127,6 +132,7 @@ interface Props {
 	 */
 	controlsPortalEl?: HTMLElement | null;
 	callToAction?: ShareCallToAction | null;
+	e2eeKey?: Uint8Array;
 }
 
 export function HLSVideoPlayer({
@@ -157,6 +163,7 @@ export function HLSVideoPlayer({
 	externalTimeline = false,
 	controlsPortalEl = null,
 	callToAction = null,
+	e2eeKey,
 }: Props) {
 	const hlsInstance = useRef<Hls | null>(null);
 	const [currentCue, setCurrentCue] = useState<string>("");
@@ -168,6 +175,10 @@ export function HLSVideoPlayer({
 	const [sourceFailure, setSourceFailure] = useState<
 		"incomplete" | "unavailable" | null
 	>(null);
+	const [e2eeFailure, setE2eeFailure] = useState<
+		"unsupported" | "decrypt" | null
+	>(null);
+	const e2eeDecryptFailedRef = useRef(false);
 	const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
 	const hasPlayedOnceRef = useRef(false);
 	const videoLoadedRef = useRef(false);
@@ -341,8 +352,29 @@ export function HLSVideoPlayer({
 
 		setHlsInitFailed(false);
 
+		if (e2eeKey && !Hls.isSupported()) {
+			setE2eeFailure("unsupported");
+			return;
+		}
+
 		if (Hls.isSupported()) {
+			e2eeDecryptFailedRef.current = false;
+			setE2eeFailure(null);
+			let hlsRef: Hls | null = null;
 			const hls = new Hls({
+				...(e2eeKey
+					? {
+							fLoader: createDecryptingLoader(
+								Hls.DefaultConfig.loader,
+								e2eeKey,
+								() => {
+									e2eeDecryptFailedRef.current = true;
+									setE2eeFailure("decrypt");
+									hlsRef?.stopLoad();
+								},
+							),
+						}
+					: {}),
 				enableWorker: true,
 				lowLatencyMode: false,
 				backBufferLength: 90,
@@ -361,6 +393,7 @@ export function HLSVideoPlayer({
 					: {}),
 			});
 
+			hlsRef = hls;
 			hlsInstance.current = hls;
 
 			hls.loadSource(playbackSrc);
@@ -377,6 +410,10 @@ export function HLSVideoPlayer({
 
 			hls.on(Hls.Events.ERROR, (event, data) => {
 				console.error("HLSVideoPlayer: HLS error:", event, data);
+				if (e2eeDecryptFailedRef.current) {
+					hls.destroy();
+					return;
+				}
 				if (isLiveSegments && data.response?.code === 409) {
 					setSourceFailure("incomplete");
 					hls.stopLoad();
@@ -461,7 +498,7 @@ export function HLSVideoPlayer({
 					hlsInstance.current = null;
 				}
 			};
-		} else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+		} else if (!e2eeKey && video.canPlayType("application/vnd.apple.mpegurl")) {
 			video.src = playbackSrc;
 			video.load();
 			console.log("HLSVideoPlayer: Using native HLS support");
@@ -475,6 +512,7 @@ export function HLSVideoPlayer({
 		isPlaybackSourceReady,
 		reloadPlayback,
 		router,
+		e2eeKey,
 		videoRef.current,
 	]);
 
@@ -509,20 +547,29 @@ export function HLSVideoPlayer({
 	const isUploadFailed = uploadProgress?.status === "failed";
 	const isUploadError = uploadProgress?.status === "error";
 	const hasFailedOrError =
-		isUploadFailed || isUploadError || sourceFailure !== null || hlsInitFailed;
+		isUploadFailed ||
+		isUploadError ||
+		sourceFailure !== null ||
+		hlsInitFailed ||
+		e2eeFailure !== null;
 	const hasActiveProgress =
 		isUploading || isProcessing || isGeneratingThumbnail;
 	const canRetryUploadProcessing =
+		!e2eeKey &&
 		!sourceIsIncomplete &&
 		sourceFailure === null &&
 		canRetryFailedProcessing(uploadProgress, canRetryProcessing);
-	const uploadFailureMessage = sourceIsIncomplete
-		? canRetryProcessing
-			? "This recording is missing some video or audio. Reopen the desktop app on the recording computer to resume the upload."
-			: "This recording is missing some video or audio. Ask the owner to reopen the desktop app and finish the upload."
-		: sourceFailure === "unavailable" || hlsInitFailed
-			? "This video could not load. Check your connection and try again."
-			: getUploadFailureMessage(uploadProgress, canRetryProcessing);
+	const uploadFailureMessage = e2eeFailure
+		? e2eeFailure === "unsupported"
+			? E2EE_UNSUPPORTED_MESSAGE
+			: E2EE_DECRYPT_FAILED_MESSAGE
+		: sourceIsIncomplete
+			? canRetryProcessing
+				? "This recording is missing some video or audio. Reopen the desktop app on the recording computer to resume the upload."
+				: "This recording is missing some video or audio. Ask the owner to reopen the desktop app and finish the upload."
+			: sourceFailure === "unavailable" || hlsInitFailed
+				? "This video could not load. Check your connection and try again."
+				: getUploadFailureMessage(uploadProgress, canRetryProcessing);
 	useEffect(() => {
 		if (!sourceIsIncomplete) return;
 		videoRef.current?.pause();
@@ -634,7 +681,8 @@ export function HLSVideoPlayer({
 						{uploadFailureMessage}
 					</p>
 					{(sourceFailure === "unavailable" || hlsInitFailed) &&
-						!sourceIsIncomplete && (
+						!sourceIsIncomplete &&
+						e2eeFailure === null && (
 							<button
 								type="button"
 								onClick={reloadPlayback}
@@ -747,24 +795,26 @@ export function HLSVideoPlayer({
 						</motion.div>
 					)}
 			</AnimatePresence>
-			<VideoPreviewGif
-				videoId={videoId}
-				preload={
-					!hasActiveUpload &&
-					!hasPlayedOnce &&
-					!hasFailedOrError &&
-					!isLiveSegments &&
-					!isBackgroundPreview
-				}
-				visible={
-					videoLoaded &&
-					!hasPlayedOnce &&
-					!hasFailedOrError &&
-					!hlsInitFailed &&
-					!isLiveSegments &&
-					!isBackgroundPreview
-				}
-			/>
+			{!e2eeKey && (
+				<VideoPreviewGif
+					videoId={videoId}
+					preload={
+						!hasActiveUpload &&
+						!hasPlayedOnce &&
+						!hasFailedOrError &&
+						!isLiveSegments &&
+						!isBackgroundPreview
+					}
+					visible={
+						videoLoaded &&
+						!hasPlayedOnce &&
+						!hasFailedOrError &&
+						!hlsInitFailed &&
+						!isLiveSegments &&
+						!isBackgroundPreview
+					}
+				/>
+			)}
 			<MediaPlayerVideo
 				src={undefined} // HLS source is handled by HLS.js
 				ref={videoRef}

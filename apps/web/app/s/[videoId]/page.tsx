@@ -78,6 +78,7 @@ import {
 } from "@/lib/video-edits";
 import { optionFromTOrFirst } from "@/utils/effect";
 import { isAiGenerationEnabled } from "@/utils/flags";
+import { isE2eeFlag } from "./_components/e2ee/key-acquisition";
 import { PasswordOverlay } from "./_components/PasswordOverlay";
 import { PendingRecordingShare } from "./_components/PendingRecordingShare";
 import { PrivateAccessActions } from "./_components/PrivateAccessActions";
@@ -292,11 +293,12 @@ export async function generateMetadata(
 					return {
 						...buildShareVideoMetadata({
 							videoId,
-							name: generatedTitle ?? video.name,
+							name: video.e2ee ? video.name : (generatedTitle ?? video.name),
 							sourceType: video.source.type,
 							webUrl,
 							canonicalWebUrl: buildEnv.NEXT_PUBLIC_WEB_URL,
 							advertiseIframelyPlayer: shouldAdvertiseIframelyPlayer,
+							e2ee: video.e2ee,
 						}),
 						robots: canRenderSocialPreview
 							? "index, follow"
@@ -367,6 +369,8 @@ export default async function ShareVideoPage(props: PageProps<"/s/[videoId]">) {
 					jobStatus: videos.jobStatus,
 					isScreenshot: videos.isScreenshot,
 					skipProcessing: videos.skipProcessing,
+					e2ee: videos.e2ee,
+					keyFingerprint: videos.keyFingerprint,
 					transcriptionStatus: videos.transcriptionStatus,
 					source: videos.source,
 					videoSettings: videos.settings,
@@ -469,6 +473,7 @@ async function AuthorizedContent({
 	if (
 		user?.id === video.owner.id &&
 		!video.isScreenshot &&
+		!isE2eeFlag(video.e2ee) &&
 		video.source?.type === "desktopSegments" &&
 		!video.hasActiveUpload &&
 		serverEnv().MEDIA_SERVER_URL
@@ -769,7 +774,9 @@ async function AuthorizedContent({
 	})();
 
 	const isVideoDownloadReady =
-		!hasActiveUpload && video.source?.type !== "desktopSegments";
+		!hasActiveUpload &&
+		!isE2eeFlag(video.e2ee) &&
+		video.source?.type !== "desktopSegments";
 
 	const canDownloadVideoPromise =
 		userId && isVideoDownloadReady
@@ -849,8 +856,10 @@ async function AuthorizedContent({
 		organizationSettings: video.orgSettings,
 		spaces: sharedSpaces.filter((space) => space.id !== space.organizationId),
 	});
+	const videoIsE2ee = isE2eeFlag(video.e2ee);
 	const transcriptionGenerationAvailable =
 		!video.isScreenshot &&
+		!videoIsE2ee &&
 		(await isTranscriptionAvailable(video.owner.id)) &&
 		!rules.settings.disableTranscript;
 	const aiProviderAvailable = await isAiConfiguredForUser(
@@ -882,9 +891,9 @@ async function AuthorizedContent({
 	const aiGenerationStatus = metadata.aiGenerationStatus || null;
 
 	const initialAiData = {
-		title: metadata.aiTitle || null,
-		summary: metadata.summary || null,
-		chapters: metadata.chapters || null,
+		title: videoIsE2ee ? null : metadata.aiTitle || null,
+		summary: videoIsE2ee ? null : metadata.summary || null,
+		chapters: videoIsE2ee ? null : metadata.chapters || null,
 		aiGenerationStatus,
 	};
 
@@ -996,7 +1005,9 @@ async function AuthorizedContent({
 				recordingStopped={recordingStopped}
 				defaultPlaybackSpeed={defaultPlaybackSpeed}
 				initialAiData={initialAiData}
-				aiGenerationAvailable={aiGenerationEnabled && aiProviderAvailable}
+				aiGenerationAvailable={
+					aiGenerationEnabled && aiProviderAvailable && !videoIsE2ee
+				}
 				transcriptionGenerationAvailable={transcriptionGenerationAvailable}
 			/>
 		</div>

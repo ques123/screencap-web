@@ -1,5 +1,6 @@
 "use client";
 
+import { encodeKey } from "@cap/e2ee";
 import {
 	Button,
 	Dialog,
@@ -9,7 +10,8 @@ import {
 	DialogTitle,
 	Input,
 } from "@cap/ui";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { useE2eeKey } from "./e2ee/E2eeKeyContext";
 
 const REASONS = [
 	{ value: "illegal", label: "Illegal content" },
@@ -24,6 +26,9 @@ export function ReportRecordingButton({ videoId }: { videoId: string }) {
 	const [reason, setReason] = useState<string>("");
 	const [details, setDetails] = useState("");
 	const [email, setEmail] = useState("");
+	const e2eeKey = useE2eeKey();
+	const includeKeyId = useId();
+	const [includeKey, setIncludeKey] = useState(true);
 	const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">(
 		"idle",
 	);
@@ -36,7 +41,15 @@ export function ReportRecordingButton({ videoId }: { videoId: string }) {
 			const res = await fetch("/api/report", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
-				body: JSON.stringify({ videoId, reason, details, email }),
+				body: JSON.stringify({
+					videoId,
+					reason,
+					details,
+					email,
+					...(e2eeKey && includeKey
+						? { decryptionKey: encodeKey(e2eeKey) }
+						: {}),
+				}),
 			});
 			setStatus(res.ok ? "done" : "error");
 		} catch {
@@ -129,6 +142,22 @@ export function ReportRecordingButton({ videoId }: { videoId: string }) {
 										placeholder="you@example.com"
 									/>
 								</div>
+								{e2eeKey && (
+									<label
+										htmlFor={includeKeyId}
+										className="flex items-start gap-2 text-sm text-gray-12"
+									>
+										<input
+											id={includeKeyId}
+											type="checkbox"
+											className="mt-0.5"
+											checked={includeKey}
+											onChange={(e) => setIncludeKey(e.target.checked)}
+										/>
+										Include the decryption key so a moderator can review this
+										recording. Without it we cannot see it.
+									</label>
+								)}
 								{status === "error" && (
 									<p className="text-sm text-red-500">
 										Something went wrong. Please try again or email

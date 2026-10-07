@@ -22,6 +22,8 @@ import {
 	videoPreviewImageUrl,
 } from "@/lib/video-share-clipboard";
 import { usePublicEnv } from "@/utils/public-env";
+import { useE2eeKey } from "./e2ee/E2eeKeyContext";
+import { embedCodeWithKey, keyedShareLink } from "./e2ee/key-acquisition";
 import { useOptionalPlayback } from "./playback/PlaybackContext";
 import { formatClock } from "./timeline/timeline-format";
 
@@ -127,14 +129,20 @@ export const ShareLinkDialog = ({
 
 	const timestamp = withTimestamp ? startTime : null;
 
+	const e2eeKey = useE2eeKey();
+
 	const targetUrl = useMemo(
-		() => socialShareUrl({ url: shareUrl, timestamp }),
-		[shareUrl, timestamp],
+		() => keyedShareLink(socialShareUrl({ url: shareUrl, timestamp }), e2eeKey),
+		[shareUrl, timestamp, e2eeKey],
 	);
 
 	const embedCode = useMemo(
-		() => buildEmbedCode({ webUrl, videoId, startTime: timestamp }),
-		[webUrl, videoId, timestamp],
+		() =>
+			embedCodeWithKey(
+				buildEmbedCode({ webUrl, videoId, startTime: timestamp }),
+				e2eeKey,
+			),
+		[webUrl, videoId, timestamp, e2eeKey],
 	);
 
 	const handleCopy = useCallback(async () => {
@@ -206,8 +214,8 @@ export const ShareLinkDialog = ({
 							<Lock className="mt-0.5 size-4 shrink-0 text-amber-600" />
 							<div className="min-w-0 flex-1">
 								<p className="text-sm text-amber-900">
-									This recording isn't public, so anyone you share it with will be
-									asked to sign in and will need access.
+									This recording isn't public, so anyone you share it with will
+									be asked to sign in and will need access.
 								</p>
 								{canManageAccess && onManageAccess && (
 									<button

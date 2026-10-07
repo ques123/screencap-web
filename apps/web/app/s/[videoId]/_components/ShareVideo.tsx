@@ -24,6 +24,8 @@ import { isRetryableDesktopSegmentsFinalizationError } from "@/lib/desktop-segme
 import type { ShareCallToAction } from "@/lib/share-call-to-action";
 import type { VideoData } from "../types";
 import { type CaptionLanguage, useCaptionContext } from "./CaptionContext";
+import { E2eeKeyGate } from "./e2ee/E2eeKeyGate";
+import { isE2eeFlag } from "./e2ee/key-acquisition";
 import {
 	PreparingVideoOverlay,
 	RecordingInProgressOverlay,
@@ -51,6 +53,9 @@ const CapVideoPlayer = dynamic(() =>
 );
 const HLSVideoPlayer = dynamic(() =>
 	import("./HLSVideoPlayer").then((m) => m.HLSVideoPlayer),
+);
+const E2eeVideoPlayer = dynamic(() =>
+	import("./e2ee/E2eeVideoPlayer").then((m) => m.E2eeVideoPlayer),
 );
 
 // Both ride outside the first paint: the tracker only mounts mid-upload (its
@@ -180,15 +185,18 @@ export const ShareVideo = forwardRef<
 			);
 		}, [trackUploadProgress]);
 
+		const isE2ee = isE2eeFlag(data.e2ee);
+
 		const { data: transcriptContent, error: transcriptError } = useTranscript(
 			data.id,
-			data.transcriptionStatus,
+			isE2ee ? null : data.transcriptionStatus,
 		);
 
 		// Captions straight from the in-progress live transcript, so the player
 		// shows them during and right after recording instead of waiting for the
 		// canonical transcript (which takes over seamlessly when it lands).
 		const isLiveTranscriptEnabled =
+			!isE2ee &&
 			data.source.type === "desktopSegments" &&
 			data.metadata?.liveTranscript != null &&
 			(data.transcriptionStatus == null ||
@@ -493,6 +501,8 @@ export const ShareVideo = forwardRef<
 			videoSrc = `/api/playlist?userId=${data.owner.id}&videoId=${data.id}&videoType=video`;
 		}
 
+		const SegmentsPlayer = isE2ee ? E2eeVideoPlayer : HLSVideoPlayer;
+
 		return (
 			<>
 				<div
@@ -501,22 +511,24 @@ export const ShareVideo = forwardRef<
 				>
 					{isActivelyRecording ? (
 						<div className="relative h-full overflow-hidden rounded-xl bg-black">
-							<HLSVideoPlayer
-								videoId={data.id}
-								mediaPlayerClassName="w-full h-full max-w-full max-h-full rounded-xl"
-								videoSrc={videoSrc}
-								duration={data.duration}
-								disableCaptions={true}
-								chaptersSrc=""
-								captionsSrc=""
-								videoRef={videoRef}
-								hasActiveUpload={data.hasActiveUpload}
-								isLiveSegments={isSegmentsSource}
-								allowSegmentProbeDuringUpload={true}
-								onSourceComplete={handleSourceComplete}
-								autoplay={true}
-								previewMode="background"
-							/>
+							<E2eeKeyGate>
+								<SegmentsPlayer
+									videoId={data.id}
+									mediaPlayerClassName="w-full h-full max-w-full max-h-full rounded-xl"
+									videoSrc={videoSrc}
+									duration={data.duration}
+									disableCaptions={true}
+									chaptersSrc=""
+									captionsSrc=""
+									videoRef={videoRef}
+									hasActiveUpload={data.hasActiveUpload}
+									isLiveSegments={isSegmentsSource}
+									allowSegmentProbeDuringUpload={true}
+									onSourceComplete={handleSourceComplete}
+									autoplay={true}
+									previewMode="background"
+								/>
+							</E2eeKeyGate>
 							<div className="absolute inset-0 z-20">
 								<RecordingInProgressOverlay
 									onConfirmStopped={handleConfirmStopped}
@@ -584,39 +596,41 @@ export const ShareVideo = forwardRef<
 							callToAction={callToAction}
 						/>
 					) : (
-						<HLSVideoPlayer
-							videoId={data.id}
-							mediaPlayerClassName={clsx(
-								"w-full h-full max-w-full max-h-full",
-								externalTimeline ? "rounded-none" : "rounded-xl",
-							)}
-							videoSrc={videoSrc}
-							duration={data.duration}
-							defaultPlaybackSpeed={defaultPlaybackSpeed}
-							externalTimeline={externalTimeline}
-							controlsPortalEl={controlsPortalEl}
-							disableCaptions={areCaptionsDisabled ?? false}
-							captionsInitiallyOff={captionsInitiallyOff}
-							chaptersSrc={areChaptersDisabled ? "" : chaptersUrl || ""}
-							captionsSrc={areCaptionsDisabled ? "" : subtitleUrl || ""}
-							videoRef={videoRef}
-							hasActiveUpload={data.hasActiveUpload}
-							isLiveSegments={isSegmentsSource}
-							onSourceComplete={handleSourceComplete}
-							allowSegmentProbeDuringUpload={
-								isSegmentsSource && userConfirmedStopped
-							}
-							captionLanguage={captionContext.selectedLanguage}
-							onCaptionLanguageChange={handleCaptionLanguageChange}
-							availableCaptions={captionContext.availableTranslations}
-							isCaptionLoading={captionContext.isTranslating}
-							hasCaptions={
-								data.transcriptionStatus === "COMPLETE" ||
-								liveVttContent != null
-							}
-							canRetryProcessing={canRetryProcessing}
-							callToAction={callToAction}
-						/>
+						<E2eeKeyGate>
+							<SegmentsPlayer
+								videoId={data.id}
+								mediaPlayerClassName={clsx(
+									"w-full h-full max-w-full max-h-full",
+									externalTimeline ? "rounded-none" : "rounded-xl",
+								)}
+								videoSrc={videoSrc}
+								duration={data.duration}
+								defaultPlaybackSpeed={defaultPlaybackSpeed}
+								externalTimeline={externalTimeline}
+								controlsPortalEl={controlsPortalEl}
+								disableCaptions={areCaptionsDisabled ?? false}
+								captionsInitiallyOff={captionsInitiallyOff}
+								chaptersSrc={areChaptersDisabled ? "" : chaptersUrl || ""}
+								captionsSrc={areCaptionsDisabled ? "" : subtitleUrl || ""}
+								videoRef={videoRef}
+								hasActiveUpload={data.hasActiveUpload}
+								isLiveSegments={isSegmentsSource}
+								onSourceComplete={handleSourceComplete}
+								allowSegmentProbeDuringUpload={
+									isSegmentsSource && userConfirmedStopped
+								}
+								captionLanguage={captionContext.selectedLanguage}
+								onCaptionLanguageChange={handleCaptionLanguageChange}
+								availableCaptions={captionContext.availableTranslations}
+								isCaptionLoading={captionContext.isTranslating}
+								hasCaptions={
+									data.transcriptionStatus === "COMPLETE" ||
+									liveVttContent != null
+								}
+								canRetryProcessing={canRetryProcessing}
+								callToAction={callToAction}
+							/>
+						</E2eeKeyGate>
 					)}
 					{showFinalizeRecordingControl && (
 						<div className="absolute bottom-3 left-3 z-30 flex max-w-[calc(100%-1.5rem)] flex-col items-start gap-1.5">

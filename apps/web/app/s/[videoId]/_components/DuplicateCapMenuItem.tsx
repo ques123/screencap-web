@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useIsMutating } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useEffectMutation, useRpcClient } from "@/lib/EffectRuntime";
+import { copyKeyToDuplicate } from "./e2ee/key-acquisition";
 
 /**
  * The "Duplicate Cap" row of the owner menu, self-contained so its RPC
@@ -25,7 +26,8 @@ export default function DuplicateCapMenuItem({
 	const duplicateMutation = useEffectMutation({
 		mutationKey: ["videoDuplicate", videoId],
 		mutationFn: () => rpc.VideoDuplicate(videoId),
-		onSuccess: () => {
+		onSuccess: (result) => {
+			void copyKeyToDuplicate(videoId, result);
 			toast.success("Recording duplicated successfully");
 		},
 		onError: () => {

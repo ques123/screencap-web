@@ -7,6 +7,7 @@ import { serverEnv } from "@cap/env";
 import { Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { start } from "workflow/api";
+import { E2EE_UNSUPPORTED_MESSAGE, isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import { MESSENGER_ADMIN_EMAIL } from "@/lib/messenger/constants";
 import { adminReprocessVideoWorkflow } from "@/workflows/admin-reprocess-video";
 
@@ -48,12 +49,18 @@ export async function adminReprocessVideo(input: string) {
 			id: videos.id,
 			ownerId: videos.ownerId,
 			name: videos.name,
+			e2ee: videos.e2ee,
 		})
 		.from(videos)
 		.where(eq(videos.id, videoId));
 
 	if (!video) {
 		throw new Error("Video not found");
+	}
+
+	if (isE2eeVideo(video)) {
+		logE2eeSkip("adminReprocessVideo", video.id);
+		throw new Error(E2EE_UNSUPPORTED_MESSAGE);
 	}
 
 	const resultKey = `${video.ownerId}/${video.id}/result.mp4`;

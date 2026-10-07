@@ -84,6 +84,12 @@ export default async function AdminReportsPage({
 												: "Dismissed"}
 									</Chip>
 									{r.recordingRemoved && <Chip>Recording removed</Chip>}
+									{r.e2ee && <Chip tone="blue">E2EE</Chip>}
+									{r.e2ee && (
+										<Chip tone={r.keyIncluded ? "green" : "gray"}>
+											Key included: {r.keyIncluded ? "yes" : "no"}
+										</Chip>
+									)}
 								</div>
 								<p className="text-xs text-gray-10 break-all">
 									<span className="font-mono">{r.videoId}</span>
@@ -108,6 +114,8 @@ export default async function AdminReportsPage({
 									ownerId={r.ownerId}
 									ownerEmail={r.ownerEmail}
 									recordingRemoved={r.recordingRemoved}
+									e2ee={r.e2ee}
+									keyIncluded={r.keyIncluded}
 								/>
 							) : (
 								<p className="text-xs text-gray-10">

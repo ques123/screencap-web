@@ -10,8 +10,13 @@ import { Database } from "../Database.ts";
 
 export type CreateVideoInput = Omit<
 	Schema.Type<typeof Video.Video>,
-	"id" | "createdAt" | "updatedAt"
-> & { password?: string; importSource?: Video.ImportSource };
+	"id" | "createdAt" | "updatedAt" | "e2ee" | "keyFingerprint"
+> & {
+	e2ee?: boolean;
+	keyFingerprint?: string | null;
+	password?: string;
+	importSource?: Video.ImportSource;
+};
 
 export class VideosRepo extends Effect.Service<VideosRepo>()("VideosRepo", {
 	effect: Effect.gen(function* () {
@@ -143,6 +148,8 @@ export class VideosRepo extends Effect.Service<VideosRepo>()("VideosRepo", {
 									width: Option.getOrNull(data.width ?? Option.none()),
 									height: Option.getOrNull(data.height ?? Option.none()),
 									duration: Option.getOrNull(data.duration ?? Option.none()),
+									e2ee: data.e2ee ? 1 : null,
+									keyFingerprint: data.keyFingerprint ?? null,
 								},
 							]),
 						];

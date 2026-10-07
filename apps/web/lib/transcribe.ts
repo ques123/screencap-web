@@ -4,6 +4,7 @@ import type { Video } from "@cap/web-domain";
 import { and, eq, isNull } from "drizzle-orm";
 import { start } from "workflow/api";
 import { isTranscriptionAvailable } from "@/lib/ai/byok";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import { transcribeVideoWorkflow } from "@/workflows/transcribe";
 
 type TranscribeResult = {
@@ -83,6 +84,18 @@ export async function transcribeVideo(
 
 	if (!video) {
 		return { success: false, message: "Video information is missing" };
+	}
+
+	if (isE2eeVideo(video)) {
+		logE2eeSkip("transcribeVideo", videoId);
+		if (video.transcriptionStatus === null) {
+			await db()
+				.update(videos)
+				.set({ transcriptionStatus: "SKIPPED" })
+				.where(eq(videos.id, videoId))
+				.catch(() => undefined);
+		}
+		return { success: true, message: "Skipped: end-to-end encrypted" };
 	}
 
 	if (

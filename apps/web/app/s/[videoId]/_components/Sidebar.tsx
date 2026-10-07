@@ -8,6 +8,7 @@ import { forwardRef, Suspense, useState } from "react";
 import type { OrganizationSettings } from "@/app/(org)/dashboard/dashboard-data";
 import { useCurrentUser } from "@/app/Layout/AuthContext";
 import type { VideoData } from "../types";
+import { isE2eeFlag } from "./e2ee/key-acquisition";
 import { Activity } from "./tabs/Activity";
 import type { SummaryEditingState } from "./tabs/SummaryEditor";
 
@@ -126,15 +127,17 @@ export const Sidebar = forwardRef<{ scrollToBottom: () => void }, SidebarProps>(
 			isOwner || (user && data.organizationMembers?.includes(user.id)),
 		);
 
+		const noAiTabs = isScreenshot || isE2eeFlag(data.e2ee);
+
 		const transcriptDisabled =
 			videoSettings?.disableTranscript ?? data.orgSettings?.disableTranscript;
 
 		const defaultTab =
 			// Landing right after stopping a recording: the transcript is what's
 			// appearing within seconds — show it instead of empty comments.
-			recordingStopped && !isScreenshot && !transcriptDisabled
+			recordingStopped && !noAiTabs && !transcriptDisabled
 				? "transcript"
-				: isScreenshot ||
+				: noAiTabs ||
 						!(
 							videoSettings?.disableComments ??
 							data.orgSettings?.disableComments
@@ -163,7 +166,7 @@ export const Sidebar = forwardRef<{ scrollToBottom: () => void }, SidebarProps>(
 				disabled:
 					videoSettings?.disableComments ?? data.orgSettings?.disableComments,
 			},
-			...(isScreenshot
+			...(noAiTabs
 				? []
 				: [
 						{

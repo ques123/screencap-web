@@ -4,6 +4,7 @@ import type { Organisation, User, Video } from "@cap/web-domain";
 import { and, eq, sql } from "drizzle-orm";
 import { start } from "workflow/api";
 import { isTranscriptionAvailable } from "@/lib/ai/byok";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import { liveTranscribeWorkflow } from "@/workflows/live-transcribe";
 
 const getAffectedRows = (result: unknown) => {
@@ -34,6 +35,15 @@ export async function maybeStartLiveTranscription({
 	orgId: Organisation.OrganisationId;
 }): Promise<LiveTranscriptionStart> {
 	try {
+		const [row] = await db()
+			.select({ e2ee: videos.e2ee })
+			.from(videos)
+			.where(eq(videos.id, videoId));
+		if (isE2eeVideo(row)) {
+			logE2eeSkip("maybeStartLiveTranscription", videoId);
+			return "skipped";
+		}
+
 		if (!(await isTranscriptionAvailable(ownerId))) {
 			return "skipped";
 		}

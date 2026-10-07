@@ -173,6 +173,10 @@ const getPlaylistResponse = (
 		const isMp4Source =
 			video.source.type === "desktopMP4" || video.source.type === "webMP4";
 
+		if (video.e2ee && !urlParams.videoType.startsWith("segments-")) {
+			return yield* Effect.fail(new HttpApiError.NotFound());
+		}
+
 		if (urlParams.videoType === "raw-preview") {
 			const rawFileKey = yield* resolveRawPreviewKey(video);
 			return yield* bucket

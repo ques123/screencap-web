@@ -6,17 +6,22 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { removeRecordingAction, setRecordingPublicAction } from "../actions";
 import { ConfirmDialog, NcmecSteps } from "./ConfirmDialog";
+import { OpenWithKeyForm } from "./OpenWithKeyForm";
 
 export function RecordingActions({
 	videoId,
 	title,
 	isPublic,
 	ownerEmail,
+	e2ee = false,
+	hasReporterKey = false,
 }: {
 	videoId: string;
 	title: string | null;
 	isPublic: boolean;
 	ownerEmail: string | null;
+	e2ee?: boolean;
+	hasReporterKey?: boolean;
 }) {
 	const router = useRouter();
 	const [pending, start] = useTransition();
@@ -31,6 +36,7 @@ export function RecordingActions({
 			>
 				Open
 			</Button>
+			{e2ee && hasReporterKey && <OpenWithKeyForm videoId={videoId} />}
 			<Button
 				type="button"
 				size="xs"

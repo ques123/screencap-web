@@ -11,6 +11,7 @@ import {
 import { and, eq } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
 import { prepareDesktopRecordingSegments } from "@/lib/desktop-recording-source";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import { apiToHandler } from "@/lib/server";
 
 const Segment = Schema.Struct({
@@ -31,10 +32,16 @@ class Api extends HttpApi.make("RecordingPreparationApi").add(
 				}),
 			)
 			.addSuccess(
-				Schema.Struct({
-					version: Schema.Literal(1),
-					prepared: Schema.Array(Segment),
-				}),
+				Schema.Union(
+					Schema.Struct({
+						version: Schema.Literal(1),
+						prepared: Schema.Array(Segment),
+					}),
+					Schema.Struct({
+						success: Schema.Literal(true),
+						status: Schema.Literal("skipped"),
+					}),
+				),
 			)
 			.addError(HttpApiError.NotFound)
 			.addError(HttpApiError.InternalServerError)
@@ -67,6 +74,7 @@ const ApiLive = HttpApiBuilder.api(Api).pipe(
 									);
 							const [current] = await read();
 							if (!current) return null;
+							if (isE2eeVideo(current.video)) return "skipped" as const;
 							if (
 								current.jobId ||
 								current.video.source?.type !== "desktopSegments"
@@ -91,6 +99,10 @@ const ApiLive = HttpApiBuilder.api(Api).pipe(
 							),
 						);
 					if (prepared === null) return yield* new HttpApiError.NotFound();
+					if (prepared === "skipped") {
+						logE2eeSkip("recording-prepare", payload.videoId);
+						return { success: true as const, status: "skipped" as const };
+					}
 					return { version: 1 as const, prepared };
 				}).pipe(
 					Effect.timeoutFail({

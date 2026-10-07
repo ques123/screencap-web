@@ -19,6 +19,7 @@ import {
 	ASSEMBLYAI_SUPPORTED_LANGUAGES,
 	getAssemblyAITranscriptionOptions,
 } from "@/lib/assemblyai";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import {
 	getEditTranscriptObjectKey,
 	serializeEditTranscript,
@@ -286,6 +287,10 @@ async function initLiveTranscription(
 
 	if (!row?.video || row.video.ownerId !== userId) {
 		return { ok: false, reason: "video not found" };
+	}
+	if (isE2eeVideo(row.video)) {
+		logE2eeSkip("liveTranscribeWorkflow", videoId);
+		return { ok: false, reason: "skipped: e2ee" };
 	}
 	if (row.video.source.type !== "desktopSegments") {
 		return { ok: false, reason: "not a segmented recording" };

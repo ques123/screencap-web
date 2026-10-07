@@ -13,6 +13,7 @@ import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { revalidatePath } from "next/cache";
 import { start } from "workflow/api";
+import { E2EE_UNSUPPORTED_MESSAGE, isE2eeVideo } from "@/lib/e2ee";
 import { assertLegacyEditsQuiescent } from "@/lib/legacy-video-edit-recovery";
 import { runPromise } from "@/lib/server";
 import {
@@ -189,6 +190,7 @@ async function loadEditableVideo(
 
 	if (!video) throw new Error("Video not found");
 	if (video.ownerId !== user.id) throw new Error("Forbidden");
+	if (isE2eeVideo(video)) throw new Error(E2EE_UNSUPPORTED_MESSAGE);
 	if (video.isScreenshot) throw new Error("Screenshots cannot be edited");
 	if (!isMp4BackedVideo(video.source)) {
 		throw new Error("Only processed MP4 videos can be edited");

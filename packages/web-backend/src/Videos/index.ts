@@ -746,6 +746,7 @@ export class Videos extends Effect.Service<Videos>()("Videos", {
 				if (Option.isNone(maybeVideo))
 					return yield* Effect.fail(new Video.NotFoundError());
 				const [video] = maybeVideo.value;
+				if (video.e2ee) return Option.none();
 
 				const [bucket] = yield* storage.getAccessForVideo(video);
 				const [videoRow] = yield* db.use((db) =>

@@ -54,6 +54,8 @@ export type AdminRecordingRow = {
 	public: boolean;
 	views: number;
 	openReports: number;
+	e2ee: boolean;
+	hasReporterKey: boolean;
 };
 
 export type AdminUserDetail = AdminUserRow & {
@@ -105,4 +107,7 @@ export type AdminReportRow = {
 	resolvedBy: string | null;
 	/** True when the reported recording is currently removed or quarantined. */
 	recordingRemoved: boolean;
+	e2ee: boolean;
+	/** True when this report carries the reporter's decryption key. */
+	keyIncluded: boolean;
 };

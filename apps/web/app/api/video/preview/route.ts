@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
 			if (Option.isNone(maybeVideo)) return null;
 
 			const [video] = maybeVideo.value;
+			if (video.e2ee) return null;
 			const [bucket] = yield* Storage.getAccessForVideo(video);
 			const previewKey = getPreviewGifKey(video.ownerId, video.id);
 			const hasPreview = yield* bucket.headObject(previewKey).pipe(

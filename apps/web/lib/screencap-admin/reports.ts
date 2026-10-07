@@ -1,7 +1,13 @@
+import { decrypt } from "@cap/database/crypto";
 import "server-only";
 import { db } from "@cap/database";
-import { screencapRemovedVideos, screencapReports } from "@cap/database/schema";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import {
+	screencapRemovedVideos,
+	screencapReports,
+	videos,
+} from "@cap/database/schema";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { isE2eeVideo, isValidE2eeKey } from "@/lib/e2ee";
 import { logAdminAction } from "./audit";
 import type { ActionResult, AdminReportRow } from "./types";
 
@@ -18,6 +24,7 @@ export async function createReport(r: {
 	details: string | null;
 	reporterEmail: string | null;
 	country: string;
+	decryptionKey?: string | null;
 }): Promise<void> {
 	try {
 		await db()
@@ -31,6 +38,7 @@ export async function createReport(r: {
 				details: r.details,
 				reporterEmail: clip(r.reporterEmail, 255),
 				country: r.country.slice(0, 8),
+				decryptionKey: r.decryptionKey ?? null,
 			});
 	} catch (error) {
 		console.error("[screencap-admin] createReport failed", error);
@@ -47,8 +55,14 @@ export async function listReports(opts: {
 		.select({
 			report: screencapReports,
 			removedState: screencapRemovedVideos.state,
+			videoE2ee: videos.e2ee,
+			keyIncluded:
+				sql<number>`${screencapReports.decryptionKey} IS NOT NULL`.mapWith(
+					Number,
+				),
 		})
 		.from(screencapReports)
+		.leftJoin(videos, eq(videos.id, sql`${screencapReports.videoId}`))
 		.leftJoin(
 			screencapRemovedVideos,
 			and(
@@ -62,7 +76,7 @@ export async function listReports(opts: {
 	)
 		.orderBy(desc(screencapReports.id))
 		.limit(limit);
-	return rows.map(({ report: r, removedState }) => ({
+	return rows.map(({ report: r, removedState, videoE2ee, keyIncluded }) => ({
 		id: r.id,
 		videoId: r.videoId,
 		videoTitle: r.videoTitle,
@@ -78,6 +92,8 @@ export async function listReports(opts: {
 		resolvedAt: r.resolvedAt,
 		resolvedBy: r.resolvedBy,
 		recordingRemoved: removedState !== null,
+		e2ee: isE2eeVideo({ e2ee: videoE2ee }),
+		keyIncluded: Boolean(keyIncluded),
 	}));
 }
 
@@ -161,4 +177,62 @@ export async function openReportCount(): Promise<number> {
 	} catch {
 		return 0;
 	}
+}
+
+export async function getReporterKey(
+	videoId: string,
+	reportId?: number,
+): Promise<{
+	key: string;
+	reportId: number;
+	videoTitle: string | null;
+} | null> {
+	try {
+		const rows = await db()
+			.select({
+				id: screencapReports.id,
+				key: screencapReports.decryptionKey,
+				videoTitle: screencapReports.videoTitle,
+			})
+			.from(screencapReports)
+			.where(
+				and(
+					eq(screencapReports.videoId, videoId),
+					isNotNull(screencapReports.decryptionKey),
+					reportId === undefined
+						? undefined
+						: eq(screencapReports.id, reportId),
+				),
+			)
+			.orderBy(desc(screencapReports.id))
+			.limit(1);
+		const row = rows[0];
+		if (!row?.key) return null;
+		const key = await decrypt(row.key);
+		if (!isValidE2eeKey(key)) return null;
+		return { key, reportId: row.id, videoTitle: row.videoTitle };
+	} catch (error) {
+		console.error("[screencap-admin] getReporterKey failed", error);
+		return null;
+	}
+}
+
+/** Logs the view, then returns the share URL path with the reporter's key. The key is never written to the log. */
+export async function openWithReporterKey(
+	videoId: string,
+	adminEmail: string,
+	reportId?: number,
+): Promise<string | null> {
+	const found = await getReporterKey(videoId, reportId);
+	if (!found) return null;
+	await logAdminAction({
+		adminEmail,
+		action: "view-with-reporter-key",
+		targetType: "recording",
+		targetId: videoId,
+		targetLabel: found.videoTitle,
+		source: "report",
+		details: { reportId: found.reportId },
+	});
+	return `/s/${encodeURIComponent(videoId)}#k=${found.key}`;
 }

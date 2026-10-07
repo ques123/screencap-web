@@ -28,6 +28,7 @@ import {
 	or,
 	sql,
 } from "drizzle-orm";
+import { isE2eeVideo } from "@/lib/e2ee";
 import { logAdminAction, telegramAlert } from "./audit";
 import { sendRemovalNotice } from "./notices";
 import type {
@@ -113,6 +114,11 @@ export async function listRecordings(opts: {
 					sql<number>`(SELECT COUNT(*) FROM ${screencapReports} WHERE ${screencapReports.videoId} = ${videos.id} AND ${screencapReports.status} = 'open')`.mapWith(
 						Number,
 					),
+				e2ee: videos.e2ee,
+				hasReporterKey:
+					sql<number>`EXISTS (SELECT 1 FROM ${screencapReports} WHERE ${screencapReports.videoId} = ${videos.id} AND ${screencapReports.decryptionKey} IS NOT NULL)`.mapWith(
+						Number,
+					),
 			})
 			.from(videos)
 			.leftJoin(users, eq(users.id, videos.ownerId))
@@ -131,6 +137,8 @@ export async function listRecordings(opts: {
 			...r,
 			id: String(r.id),
 			ownerId: String(r.ownerId),
+			e2ee: isE2eeVideo(r),
+			hasReporterKey: Boolean(r.hasReporterKey),
 		})),
 		total: tot?.n ?? 0,
 	};

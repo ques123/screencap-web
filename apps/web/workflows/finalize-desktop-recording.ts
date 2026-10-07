@@ -4,7 +4,7 @@ import { serverEnv } from "@cap/env";
 import { Storage } from "@cap/web-backend/src/Storage/index";
 import { type User, Video } from "@cap/web-domain";
 import { and, eq } from "drizzle-orm";
-import { sleep } from "workflow";
+import { FatalError, sleep } from "workflow";
 import { z } from "zod";
 import { isTranscriptionAvailable } from "@/lib/ai/byok";
 import { isAiGenerationEnabledForUser } from "@/lib/ai-generation-entitlement";
@@ -31,6 +31,7 @@ import {
 	getDesktopRecordingOutputKey,
 } from "@/lib/desktop-recording-source";
 import type { RecordingVerification } from "@/lib/desktop-recording-verification";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import { invalidateGoogleDriveStorageQuotaCache } from "@/lib/google-drive-storage-quota-cache";
 import {
 	MediaProcessingBudgetError,
@@ -213,6 +214,15 @@ async function ensureWorkflowJob(
 	payload: FinalizeDesktopRecordingWorkflowPayload,
 ): Promise<string> {
 	"use step";
+
+	const [row] = await db()
+		.select({ e2ee: videos.e2ee })
+		.from(videos)
+		.where(eq(videos.id, Video.VideoId.make(payload.videoId)));
+	if (isE2eeVideo(row)) {
+		logE2eeSkip("finalizeDesktopRecordingWorkflow", payload.videoId);
+		throw new FatalError("skipped: e2ee");
+	}
 
 	if (payload.generation) return payload.generation;
 	const { job } = await ensureSegmentProcessingJob({

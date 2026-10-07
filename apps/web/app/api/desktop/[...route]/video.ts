@@ -21,6 +21,7 @@ import { Effect, Option } from "effect";
 import { Hono } from "hono";
 import { after } from "next/server";
 import { z } from "zod";
+import { isE2eeVideo, parseE2eeCreateParams } from "@/lib/e2ee";
 import { invalidateGoogleDriveStorageQuotaCache } from "@/lib/google-drive-storage-quota";
 import { maybeStartLiveTranscription } from "@/lib/live-transcribe";
 import {
@@ -84,6 +85,8 @@ app.get(
 			width: stringOrNumberOptional,
 			height: stringOrNumberOptional,
 			fps: stringOrNumberOptional,
+			e2ee: z.string().optional(),
+			keyFingerprint: z.string().optional(),
 			orgId: z
 				.string()
 				.optional()
@@ -104,9 +107,20 @@ app.get(
 				width,
 				height,
 				fps,
+				e2ee: e2eeParam,
+				keyFingerprint: keyFingerprintParam,
 				orgId,
 			} = c.req.valid("query");
 			const user = c.get("user");
+			const e2eeParams = parseE2eeCreateParams({
+				e2ee: e2eeParam,
+				keyFingerprint: keyFingerprintParam,
+				recordingMode,
+			});
+			if (!e2eeParams.ok)
+				return c.json({ error: e2eeParams.error }, { status: 400 });
+			if (e2eeParams.e2ee && isScreenshot)
+				return c.json({ error: "e2ee_requires_segments" }, { status: 400 });
 			if (
 				createWithId &&
 				(!videoId || !/^[0-9abcdefghjkmnpqrstvwxyz]{15}$/.test(videoId))
@@ -157,6 +171,13 @@ app.get(
 					if (video.ownerId !== user.id)
 						return c.json({ error: "forbidden" }, { status: 403 });
 
+					if (
+						isE2eeVideo(video) !== e2eeParams.e2ee ||
+						(e2eeParams.e2ee &&
+							video.keyFingerprint !== e2eeParams.keyFingerprint)
+					)
+						return c.json({ error: "e2ee_mismatch" }, { status: 409 });
+
 					if (isScreenshot || video.isScreenshot) {
 						await db().transaction(async (tx) => {
 							if (isScreenshot && !video.isScreenshot) {
@@ -177,7 +198,8 @@ app.get(
 					if (
 						video.source?.type === "desktopSegments" &&
 						!video.isScreenshot &&
-						!isScreenshot
+						!isScreenshot &&
+						!isE2eeVideo(video)
 					) {
 						// Off the response path: this endpoint gates recording start on
 						// the desktop, so workflow dispatch must never delay it.
@@ -350,6 +372,9 @@ app.get(
 					width,
 					height,
 					fps,
+					...(e2eeParams.e2ee
+						? { e2ee: 1, keyFingerprint: e2eeParams.keyFingerprint }
+						: {}),
 					...(metadata ? { metadata } : {}),
 				});
 
@@ -364,7 +389,11 @@ app.get(
 					mode: "singlepart",
 				});
 
-			if (recordingMode === "desktopSegments" && !isScreenshot) {
+			if (
+				recordingMode === "desktopSegments" &&
+				!isScreenshot &&
+				!e2eeParams.e2ee
+			) {
 				// Off the response path: this endpoint gates recording start on the
 				// desktop, so workflow dispatch must never delay it.
 				after(() =>
@@ -382,7 +411,12 @@ app.get(
 					.from(videos)
 					.where(eq(videos.ownerId, user.id));
 
-				if (videoCount?.[0] && videoCount[0].count === 1 && user.email) {
+				if (
+					!e2eeParams.e2ee &&
+					videoCount?.[0] &&
+					videoCount[0].count === 1 &&
+					user.email
+				) {
 					console.log(
 						"[SendFirstShareableLinkEmail] Sending first shareable link email with 5-minute delay",
 					);

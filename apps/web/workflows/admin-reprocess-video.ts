@@ -12,6 +12,7 @@ import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { FatalError, sleep } from "workflow";
 import { retireDesktopRecordingJobForOutputReplacement } from "@/lib/desktop-recording-jobs";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import {
 	createMediaServerCapacityError,
 	isMediaServerCapacityError,
@@ -250,12 +251,17 @@ async function validateReprocessRequest(videoId: string): Promise<void> {
 	}
 
 	const [video] = await db()
-		.select({ id: videos.id })
+		.select({ id: videos.id, e2ee: videos.e2ee })
 		.from(videos)
 		.where(eq(videos.id, Video.VideoId.make(videoId)));
 
 	if (!video) {
 		throw new FatalError("Video does not exist");
+	}
+
+	if (isE2eeVideo(video)) {
+		logE2eeSkip("adminReprocessVideoWorkflow", videoId);
+		throw new FatalError("skipped: e2ee");
 	}
 }
 

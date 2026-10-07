@@ -23,6 +23,17 @@ export const SHAREABLE_LINK_LIMIT_ENFORCED_FROM = new Date(
 	"2026-08-19T00:00:00.000Z",
 );
 
+const E2eeFlag = Schema.transform(
+	Schema.NullishOr(Schema.Union(Schema.Number, Schema.Boolean)),
+	Schema.Boolean,
+	{
+		strict: true,
+		decode: (value) =>
+			value === true || (typeof value === "number" && value !== 0),
+		encode: (value) => value,
+	},
+);
+
 // Purposefully doesn't include password as this is a public class
 export class Video extends Schema.Class<Video>("Video")({
 	id: VideoId,
@@ -56,6 +67,10 @@ export class Video extends Schema.Class<Video>("Video")({
 	width: Schema.OptionFromNullOr(Schema.Number),
 	height: Schema.OptionFromNullOr(Schema.Number),
 	duration: Schema.OptionFromNullOr(Schema.Number),
+	e2ee: Schema.optionalWith(E2eeFlag, { default: () => false }),
+	keyFingerprint: Schema.optionalWith(Schema.NullOr(Schema.String), {
+		default: () => null,
+	}),
 	createdAt: Schema.Date,
 	updatedAt: Schema.Date,
 }) {

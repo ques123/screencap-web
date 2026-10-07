@@ -107,7 +107,7 @@ export const createPlayerJsReceiver = ({
 		}
 	};
 	const readyValue = () => ({
-		src: playerWindow.location.toString(),
+		src: playerWindow.location.href.split("#")[0],
 		events: [...EVENTS],
 		methods: [...METHODS],
 	});

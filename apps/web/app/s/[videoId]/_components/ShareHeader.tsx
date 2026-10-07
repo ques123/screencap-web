@@ -62,6 +62,8 @@ import { usePublicEnv } from "@/utils/public-env";
 import { navigateWithTransition } from "@/utils/view-transition";
 import type { SharePageBranding, VideoData } from "../types";
 import { DashboardBackLink } from "./DashboardBackLink";
+import { useE2eeKey } from "./e2ee/E2eeKeyContext";
+import { isE2eeFlag, keyedShareLink } from "./e2ee/key-acquisition";
 import { ReportRecordingButton } from "./ReportRecordingDialog";
 import { describeShareAudience } from "./share-audience";
 import { useVideoDownload } from "./use-video-download";
@@ -155,7 +157,7 @@ export const ShareHeader = ({
 	spacesData = null,
 	branding,
 	canManageSharePageBranding = false,
-	canDownload = false,
+	canDownload: canDownloadProp = false,
 	hasEdits = false,
 	views,
 	dashboardDestination = null,
@@ -197,6 +199,7 @@ export const ShareHeader = ({
 	dashboardDestination?: ShareDashboardDestination | null;
 }) => {
 	const user = useCurrentUser();
+	const e2eeKey = useE2eeKey();
 	const { push, refresh } = useRouter();
 	const queryClient = useQueryClient();
 	const { data: videoStatus } = useQuery<VideoStatusResult>({
@@ -297,6 +300,7 @@ export const ShareHeader = ({
 	const isOwner = user && user.id === data.owner.id;
 
 	const { webUrl } = usePublicEnv();
+	const canDownload = canDownloadProp && !isE2eeFlag(data.e2ee);
 	const { download, isDownloading } = useVideoDownload(data.id);
 
 	const resolvedTitle = videoStatus?.name ?? data.name;
@@ -462,7 +466,7 @@ export const ShareHeader = ({
 
 	const copyShareLink = (url: string) =>
 		copyRichVideoLink({
-			url,
+			url: keyedShareLink(url, e2eeKey),
 			title: displayTitle || "Screencap Recording",
 			previewImageUrl: videoPreviewImageUrl(webUrl, data.id),
 		});
@@ -656,6 +660,7 @@ export const ShareHeader = ({
 		isOwner &&
 		!data.isScreenshot &&
 		!data.hasActiveUpload &&
+		!isE2eeFlag(data.e2ee) &&
 		(data.source.type === "desktopMP4" || data.source.type === "webMP4");
 	const handleEditVideo = () => {
 		if (userIsOwnerAndNotPro) {
@@ -680,7 +685,9 @@ export const ShareHeader = ({
 			refresh();
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to hide Screencap logo",
+				error instanceof Error
+					? error.message
+					: "Failed to hide Screencap logo",
 			);
 		} finally {
 			setIsHidingBranding(false);
@@ -1135,7 +1142,9 @@ export const ShareHeader = ({
 															icon={faEllipsis}
 														/>
 														<span className="truncate sm:hidden">Manage</span>
-														<span className="hidden sm:inline">Manage recording</span>
+														<span className="hidden sm:inline">
+															Manage recording
+														</span>
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent
@@ -1278,7 +1287,9 @@ export const ShareHeader = ({
 															className="size-3"
 															icon={faTrash}
 														/>
-														<p className="text-sm text-inherit">Delete recording</p>
+														<p className="text-sm text-inherit">
+															Delete recording
+														</p>
 													</DropdownMenuItem>
 												</DropdownMenuContent>
 											</DropdownMenu>

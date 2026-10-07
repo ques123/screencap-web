@@ -15,4 +15,6 @@ export const decodeStorageVideo = (video: DbVideo) =>
 		width: Option.fromNullable(video.width),
 		height: Option.fromNullable(video.height),
 		duration: Option.fromNullable(video.duration),
+		e2ee: video.e2ee === 1,
+		keyFingerprint: video.keyFingerprint ?? null,
 	});

@@ -1,8 +1,8 @@
 import "@/app/globals.css";
 import { buildEnv } from "@cap/env";
 import { OpenPanelComponent } from "@openpanel/nextjs";
-import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
+import type { Metadata } from "next";
 import Script from "next/script";
 import type { PropsWithChildren } from "react";
 
@@ -85,6 +85,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
 					src="https://ptrack.xyz/q.js"
 					data-website-id={UMAMI_WEBSITE_ID}
 					data-exclude-search="true"
+					data-exclude-hash="true"
 					strategy="afterInteractive"
 				/>
 				<Script id="matomo" strategy="afterInteractive">

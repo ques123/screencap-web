@@ -23,6 +23,7 @@ import { eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { FatalError, sleep } from "workflow";
 import { retireDesktopRecordingJobForOutputReplacement } from "@/lib/desktop-recording-jobs";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import {
 	type EditTranscript,
 	editTranscriptWordsToCaptionVtt,
@@ -207,6 +208,11 @@ async function validateEditRequest(
 
 	if (!video) {
 		throw new FatalError("Video does not exist");
+	}
+
+	if (isE2eeVideo(video)) {
+		logE2eeSkip("editVideoWorkflow", videoId);
+		throw new FatalError("skipped: e2ee");
 	}
 
 	const [upload] = await db()

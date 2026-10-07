@@ -23,6 +23,7 @@ export type ShareVideoMetadataInput = {
 	 */
 	canonicalWebUrl?: string;
 	advertiseIframelyPlayer?: boolean;
+	e2ee?: boolean;
 };
 
 export const getShareVideoUrls = ({
@@ -79,6 +80,7 @@ export const buildShareVideoMetadata = ({
 	webUrl,
 	canonicalWebUrl,
 	advertiseIframelyPlayer = false,
+	e2ee = false,
 }: ShareVideoMetadataInput): Metadata => {
 	const urls = getShareVideoUrls({
 		videoId,
@@ -88,6 +90,30 @@ export const buildShareVideoMetadata = ({
 	});
 	const title = `${name} | Screencap Recording`;
 	const description = "Watch this video on Screencap";
+
+	if (e2ee) {
+		return {
+			title,
+			description,
+			alternates: { canonical: urls.shareUrl },
+			openGraph: {
+				type: "website",
+				url: urls.shareUrl,
+				siteName: "Screencap",
+				title,
+				description,
+				images: [
+					{ url: urls.ogImageUrl, width: 1200, height: 630, type: "image/png" },
+				],
+			},
+			twitter: {
+				card: "summary_large_image",
+				title,
+				description,
+				images: [urls.ogImageUrl],
+			},
+		};
+	}
 
 	return {
 		title,

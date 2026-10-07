@@ -2,10 +2,15 @@ import { LogoSpinner } from "@cap/ui";
 import type { Video } from "@cap/web-domain";
 import clsx from "clsx";
 import { Effect } from "effect";
+import { LockIcon } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import { memo, useEffect, useRef, useState } from "react";
+import {
+	useDecryptedThumbnailUrl,
+	useStoredE2eeKey,
+} from "@/app/s/[videoId]/_components/e2ee/use-stored-key";
 import { useEffectQuery } from "@/lib/EffectRuntime";
 import { ThumbnailRequest } from "@/lib/Requests/ThumbnailRequest";
 
@@ -28,6 +33,7 @@ interface VideoThumbnailProps {
 	setImageStatus: (status: ImageLoadingStatus) => void;
 	hasActiveUpload?: boolean;
 	showPreview?: boolean;
+	e2ee?: boolean;
 }
 
 const formatDuration = (durationSecs: number) => {
@@ -89,6 +95,7 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 		setImageStatus,
 		hasActiveUpload = false,
 		showPreview = true,
+		e2ee = false,
 	}) => {
 		const thumbnailUrl = useThumnailQuery(videoId, !hasActiveUpload);
 		const containerRef = useRef<HTMLDivElement>(null);
@@ -101,6 +108,17 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 		}));
 		latestVideoId.current = videoId;
 
+		const storedKey = useStoredE2eeKey(videoId, e2ee);
+		const decrypted = useDecryptedThumbnailUrl(
+			e2ee ? storedKey : null,
+			e2ee && !hasActiveUpload ? thumbnailUrl.data : null,
+		);
+		const e2eePlaceholder =
+			e2ee &&
+			!hasActiveUpload &&
+			(storedKey === null || decrypted.failed || thumbnailUrl.isError);
+		const displaySrc = e2ee ? decrypted.objectUrl : thumbnailUrl.data;
+
 		const randomGradient = `linear-gradient(to right, ${generateRandomGrayScaleColor()}, ${generateRandomGrayScaleColor()})`;
 
 		useEffect(() => {
@@ -108,6 +126,10 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 				setImageStatus("success");
 			}
 		}, [setImageStatus]);
+
+		useEffect(() => {
+			if (e2eePlaceholder) setImageStatus("success");
+		}, [e2eePlaceholder, setImageStatus]);
 
 		useEffect(() => {
 			const element = containerRef.current;
@@ -135,15 +157,19 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 		}, []);
 
 		const showError =
-			!hasActiveUpload && (thumbnailUrl.isError || imageStatus === "error");
+			!e2eePlaceholder &&
+			!hasActiveUpload &&
+			(thumbnailUrl.isError || imageStatus === "error");
 		const showLoading =
-			hasActiveUpload || thumbnailUrl.isPending || imageStatus === "loading";
+			!e2eePlaceholder &&
+			(hasActiveUpload || thumbnailUrl.isPending || imageStatus === "loading");
 		const previewStatus =
 			previewState.videoId === videoId ? previewState.status : "loading";
 		const isPreviewHovered =
 			previewState.videoId === videoId && previewState.hovered;
 		const shouldShowPreview =
 			showPreview &&
+			!e2ee &&
 			isPreviewHovered &&
 			!hasActiveUpload &&
 			previewStatus !== "error";
@@ -171,15 +197,20 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 						/>
 					) : (
 						showLoading &&
-						!thumbnailUrl.data && (
+						!displaySrc && (
 							<LogoSpinner className="w-5 h-auto animate-spin md:w-8" />
 						)
 					)}
 				</div>
-				{thumbnailUrl.data && (
+				{e2eePlaceholder && (
+					<div className="flex absolute inset-0 justify-center items-center bg-gray-12">
+						<LockIcon className="size-8 text-gray-9" aria-hidden />
+					</div>
+				)}
+				{displaySrc && (
 					<Image
 						ref={imageRef}
-						src={thumbnailUrl.data}
+						src={displaySrc}
 						unoptimized
 						fill={true}
 						sizes="(max-width: 768px) 100vw, 33vw"
@@ -212,6 +243,16 @@ export const VideoThumbnail: React.FC<VideoThumbnailProps> = memo(
 						onLoad={() => setCurrentPreviewStatus("success")}
 						onError={() => setCurrentPreviewStatus("error")}
 					/>
+				)}
+				{e2ee && (
+					<span
+						role="img"
+						aria-label="End-to-end encrypted"
+						title="End-to-end encrypted"
+						className="flex absolute right-3 bottom-3 z-10 justify-center items-center rounded-full backdrop-blur-sm size-6 bg-black/50"
+					>
+						<LockIcon className="size-3 text-white" aria-hidden />
+					</span>
 				)}
 				{videoDuration && (
 					<p className="text-white leading-0 px-2 left-3 rounded-full backdrop-blur-sm absolute z-10 bottom-3 bg-black/50 text-[11px]">

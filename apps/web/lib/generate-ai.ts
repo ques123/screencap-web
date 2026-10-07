@@ -5,6 +5,7 @@ import type { Video } from "@cap/web-domain";
 import { and, eq, sql } from "drizzle-orm";
 import { start } from "workflow/api";
 import { isAiConfiguredForUser } from "@/lib/ai/byok";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import { generateAiWorkflow } from "@/workflows/generate-ai";
 
 type GenerateAiResult = {
@@ -46,6 +47,11 @@ export async function startAiGeneration(
 	}
 
 	const { video } = query[0];
+
+	if (isE2eeVideo(video)) {
+		logE2eeSkip("startAiGeneration", videoId);
+		return { success: true, message: "Skipped: end-to-end encrypted" };
+	}
 
 	// The video owner's BYOK settings (if any) decide availability.
 	if (!(await isAiConfiguredForUser("generation", video.ownerId))) {

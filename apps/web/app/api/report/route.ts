@@ -1,8 +1,10 @@
 import { db } from "@cap/database";
+import { encrypt } from "@cap/database/crypto";
 import { users, videos } from "@cap/database/schema";
 import { Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
+import { isE2eeVideo } from "@/lib/e2ee";
 import { createReport } from "@/lib/screencap-admin/reports";
 import {
 	MAX_REPORT_BODY_BYTES,
@@ -37,6 +39,7 @@ export async function POST(request: NextRequest) {
 			name: videos.name,
 			ownerId: videos.ownerId,
 			ownerEmail: users.email,
+			e2ee: videos.e2ee,
 		})
 		.from(videos)
 		.leftJoin(users, eq(users.id, videos.ownerId))
@@ -70,6 +73,13 @@ export async function POST(request: NextRequest) {
 	);
 
 	// Never throws; the report is also logged above and sent to Telegram below.
+	let storedKey: string | null = null;
+	if (isE2eeVideo(video) && report.decryptionKey) {
+		storedKey = await encrypt(report.decryptionKey).catch((error: unknown) => {
+			console.error("[report] could not encrypt the reporter's key", error);
+			return null;
+		});
+	}
 	await createReport({
 		videoId: video.id,
 		videoTitle: video.name ?? null,
@@ -79,7 +89,9 @@ export async function POST(request: NextRequest) {
 		details: report.details || null,
 		reporterEmail: report.email || null,
 		country,
+		decryptionKey: storedKey,
 	});
+	const keyIncluded = storedKey !== null;
 
 	const token = process.env.TELEGRAM_ALERT_BOT_TOKEN;
 	const chatId = process.env.TELEGRAM_ALERT_CHAT_ID;
@@ -94,6 +106,7 @@ export async function POST(request: NextRequest) {
 		`Details: ${report.details || "(none)"}`,
 		`Reporter email: ${report.email || "(none)"}`,
 		`Reporter country: ${country}`,
+		`Key included: ${keyIncluded ? "yes" : "no"}`,
 		`URL: ${shareUrl}`,
 		`Title: ${video.name}`,
 		`Owner: ${video.ownerId} ${video.ownerEmail ?? ""}`.trim(),

@@ -49,6 +49,8 @@ type CapSnapshot = {
 	folderId: string | null;
 	isScreenshot: boolean;
 	skipProcessing: boolean;
+	e2ee?: number | null;
+	keyFingerprint?: string | null;
 };
 
 type OperationPayload = {
@@ -81,6 +83,8 @@ const storageVideo = (snapshot: CapSnapshot) =>
 		width: Option.fromNullable(snapshot.width),
 		height: Option.fromNullable(snapshot.height),
 		duration: Option.fromNullable(snapshot.duration),
+		e2ee: snapshot.e2ee === 1,
+		keyFingerprint: snapshot.keyFingerprint ?? null,
 		createdAt: new Date(0),
 		updatedAt: new Date(0),
 	});
@@ -203,6 +207,8 @@ async function createDuplicate(operationId: string, payload: OperationPayload) {
 					: null,
 				isScreenshot: snapshot.isScreenshot,
 				skipProcessing: snapshot.skipProcessing,
+				e2ee: snapshot.e2ee ?? null,
+				keyFingerprint: snapshot.keyFingerprint ?? null,
 			});
 		}
 		const now = new Date();

@@ -40,6 +40,12 @@ import { type PropsWithChildren, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/app/(org)/dashboard/_components/ConfirmationDialog";
 import { useDashboardContext } from "@/app/(org)/dashboard/Contexts";
+import {
+	copyKeyToDuplicate,
+	isE2eeFlag,
+	keyedShareLink,
+} from "@/app/s/[videoId]/_components/e2ee/key-acquisition";
+import { useStoredE2eeKey } from "@/app/s/[videoId]/_components/e2ee/use-stored-key";
 import { useUploadProgress } from "@/app/s/[videoId]/_components/ProgressCircle";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import {
@@ -120,6 +126,8 @@ export interface CapCardProps extends PropsWithChildren {
 			disableReactions?: boolean;
 			disableTranscript?: boolean;
 		} | null;
+		e2ee?: number | boolean | null;
+		keyFingerprint?: string | null;
 	};
 	analytics: number;
 	isLoadingAnalytics: boolean;
@@ -170,6 +178,8 @@ export const CapCard = ({
 	const effectivePasswordProtected =
 		passwordProtected || Boolean(cap.hasInheritedPassword);
 	const { webUrl } = usePublicEnv();
+	const isE2ee = isE2eeFlag(cap.e2ee);
+	const storedKey = useStoredE2eeKey(cap.id, isE2ee);
 
 	const [copyPressed, setCopyPressed] = useState(false);
 	const [isDragging, setIsDragging] = useState(false);
@@ -225,7 +235,8 @@ export const CapCard = ({
 
 	const duplicateMutation = useEffectMutation({
 		mutationFn: () => rpc.VideoDuplicate(cap.id),
-		onSuccess: () => {
+		onSuccess: async (result) => {
+			await copyKeyToDuplicate(cap.id, result);
 			router.refresh();
 		},
 	});
@@ -365,18 +376,27 @@ export const CapCard = ({
 	};
 
 	const copyLinkHandler = () => {
-		handleCopy(
+		const baseLink =
 			NODE_ENV === "development"
 				? `${webUrl}/s/${cap.id}`
 				: buildEnv.NEXT_PUBLIC_IS_CAP && customDomain && domainVerified
 					? `https://${customDomain}/s/${cap.id}`
-					: `${webUrl}/s/${cap.id}`,
-		);
+					: `${webUrl}/s/${cap.id}`;
+		if (isE2ee && !storedKey) {
+			handleCopy(baseLink);
+			toast(
+				"Open this recording from the Screencap app to copy its full link.",
+			);
+			return;
+		}
+		handleCopy(isE2ee ? keyedShareLink(baseLink, storedKey) : baseLink);
+		toast.success("Link copied to clipboard");
 	};
 	const canEditVideo =
 		isOwner &&
 		!sharedCapCard &&
 		cap.isScreenshot !== true &&
+		!isE2ee &&
 		!cap.hasActiveUpload &&
 		(cap.source?.type === "desktopMP4" || cap.source?.type === "webMP4") &&
 		Boolean(cap.duration && cap.duration > 0);
@@ -477,7 +497,6 @@ export const CapCard = ({
 						onClick={(e) => {
 							e.stopPropagation();
 							copyLinkHandler();
-							toast.success("Link copied to clipboard");
 						}}
 						className="delay-0"
 						icon={
@@ -556,21 +575,22 @@ export const CapCard = ({
 									</DropdownMenuItem>
 								</>
 							)}
-							<DropdownMenuItem
-								onClick={(e) => {
-									e.stopPropagation();
-									handleDownload();
-								}}
-								className="flex gap-2 items-center rounded-lg"
-							>
-								<FontAwesomeIcon icon={faDownload} />
-								<p className="text-sm text-gray-12">Download</p>
-							</DropdownMenuItem>
+							{!isE2ee && (
+								<DropdownMenuItem
+									onClick={(e) => {
+										e.stopPropagation();
+										handleDownload();
+									}}
+									className="flex gap-2 items-center rounded-lg"
+								>
+									<FontAwesomeIcon icon={faDownload} />
+									<p className="text-sm text-gray-12">Download</p>
+								</DropdownMenuItem>
+							)}
 							<DropdownMenuItem
 								onClick={(e) => {
 									e.stopPropagation();
 									copyLinkHandler();
-									toast.success("Link copied to clipboard");
 								}}
 								className="flex gap-2 items-center rounded-lg"
 							>
@@ -818,6 +838,7 @@ export const CapCard = ({
 							imageStatus={imageStatus}
 							setImageStatus={setImageStatus}
 							showPreview={cap.isScreenshot !== true}
+							e2ee={isE2ee}
 							hasActiveUpload={
 								uploadProgress !== null &&
 								uploadProgress.status !== "fetching" &&

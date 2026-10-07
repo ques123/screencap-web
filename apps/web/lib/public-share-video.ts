@@ -9,6 +9,7 @@ import {
 } from "@cap/database/schema";
 import type { Video } from "@cap/web-domain";
 import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { isE2eeVideo } from "@/lib/e2ee";
 
 export type PublicShareVideoCandidate = {
 	id: Video.VideoId;
@@ -32,6 +33,7 @@ export type PublicShareVideoCandidate = {
 	width: number | null;
 	height: number | null;
 	duration: number | null;
+	e2ee?: number | boolean | null;
 };
 
 export type PublicShareVideo = Omit<
@@ -44,12 +46,14 @@ export type PublicShareVideo = Omit<
 	| "hasActiveUpload"
 	| "jobStatus"
 	| "skipProcessing"
+	| "e2ee"
 >;
 
 export const isPublicShareVideoCandidateEligible = (
 	video: PublicShareVideoCandidate,
 ) =>
 	video.public &&
+	!isE2eeVideo(video) &&
 	!video.hasPassword &&
 	!video.hasInheritedPassword &&
 	(video.allowedEmailDomain?.trim().length ?? 0) === 0 &&
@@ -86,6 +90,7 @@ export async function getPublicShareVideo(
 			width: videos.width,
 			height: videos.height,
 			duration: videos.duration,
+			e2ee: videos.e2ee,
 		})
 		.from(videos)
 		.innerJoin(

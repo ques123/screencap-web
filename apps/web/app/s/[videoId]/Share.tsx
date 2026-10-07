@@ -30,6 +30,8 @@ import { SignedImageUrl } from "@/components/SignedImageUrl";
 import type { ShareDashboardDestination } from "@/lib/share-dashboard-destination";
 import { CaptionProvider } from "./_components/CaptionContext";
 import { DashboardBackLink } from "./_components/DashboardBackLink";
+import { E2eeKeyProvider } from "./_components/e2ee/E2eeKeyContext";
+import { isE2eeFlag } from "./_components/e2ee/key-acquisition";
 import { PlaybackProvider } from "./_components/playback/PlaybackContext";
 import { ShareVideo } from "./_components/ShareVideo";
 import { type ShareView, ShareViewToggle } from "./_components/ShareViewToggle";
@@ -113,7 +115,6 @@ const trackVideoView = (payload: {
 		ownerId: payload.ownerId,
 		sessionId,
 		pathname: window.location.pathname,
-		href: window.location.href,
 		referrer: document.referrer,
 		hostname: window.location.hostname,
 		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -343,6 +344,7 @@ export const Share = ({
 	dashboardDestination = null,
 }: ShareProps) => {
 	const isScreenshot = data.isScreenshot === true;
+	const isE2ee = isE2eeFlag(data.e2ee);
 	// Memoized: a fresh Date each render would defeat the memoized `data`
 	// objects below and re-render Sidebar's whole tree on every poll tick.
 	const customCreatedAt = data.metadata?.customCreatedAt;
@@ -376,7 +378,7 @@ export const Share = ({
 			name: data.name,
 			aiData: initialAiData,
 		},
-		!isScreenshot,
+		!isScreenshot && !isE2ee,
 	);
 
 	const transcriptionStatus =
@@ -407,8 +409,10 @@ export const Share = ({
 	const isDisabled = (setting: ViewerSettingKey) =>
 		videoSettings?.[setting] ?? data.orgSettings?.[setting] ?? false;
 
-	const areChaptersDisabled = isScreenshot || isDisabled("disableChapters");
-	const isSummaryDisabled = isScreenshot || isDisabled("disableSummary");
+	const areChaptersDisabled =
+		isScreenshot || isE2ee || isDisabled("disableChapters");
+	const isSummaryDisabled =
+		isScreenshot || isE2ee || isDisabled("disableSummary");
 	const areCaptionsDisabled = isScreenshot || isDisabled("disableCaptions");
 	const areCommentStampsDisabled = isDisabled("disableComments");
 	const areReactionStampsDisabled = isDisabled("disableReactions");
@@ -618,7 +622,7 @@ export const Share = ({
 	// seek; everything else is an HLS playlist. A still-uploading segments
 	// source gets no strip — its playlist is in flux and not worth hammering.
 	const filmstripSource = useMemo<FilmstripSource | null>(() => {
-		if (isScreenshot) return null;
+		if (isScreenshot || isE2ee) return null;
 		const sourceType = data.source.type;
 		if (sourceType === "desktopMP4" || sourceType === "webMP4") {
 			return {
@@ -639,6 +643,7 @@ export const Share = ({
 		};
 	}, [
 		isScreenshot,
+		isE2ee,
 		data.source.type,
 		data.owner.id,
 		data.id,
@@ -732,6 +737,11 @@ export const Share = ({
 	}, []);
 
 	return (
+		<E2eeKeyProvider
+			videoId={data.id}
+			e2ee={isE2ee}
+			keyFingerprint={data.keyFingerprint ?? null}
+		>
 		<CaptionProvider
 			videoId={data.id}
 			transcriptionStatus={transcriptionStatus}
@@ -985,7 +995,9 @@ export const Share = ({
 														canFinalizeDesktopSegments={
 															viewerId === data.owner.id
 														}
-														showPlaybackStatusBadge={viewerId === data.owner.id}
+															showPlaybackStatusBadge={
+																viewerId === data.owner.id
+															}
 														isEditProcessing={isEditProcessing}
 														recordingStopped={recordingStopped}
 														defaultPlaybackSpeed={defaultPlaybackSpeed}
@@ -1016,7 +1028,9 @@ export const Share = ({
 												<div
 													className={clsx(
 														"relative",
-														showRail && railCollapsed && "lg:min-h-10 lg:px-40",
+															showRail &&
+																railCollapsed &&
+																"lg:min-h-10 lg:px-40",
 													)}
 												>
 													{timelineAvailable && (
@@ -1024,7 +1038,9 @@ export const Share = ({
 															<ShareViewToggle
 																view={view}
 																onChange={setViewAndUrl}
-																disabled={stageFullscreen || timelineRecording}
+																	disabled={
+																		stageFullscreen || timelineRecording
+																	}
 																prefetch={prefetchTimeline}
 															/>
 														</div>
@@ -1194,6 +1210,7 @@ export const Share = ({
 				</div>
 			</PlaybackProvider>
 		</CaptionProvider>
+		</E2eeKeyProvider>
 	);
 };
 

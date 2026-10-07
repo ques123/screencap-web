@@ -23,6 +23,7 @@ import {
 	shouldReplaceVideoTitle,
 } from "@/lib/ai/video-title";
 import { setGeneratedAiContent } from "@/lib/ai-content-metadata";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import { enqueueVideoStorageNameSync } from "@/lib/sync-video-storage-names";
 import { decodeStorageVideo } from "@/lib/video-storage";
 import { runWorkflowPromise } from "@/lib/workflow-runtime";
@@ -123,6 +124,10 @@ async function validateAndSetProcessing(videoId: string): Promise<VideoData> {
 	}
 
 	const { video } = query[0];
+	if (isE2eeVideo(video)) {
+		logE2eeSkip("generateAiWorkflow", videoId);
+		throw new FatalError("skipped: e2ee");
+	}
 	const metadata = (video.metadata as VideoMetadata) || {};
 
 	if (!(await isAiConfiguredForUser("generation", video.ownerId))) {

@@ -31,6 +31,7 @@ import {
 	enhanceAudioFromUrl,
 } from "@/lib/audio-enhance";
 import { checkHasAudioTrack, extractAudioFromUrl } from "@/lib/audio-extract";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import {
 	createEditTranscript,
 	editTranscriptWordsToCaptionVtt,
@@ -326,6 +327,11 @@ async function validateVideo(videoId: string): Promise<VideoData> {
 	const result = query[0];
 	if (!result?.video) {
 		throw new FatalError("Video information is missing");
+	}
+
+	if (isE2eeVideo(result.video)) {
+		logE2eeSkip("transcribeVideoWorkflow", videoId);
+		throw new FatalError("skipped: e2ee");
 	}
 
 	const transcriptionDisabled =

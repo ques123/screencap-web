@@ -63,6 +63,8 @@ export type VideoData = {
 	inheritedSpaceSettings?: Partial<Record<ViewerSettingKey, SpaceRuleSource[]>>;
 	hasActiveUpload: boolean;
 	settings?: Partial<Record<ViewerSettingKey, boolean>> | null;
+	e2ee?: number | null;
+	keyFingerprint?: string | null;
 }[];
 
 export const Caps = ({

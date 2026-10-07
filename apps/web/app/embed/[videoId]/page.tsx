@@ -27,6 +27,7 @@ import { Effect, Option } from "effect";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { isE2eeFlag } from "@/app/s/[videoId]/_components/e2ee/key-acquisition";
 import { resolveDefaultPlaybackSpeed } from "@/lib/playback-speed";
 import * as EffectRuntime from "@/lib/server";
 import { getSharePageBranding } from "@/lib/share-branding";
@@ -54,6 +55,7 @@ export async function generateMetadata(
 						name: video.name,
 						sourceType: video.source.type,
 						webUrl: buildEnv.NEXT_PUBLIC_WEB_URL,
+						e2ee: video.e2ee,
 					}),
 					robots: "index, follow",
 				}),
@@ -137,6 +139,8 @@ export default async function EmbedVideoPage(
 					jobStatus: videos.jobStatus,
 					isScreenshot: videos.isScreenshot,
 					skipProcessing: videos.skipProcessing,
+					e2ee: videos.e2ee,
+					keyFingerprint: videos.keyFingerprint,
 					transcriptionStatus: videos.transcriptionStatus,
 					source: videos.source,
 					folderId: videos.folderId,
@@ -255,8 +259,11 @@ async function EmbedContent({
 		ownerIsProUser = userIsPro(videoOwner);
 	}
 
+	const videoIsE2ee = isE2eeFlag(video.e2ee);
+
 	if (
 		video.isScreenshot !== true &&
+		!videoIsE2ee &&
 		!rules.settings.disableTranscript &&
 		video.transcriptionStatus !== "COMPLETE" &&
 		video.transcriptionStatus !== "PROCESSING" &&
@@ -271,9 +278,10 @@ async function EmbedContent({
 	let initialAiData = null;
 
 	if (
-		currentMetadata.summary ||
-		currentMetadata.chapters ||
-		currentMetadata.aiTitle
+		!videoIsE2ee &&
+		(currentMetadata.summary ||
+			currentMetadata.chapters ||
+			currentMetadata.aiTitle)
 	) {
 		initialAiData = {
 			title: currentMetadata.aiTitle || null,

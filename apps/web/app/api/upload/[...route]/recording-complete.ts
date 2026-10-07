@@ -15,6 +15,8 @@ import {
 } from "@/lib/desktop-recording-upload-status";
 import { recordingVerificationSchema } from "@/lib/desktop-recording-verification";
 import { queueDesktopSegmentsFinalization } from "@/lib/desktop-segments-finalization";
+import { isE2eeVideo } from "@/lib/e2ee";
+import { E2eeFinalizeError } from "@/lib/e2ee-finalize";
 import { withAuth } from "../../utils";
 
 export const app = new Hono().post(
@@ -46,6 +48,53 @@ export const app = new Hono().post(
 			video.source?.type !== "desktopSegments"
 		) {
 			return c.json({ error: "Video is not a desktop recording" }, 400);
+		}
+
+		if (isE2eeVideo(video)) {
+			if (video.source?.type !== "desktopSegments") {
+				return c.json({ error: "Video is not a segmented recording" }, 400);
+			}
+			if (verification && verification.artifact.kind !== "segments") {
+				return c.json(
+					{ error: "Invalid verification for this recording" },
+					400,
+				);
+			}
+			try {
+				const { finalizeE2eeRecording } = await import(
+					"@/lib/e2ee-recording-complete"
+				);
+				const receipt = await finalizeE2eeRecording({
+					video,
+					manifestSha256:
+						verification?.artifact.kind === "segments"
+							? verification.artifact.manifestSha256
+							: undefined,
+					requiredAudio: verification?.requiredAudio,
+				});
+				return c.json({
+					success: true,
+					status: "verified",
+					verification: receipt,
+				});
+			} catch (error) {
+				c.header("Retry-After", "5");
+				if (error instanceof E2eeFinalizeError) {
+					console.warn("[recording-complete] e2ee not ready", {
+						videoId,
+						code: error.code,
+					});
+					return c.json(
+						{ success: false, status: error.code, error: error.message },
+						503,
+					);
+				}
+				console.error("[recording-complete] e2ee finalization failed:", error);
+				return c.json(
+					{ success: false, error: "Recording verification is unavailable" },
+					503,
+				);
+			}
 		}
 
 		try {

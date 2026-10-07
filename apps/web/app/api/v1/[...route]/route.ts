@@ -2020,6 +2020,8 @@ const queueAgentCapOperation = Effect.fn("Agent.queueCapOperation")(
 							folderId: video.folderId,
 							isScreenshot: video.isScreenshot,
 							skipProcessing: video.skipProcessing,
+							e2ee: video.e2ee,
+							keyFingerprint: video.keyFingerprint,
 						},
 						destinationId,
 					},

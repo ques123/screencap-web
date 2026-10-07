@@ -49,6 +49,7 @@ export default async function AdminRecordingsPage({
 									<span className="font-medium text-gray-12 break-words">
 										{r.title || "(untitled)"}
 									</span>
+									{r.e2ee && <Chip tone="blue">E2EE</Chip>}
 									<Chip tone={r.public ? "blue" : "gray"}>
 										{r.public ? "Public" : "Private"}
 									</Chip>
@@ -75,6 +76,8 @@ export default async function AdminRecordingsPage({
 								title={r.title}
 								isPublic={r.public}
 								ownerEmail={r.ownerEmail}
+								e2ee={r.e2ee}
+								hasReporterKey={r.hasReporterKey}
 							/>
 						</li>
 					))}

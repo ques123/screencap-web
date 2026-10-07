@@ -7,6 +7,7 @@ import { Storage } from "@cap/web-backend";
 import type { Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { E2EE_UNSUPPORTED_MESSAGE, isE2eeVideo } from "@/lib/e2ee";
 import { runPromise } from "@/lib/server";
 import { canUserDownloadVideo } from "@/lib/video-download-permissions";
 import { decodeStorageVideo } from "@/lib/video-storage";
@@ -44,6 +45,10 @@ export async function downloadVideo(videoId: Video.VideoId) {
 
 	if (video.ownerId !== userId) {
 		throw new Error("You don't have permission to download this video");
+	}
+
+	if (isE2eeVideo(video)) {
+		throw new Error(E2EE_UNSUPPORTED_MESSAGE);
 	}
 
 	try {
@@ -85,6 +90,10 @@ export async function getVideoDownloadInfo(
 		.where(eq(videos.id, videoId));
 
 	if (!video) throw new Error("Video not found");
+
+	if (isE2eeVideo(video)) {
+		return { success: false, error: E2EE_UNSUPPORTED_MESSAGE };
+	}
 
 	const allowed = await canUserDownloadVideo({
 		userId: user.id,

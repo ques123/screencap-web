@@ -16,6 +16,16 @@ import {
 	useState,
 } from "react";
 import { CapVideoPlayer } from "@/app/s/[videoId]/_components/CapVideoPlayer";
+import {
+	E2eeKeyStateProvider,
+	useE2eeKeyAcquisition,
+} from "@/app/s/[videoId]/_components/e2ee/E2eeKeyContext";
+import { E2eeKeyGate } from "@/app/s/[videoId]/_components/e2ee/E2eeKeyGate";
+import { E2eeVideoPlayer } from "@/app/s/[videoId]/_components/e2ee/E2eeVideoPlayer";
+import {
+	isE2eeFlag,
+	keyedShareLink,
+} from "@/app/s/[videoId]/_components/e2ee/key-acquisition";
 import { HLSVideoPlayer } from "@/app/s/[videoId]/_components/HLSVideoPlayer";
 import { useUploadProgress } from "@/app/s/[videoId]/_components/ProgressCircle";
 import {
@@ -107,6 +117,13 @@ export const EmbedVideo = forwardRef<
 			data.id,
 			data.source.type === "desktopSegments" && (data.hasActiveUpload ?? false),
 		);
+		const isE2ee = isE2eeFlag(data.e2ee);
+		const e2eeState = useE2eeKeyAcquisition(
+			data.id,
+			isE2ee,
+			data.keyFingerprint ?? null,
+		);
+		const e2eeKey = e2eeState.status === "ready" ? e2eeState.key : null;
 		const [subtitleUrl, setSubtitleUrl] = useState<string | null>(null);
 		const [chaptersUrl, setChaptersUrl] = useState<string | null>(null);
 		const captionsDisabled = viewerSettings?.disableCaptions ?? false;
@@ -114,7 +131,7 @@ export const EmbedVideo = forwardRef<
 
 		const { data: transcriptContent, error: transcriptError } = useTranscript(
 			data.id,
-			captionsDisabled ? null : data.transcriptionStatus,
+			captionsDisabled || isE2ee ? null : data.transcriptionStatus,
 		);
 
 		useEffect(() => {
@@ -252,8 +269,10 @@ export const EmbedVideo = forwardRef<
 			};
 		}, [startTime]);
 
+		const SegmentsPlayer = isE2ee ? E2eeVideoPlayer : HLSVideoPlayer;
+
 		return (
-			<>
+			<E2eeKeyStateProvider state={e2eeState}>
 				<div
 					ref={playerContainerRef}
 					className="relative w-screen h-screen rounded-xl"
@@ -287,21 +306,23 @@ export const EmbedVideo = forwardRef<
 							callToAction={callToAction}
 						/>
 					) : (
-						<HLSVideoPlayer
-							videoId={data.id}
-							mediaPlayerClassName="w-full h-full"
-							videoSrc={videoSrc}
-							duration={data.duration}
-							disableCaptions={captionsDisabled}
-							chaptersSrc={chaptersDisabled ? "" : chaptersUrl || ""}
-							captionsSrc={captionsDisabled ? "" : subtitleUrl || ""}
-							videoRef={videoRef}
-							autoplay={autoplay}
-							defaultPlaybackSpeed={defaultPlaybackSpeed}
-							hasActiveUpload={data.hasActiveUpload}
-							isLiveSegments={isSegmentsSource}
-							callToAction={callToAction}
-						/>
+						<E2eeKeyGate>
+							<SegmentsPlayer
+								videoId={data.id}
+								mediaPlayerClassName="w-full h-full"
+								videoSrc={videoSrc}
+								duration={data.duration}
+								disableCaptions={captionsDisabled}
+								chaptersSrc={chaptersDisabled ? "" : chaptersUrl || ""}
+								captionsSrc={captionsDisabled ? "" : subtitleUrl || ""}
+								videoRef={videoRef}
+								autoplay={autoplay}
+								defaultPlaybackSpeed={defaultPlaybackSpeed}
+								hasActiveUpload={data.hasActiveUpload}
+								isLiveSegments={isSegmentsSource}
+								callToAction={callToAction}
+							/>
+						</E2eeKeyGate>
 					)}
 				</div>
 
@@ -327,7 +348,7 @@ export const EmbedVideo = forwardRef<
 										)}
 										<div className="flex-1 min-w-0">
 											<a
-												href={`/s/${data.id}`}
+												href={keyedShareLink(`/s/${data.id}`, e2eeKey)}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="block"
@@ -395,7 +416,7 @@ export const EmbedVideo = forwardRef<
 						)}
 					</AnimatePresence>
 				)}
-			</>
+			</E2eeKeyStateProvider>
 		);
 	},
 );

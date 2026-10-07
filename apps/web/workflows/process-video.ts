@@ -6,6 +6,7 @@ import { Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { FatalError, sleep } from "workflow";
 import { isAiGenerationEnabledForUser } from "@/lib/ai-generation-entitlement";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
 import {
 	createMediaServerCapacityError,
 	isMediaServerCapacityError,
@@ -124,6 +125,11 @@ async function validateProcessingRequest(
 
 	if (!video) {
 		throw new FatalError("Video does not exist");
+	}
+
+	if (isE2eeVideo(video)) {
+		logE2eeSkip("processVideoWorkflow", videoId);
+		throw new FatalError("skipped: e2ee");
 	}
 
 	const [upload] = await db()

@@ -188,6 +188,8 @@ export default async function CapsPage(props: PageProps<"/dashboard/caps">) {
 					Boolean,
 				),
 			settings: videos.settings,
+			e2ee: videos.e2ee,
+			keyFingerprint: videos.keyFingerprint,
 		})
 		.from(videos)
 		.leftJoin(comments, eq(videos.id, comments.videoId))
@@ -215,6 +217,8 @@ export default async function CapsPage(props: PageProps<"/dashboard/caps">) {
 			videos.password,
 			videos.settings,
 			videos.orgId,
+			videos.e2ee,
+			videos.keyFingerprint,
 			users.name,
 		)
 		.orderBy(desc(videos.effectiveCreatedAt))

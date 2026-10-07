@@ -1,3 +1,5 @@
+import { isValidE2eeKey } from "@/lib/e2ee";
+
 export const REPORT_REASONS = [
 	"illegal",
 	"copyright",
@@ -25,6 +27,7 @@ export interface ValidReport {
 	reason: ReportReason;
 	details: string;
 	email: string;
+	decryptionKey: string;
 }
 
 const VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
@@ -56,6 +59,13 @@ export function validateReport(
 	if (email && (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email)))
 		return { ok: false, error: "Invalid email" };
 
+	let decryptionKey = "";
+	if (body.decryptionKey !== undefined && body.decryptionKey !== null) {
+		if (body.decryptionKey !== "" && !isValidE2eeKey(body.decryptionKey))
+			return { ok: false, error: "Invalid decryption key" };
+		decryptionKey = body.decryptionKey;
+	}
+
 	return {
 		ok: true,
 		value: {
@@ -63,6 +73,7 @@ export function validateReport(
 			reason: body.reason as ReportReason,
 			details: details.trim(),
 			email,
+			decryptionKey,
 		},
 	};
 }

@@ -5,6 +5,7 @@ import { getPublishedRecordingThumbnailKey } from "@cap/web-backend/src/Storage/
 import type { Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { isE2eeVideo } from "@/lib/e2ee";
 import { extractPosterFrameDataUri } from "@/lib/og/poster-frame";
 import { renderVideoOg } from "@/lib/og/video-og";
 import { runPromise } from "@/lib/server";
@@ -17,7 +18,8 @@ export async function generateVideoOgImage(videoId: Video.VideoId) {
 
 	const { video, ownerName } = videoData;
 
-	if (video.password) return renderVideoOg({ kind: "password" });
+	if (video.password || isE2eeVideo(video))
+		return renderVideoOg({ kind: "password" });
 	if (video.public === false) return renderVideoOg({ kind: "locked" });
 
 	let screenshotUrl: string | undefined;

@@ -14,12 +14,17 @@ import {
 	SourceCommitPendingError,
 } from "@/lib/desktop-recording-jobs";
 import type { RecordingVerification } from "@/lib/desktop-recording-verification";
+import { isE2eeVideo, logE2eeSkip } from "@/lib/e2ee";
+import { E2eeFinalizeError } from "@/lib/e2ee-finalize";
 import { transcribeVideo } from "@/lib/transcribe";
 import { finalizeDesktopRecordingWorkflow } from "@/workflows/finalize-desktop-recording";
 
 export { isRetryableDesktopSegmentsFinalizationError } from "@/lib/desktop-segments-retryable-errors";
 
-export type DesktopSegmentsFinalizationStatus = "queued" | "already-processing";
+export type DesktopSegmentsFinalizationStatus =
+	| "queued"
+	| "already-processing"
+	| "e2ee-finalized";
 
 async function queueEarlySegmentsTranscription({
 	videoId,
@@ -74,6 +79,31 @@ export async function queueDesktopSegmentsFinalization({
 	userId: User.UserId;
 	verification?: RecordingVerification;
 }): Promise<DesktopSegmentsFinalizationStatus> {
+	const [e2eeRow] = await db()
+		.select()
+		.from(videos)
+		.where(eq(videos.id, videoId));
+	if (e2eeRow && isE2eeVideo(e2eeRow)) {
+		logE2eeSkip("queueDesktopSegmentsFinalization", videoId);
+		try {
+			const { finalizeE2eeRecording } = await import(
+				"@/lib/e2ee-recording-complete"
+			);
+			await finalizeE2eeRecording({
+				video: e2eeRow,
+				manifestSha256:
+					verification?.artifact.kind === "segments"
+						? verification.artifact.manifestSha256
+						: undefined,
+				requiredAudio: verification?.requiredAudio,
+			});
+		} catch (error) {
+			if (error instanceof E2eeFinalizeError)
+				throw new SourceCommitPendingError();
+			throw error;
+		}
+		return "e2ee-finalized";
+	}
 	const { job, created } = await ensureSegmentProcessingJob({
 		videoId,
 		userId,
