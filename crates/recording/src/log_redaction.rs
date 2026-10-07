@@ -85,6 +85,10 @@ fn scrub_url(url: &str) -> String {
     // Trailing punctuation belongs to the sentence, not the URL.
     let trimmed_len = url.trim_end_matches([')', ']', ',', ';', ':', '.']).len();
     let (url, trailer) = url.split_at(trimmed_len);
+    let (url, fragment) = match url.find('#') {
+        Some(at) => (&url[..at], format!("#{REDACTED}")),
+        None => (url, String::new()),
+    };
 
     if let Some(prefix) = SENSITIVE_URL_PREFIXES.iter().find(|prefix| {
         url.len() >= prefix.len() && url[..prefix.len()].eq_ignore_ascii_case(prefix)
@@ -93,7 +97,7 @@ fn scrub_url(url: &str) -> String {
     }
 
     let Some(query_start) = url.find('?') else {
-        return format!("{url}{trailer}");
+        return format!("{url}{fragment}{trailer}");
     };
 
     let (base, query) = url.split_at(query_start);
@@ -114,7 +118,7 @@ fn scrub_url(url: &str) -> String {
         }
     }
 
-    format!("{base}?{scrubbed}{trailer}")
+    format!("{base}?{scrubbed}{fragment}{trailer}")
 }
 
 fn is_sensitive_param(name: &str) -> bool {
@@ -126,6 +130,18 @@ fn is_sensitive_param(name: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn share_link_fragments_are_redacted() {
+        let key = "MvJsG_zaXhhAugKG-ptoHdJ0Kz1eA3gNLzWafpxutjc";
+        let scrubbed = scrub_url(&format!(
+            "https://screencap.co/s/abc?recordingStopped=1#k={key}."
+        ));
+        assert!(!scrubbed.contains(key), "{scrubbed}");
+        assert!(scrubbed.starts_with("https://screencap.co/s/abc?recordingStopped=1#"));
+        assert!(scrubbed.ends_with('.'));
+        assert!(!scrub_url(&format!("https://screencap.co/s/abc#k={key}")).contains(key));
+    }
 
     #[test]
     fn a_presigned_put_url_loses_its_signature_and_credential() {

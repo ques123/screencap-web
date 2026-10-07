@@ -6,9 +6,10 @@ import {
 	screencapReports,
 	videos,
 } from "@cap/database/schema";
+import { Video } from "@cap/web-domain";
 import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
-import { isE2eeVideo, isValidE2eeKey } from "@/lib/e2ee";
-import { logAdminAction } from "./audit";
+import { firstMatchingKey, isE2eeVideo } from "@/lib/e2ee";
+import { logAdminAction, writeAdminLogStrict } from "./audit";
 import type { ActionResult, AdminReportRow } from "./types";
 
 const clip = (v: string | null, n: number) =>
@@ -188,6 +189,12 @@ export async function getReporterKey(
 	videoTitle: string | null;
 } | null> {
 	try {
+		const [video] = await db()
+			.select({ keyFingerprint: videos.keyFingerprint })
+			.from(videos)
+			.where(eq(videos.id, Video.VideoId.make(videoId)))
+			.limit(1);
+		if (!video?.keyFingerprint) return null;
 		const rows = await db()
 			.select({
 				id: screencapReports.id,
@@ -205,19 +212,29 @@ export async function getReporterKey(
 				),
 			)
 			.orderBy(desc(screencapReports.id))
-			.limit(1);
-		const row = rows[0];
-		if (!row?.key) return null;
-		const key = await decrypt(row.key);
-		if (!isValidE2eeKey(key)) return null;
-		return { key, reportId: row.id, videoTitle: row.videoTitle };
+			.limit(50);
+		const decrypted: { id: number; key: string; videoTitle: string | null }[] =
+			[];
+		for (const row of rows) {
+			if (!row.key) continue;
+			try {
+				decrypted.push({
+					id: row.id,
+					key: await decrypt(row.key),
+					videoTitle: row.videoTitle,
+				});
+			} catch {}
+		}
+		const match = firstMatchingKey(decrypted, video.keyFingerprint);
+		if (!match) return null;
+		return { key: match.key, reportId: match.id, videoTitle: match.videoTitle };
 	} catch (error) {
 		console.error("[screencap-admin] getReporterKey failed", error);
 		return null;
 	}
 }
 
-/** Logs the view, then returns the share URL path with the reporter's key. The key is never written to the log. */
+/** Logs the view, then returns the share URL path with the reporter's key. Throws (releasing nothing) if the log write fails. The key is never written to the log. */
 export async function openWithReporterKey(
 	videoId: string,
 	adminEmail: string,
@@ -225,14 +242,19 @@ export async function openWithReporterKey(
 ): Promise<string | null> {
 	const found = await getReporterKey(videoId, reportId);
 	if (!found) return null;
-	await logAdminAction({
-		adminEmail,
-		action: "view-with-reporter-key",
-		targetType: "recording",
-		targetId: videoId,
-		targetLabel: found.videoTitle,
-		source: "report",
-		details: { reportId: found.reportId },
-	});
+	try {
+		await writeAdminLogStrict({
+			adminEmail,
+			action: "view-with-reporter-key",
+			targetType: "recording",
+			targetId: videoId,
+			targetLabel: found.videoTitle,
+			source: "report",
+			details: { reportId: found.reportId },
+		});
+	} catch (error) {
+		console.error("[screencap-admin] could not record key view", error);
+		throw new Error("Could not record this view");
+	}
 	return `/s/${encodeURIComponent(videoId)}#k=${found.key}`;
 }

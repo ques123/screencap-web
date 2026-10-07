@@ -96,8 +96,8 @@ export default function RootLayout({ children }: PropsWithChildren) {
 						apiUrl="/api/op"
 						clientId={buildEnv.NEXT_PUBLIC_OPENPANEL_CLIENT_ID}
 						scriptUrl="/api/op/op1.js"
-						trackOutgoingLinks
-						trackScreenViews
+						trackOutgoingLinks={false}
+						trackScreenViews={false}
 					/>
 				) : null}
 				<main className="w-full">{children}</main>

@@ -9,6 +9,7 @@ import { createReport } from "@/lib/screencap-admin/reports";
 import {
 	MAX_REPORT_BODY_BYTES,
 	REPORT_REASON_LABELS,
+	resolveReportKey,
 	validateReport,
 } from "./validation";
 
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
 	const result = validateReport(parsed);
 	if (!result.ok)
 		return Response.json({ error: result.error }, { status: 400 });
-	const report = result.value;
+	const submitted = result.value;
 
 	const [video] = await db()
 		.select({
@@ -40,14 +41,25 @@ export async function POST(request: NextRequest) {
 			ownerId: videos.ownerId,
 			ownerEmail: users.email,
 			e2ee: videos.e2ee,
+			keyFingerprint: videos.keyFingerprint,
 		})
 		.from(videos)
 		.leftJoin(users, eq(users.id, videos.ownerId))
-		.where(eq(videos.id, Video.VideoId.make(report.videoId)))
+		.where(eq(videos.id, Video.VideoId.make(submitted.videoId)))
 		.limit(1);
 
 	// Same response whether or not the video exists or is private.
 	if (!video) return Response.json({ ok: true });
+
+	const resolved = resolveReportKey(
+		submitted,
+		isE2eeVideo(video) ? video.keyFingerprint : null,
+	);
+	const report = {
+		...submitted,
+		details: resolved.details,
+		email: resolved.email,
+	};
 
 	const country = request.headers.get("cf-ipcountry") ?? "unknown";
 	const baseUrl = (
@@ -74,11 +86,13 @@ export async function POST(request: NextRequest) {
 
 	// Never throws; the report is also logged above and sent to Telegram below.
 	let storedKey: string | null = null;
-	if (isE2eeVideo(video) && report.decryptionKey) {
-		storedKey = await encrypt(report.decryptionKey).catch((error: unknown) => {
-			console.error("[report] could not encrypt the reporter's key", error);
-			return null;
-		});
+	if (isE2eeVideo(video) && resolved.decryptionKey) {
+		storedKey = await encrypt(resolved.decryptionKey).catch(
+			(error: unknown) => {
+				console.error("[report] could not encrypt the reporter's key", error);
+				return null;
+			},
+		);
 	}
 	await createReport({
 		videoId: video.id,

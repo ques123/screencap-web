@@ -1,4 +1,8 @@
-import { isValidE2eeKey } from "@/lib/e2ee";
+import {
+	isValidE2eeKey,
+	keyFingerprintFromText,
+	scrubKeyTokens,
+} from "@/lib/e2ee";
 
 export const REPORT_REASONS = [
 	"illegal",
@@ -75,5 +79,24 @@ export function validateReport(
 			email,
 			decryptionKey,
 		},
+	};
+}
+
+export function resolveReportKey(
+	report: Pick<ValidReport, "details" | "email" | "decryptionKey">,
+	videoFingerprint: string | null | undefined,
+): { details: string; email: string; decryptionKey: string | null } {
+	const details = scrubKeyTokens(report.details, videoFingerprint);
+	const email = scrubKeyTokens(report.email, videoFingerprint);
+	const supplied =
+		report.decryptionKey &&
+		videoFingerprint &&
+		keyFingerprintFromText(report.decryptionKey) === videoFingerprint
+			? report.decryptionKey
+			: null;
+	return {
+		details: details.text,
+		email: email.text,
+		decryptionKey: supplied ?? details.matchingKey ?? email.matchingKey,
 	};
 }

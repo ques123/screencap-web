@@ -20,22 +20,27 @@ export type AdminLogInput = {
 const clip = (v: string | null | undefined, n: number) =>
 	v === null || v === undefined ? null : v.slice(0, n);
 
+/** Writes an audit row and throws if the write fails. */
+export async function writeAdminLogStrict(e: AdminLogInput): Promise<void> {
+	await db()
+		.insert(screencapAdminLog)
+		.values({
+			adminEmail: e.adminEmail.slice(0, 255),
+			action: e.action.slice(0, 48),
+			targetType: e.targetType,
+			targetId: clip(e.targetId, 255),
+			targetLabel: clip(e.targetLabel, 255),
+			reason: e.reason ?? null,
+			source: e.source ?? null,
+			notified: e.notified ?? false,
+			details: e.details ?? null,
+		});
+}
+
 /** Writes an audit row. Never throws: a failed log must not undo a completed action. */
 export async function logAdminAction(e: AdminLogInput): Promise<void> {
 	try {
-		await db()
-			.insert(screencapAdminLog)
-			.values({
-				adminEmail: e.adminEmail.slice(0, 255),
-				action: e.action.slice(0, 48),
-				targetType: e.targetType,
-				targetId: clip(e.targetId, 255),
-				targetLabel: clip(e.targetLabel, 255),
-				reason: e.reason ?? null,
-				source: e.source ?? null,
-				notified: e.notified ?? false,
-				details: e.details ?? null,
-			});
+		await writeAdminLogStrict(e);
 	} catch (error) {
 		console.error("[screencap-admin] audit log write failed", error);
 	}

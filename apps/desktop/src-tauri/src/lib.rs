@@ -6148,7 +6148,7 @@ async fn check_upgraded_and_update(app: AppHandle) -> Result<bool, String> {
 
 #[tauri::command]
 #[specta::specta]
-#[instrument(skip(app))]
+#[instrument(skip(app, url))]
 fn open_external_link(app: tauri::AppHandle, url: String) -> Result<(), String> {
     if let Ok(Some(settings)) = GeneralSettingsStore::get(&app)
         && settings.disable_auto_open_links
@@ -9224,7 +9224,7 @@ fn global_message_dialog(app: AppHandle, message: String) {
 
 #[tauri::command]
 #[specta::specta]
-#[instrument(skip(clipboard))]
+#[instrument(skip(clipboard, text))]
 async fn write_clipboard_string(
     clipboard: MutableState<'_, ClipboardContext>,
     text: String,
