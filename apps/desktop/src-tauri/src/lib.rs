@@ -5180,16 +5180,16 @@ async fn upload_exported_video(
         }
     }
 
-    if let Some(error) = e2ee::studio_upload_blocker(
+    let encryption = e2ee::studio_upload_mode(
         GeneralSettingsStore::get(&app)
             .ok()
             .flatten()
             .is_some_and(|settings| e2ee::setting_enabled(settings.encrypt_recordings)),
         meta.sharing.as_ref(),
-    ) {
+    )
+    .inspect_err(|_| {
         notifications::send_notification(&app, notifications::NotificationType::UploadFailed);
-        return Err(error.to_string());
-    }
+    })?;
 
     let file_path = meta.output_path();
     if !file_path.exists() {
@@ -5205,6 +5205,22 @@ async fn upload_exported_video(
     }
 
     channel.send(UploadProgress { progress: 0.0 }).ok();
+
+    if !matches!(encryption, e2ee::StudioUploadMode::Plaintext) {
+        if matches!(mode, UploadMode::Reupload) && meta.sharing.is_none() {
+            return Err("No sharing metadata found".into());
+        }
+        return upload_exported_video_encrypted(
+            &app,
+            path,
+            file_path,
+            metadata,
+            encryption,
+            organization_id,
+            channel,
+        )
+        .await;
+    }
 
     let existing_video_id = upload::reusable_video_id(meta.sharing.as_ref(), meta.upload.as_ref());
     let s3_config = match async {
@@ -5282,7 +5298,10 @@ async fn upload_exported_video(
                 .unwrap_or(uploaded_video.link);
 
             meta.upload = Some(UploadMeta::Complete);
-            meta.sharing = Some(e2ee::sharing_meta(uploaded_video.id.clone(), link.clone()));
+            let sharing =
+                e2ee::sharing_after_upload(meta.sharing.as_ref(), uploaded_video.id.clone(), link);
+            let link = sharing.link.clone();
+            meta.sharing = Some(sharing);
             meta.save_for_project()
                 .map_err(|error| format!("Failed to persist sharing state: {error}"))?;
 
@@ -5309,6 +5328,163 @@ async fn upload_exported_video(
                 .ok();
 
             Err(e.to_string())
+        }
+    }
+}
+
+async fn upload_exported_video_encrypted(
+    app: &AppHandle,
+    project_path: PathBuf,
+    file_path: PathBuf,
+    metadata: api::S3VideoMeta,
+    encryption: e2ee::StudioUploadMode,
+    organization_id: Option<String>,
+    channel: Channel<UploadProgress>,
+) -> Result<UploadResult, String> {
+    let meta = RecordingMeta::load_for_project(&project_path).map_err(|v| v.to_string())?;
+    let (key, existing) = match encryption {
+        e2ee::StudioUploadMode::EncryptedExisting(key) => (
+            key,
+            meta.sharing
+                .as_ref()
+                .map(|sharing| (sharing.id.clone(), sharing.link.clone())),
+        ),
+        _ => (cap_e2ee::ContentKey::generate(), None),
+    };
+
+    let prepared = {
+        let project_path = project_path.clone();
+        tokio::task::spawn_blocking(move || e2ee::remux_for_upload(&file_path, &project_path))
+            .await
+            .map_err(|error| error.to_string())
+            .and_then(|result| result)
+    };
+    let prepared = match prepared {
+        Ok(prepared) => prepared,
+        Err(error) => {
+            notifications::send_notification(app, notifications::NotificationType::UploadFailed);
+            return Err(error);
+        }
+    };
+
+    let fingerprint = key.fingerprint();
+    let created = match upload::create_or_get_video_with_mode(
+        app,
+        false,
+        existing.as_ref().map(|(id, _)| id.clone()),
+        Some(meta.pretty_name.clone()),
+        Some(metadata),
+        organization_id,
+        upload::VideoCreateMode {
+            recording_mode: "desktopSegments",
+            e2ee_fingerprint: Some(&fingerprint),
+        },
+    )
+    .await
+    {
+        Ok(created) => created,
+        Err(AuthedApiError::InvalidAuthentication) => return Ok(UploadResult::NotAuthenticated),
+        Err(AuthedApiError::UpgradeRequired) => return Ok(UploadResult::UpgradeRequired),
+        Err(error) => return Err(error.to_string()),
+    };
+    if existing.as_ref().is_some_and(|(id, _)| *id != created.id) {
+        return Err("Server did not preserve the existing share link".into());
+    }
+    let link = match existing {
+        Some((_, link)) => cap_e2ee::share_link(&link, None, &key),
+        None => cap_e2ee::share_link(
+            &app.make_app_url(format!("/s/{}", created.id)).await,
+            None,
+            &key,
+        ),
+    };
+    let video = VideoUploadInfo {
+        id: created.id.clone(),
+        link: link.clone(),
+        config: created,
+    };
+
+    let mut meta = RecordingMeta::load_for_project(&project_path).map_err(|v| v.to_string())?;
+    meta.sharing = Some(e2ee::sharing_meta(video.id.clone(), link.clone()));
+    meta.upload = Some(UploadMeta::SegmentUpload {
+        video_id: video.id.clone(),
+        pre_created_video: video.clone(),
+        recording_dir: project_path.clone(),
+        e2ee: true,
+    });
+    meta.save_for_project()
+        .map_err(|error| format!("Failed to persist upload state: {error}"))?;
+
+    let total_bytes: u64 = prepared
+        .events
+        .iter()
+        .map(|event| cap_e2ee::encrypted_len(event.file_size))
+        .sum();
+    let progress_channel = channel.clone();
+    let progress: upload::SegmentProgress = Some(std::sync::Arc::new(move |uploaded| {
+        let fraction = (uploaded as f64 / total_bytes.max(1) as f64).min(0.99);
+        progress_channel
+            .send(UploadProgress { progress: fraction })
+            .ok();
+    }));
+
+    let screenshot_path = project_path.join("screenshots/display.jpg");
+    let result = async {
+        upload::SegmentUploader::upload_remuxed_project(
+            app.clone(),
+            project_path.clone(),
+            video.clone(),
+            prepared.events,
+            progress,
+        )
+        .await?;
+        let bytes = upload::compress_image(screenshot_path).await?;
+        let bytes = e2ee::encrypt_thumbnail(Some(&key), bytes);
+        upload::singlepart_uploader(
+            app.clone(),
+            api::PresignedS3PutRequest {
+                video_id: video.id.clone(),
+                subpath: e2ee::THUMBNAIL_SUBPATH.into(),
+                method: api::PresignedS3PutRequestMethod::Put,
+                meta: None,
+            },
+            bytes.len() as u64,
+            futures::stream::once(
+                async move { Ok::<_, std::io::Error>(bytes::Bytes::from(bytes)) },
+            ),
+        )
+        .await
+    }
+    .await;
+
+    let mut meta = RecordingMeta::load_for_project(&project_path).map_err(|v| v.to_string())?;
+    match result {
+        Ok(()) => {
+            channel.send(UploadProgress { progress: 1.0 }).ok();
+            meta.upload = Some(UploadMeta::Complete);
+            meta.save_for_project()
+                .map_err(|error| format!("Failed to persist sharing state: {error}"))?;
+
+            let _ = app
+                .state::<ArcLock<ClipboardContext>>()
+                .write()
+                .await
+                .set_text(link.clone());
+
+            NotificationType::ShareableLinkCopied.send(app);
+            Ok(UploadResult::Success(link))
+        }
+        Err(AuthedApiError::UpgradeRequired) => Ok(UploadResult::UpgradeRequired),
+        Err(error) => {
+            error!("Failed to upload encrypted video: {error}");
+            NotificationType::UploadFailed.send(app);
+            meta.upload = Some(UploadMeta::Failed {
+                error: error.to_string(),
+            });
+            meta.save_for_project()
+                .map_err(|error| error!("Failed to save recording meta: {error}"))
+                .ok();
+            Err(error.to_string())
         }
     }
 }

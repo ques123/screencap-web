@@ -2858,8 +2858,11 @@ async fn start_recording_prepared(
                                     .is_some()
                                 {
                                     SegmentUploader::spawn_e2ee_after_stop(
+                                        app_handle.clone(),
                                         upload_session,
                                         Some(finish_upload_rx.clone()),
+                                        video_upload_info.clone(),
+                                        inputs.capture_system_audio || mic_feed.is_some(),
                                     )
                                 } else {
                                     let progressive_upload = InstantMultipartUpload::spawn(

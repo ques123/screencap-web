@@ -1067,6 +1067,22 @@ impl InstantMultipartUpload {
     }
 }
 
+pub(crate) struct SegmentRunOptions {
+    pub(crate) required_audio: bool,
+    pub(crate) progress: SegmentProgress,
+}
+
+impl SegmentRunOptions {
+    pub(crate) fn new(required_audio: bool) -> Self {
+        Self {
+            required_audio,
+            progress: None,
+        }
+    }
+}
+
+pub(crate) type SegmentProgress = Option<Arc<dyn Fn(u64) + Send + Sync>>;
+
 pub struct SegmentUploader {
     pub(crate) session: Arc<lifecycle::Session>,
     pub handle: tokio::task::JoinHandle<Result<(), AuthedApiError>>,
@@ -1226,7 +1242,7 @@ struct SegmentManifestEntry {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct SegmentUploadManifest {
+pub(crate) struct SegmentUploadManifest {
     version: u32,
     video_init_uploaded: bool,
     audio_init_uploaded: bool,
@@ -1355,7 +1371,7 @@ impl SegmentUploader {
                                 recording_done,
                                 recording_dir.clone(),
                                 pre_created_video,
-                                required_audio,
+                                SegmentRunOptions::new(required_audio),
                                 worker_session.clone(),
                             ),
                         )
@@ -1385,8 +1401,11 @@ impl SegmentUploader {
 
     #[cfg(not(target_os = "linux"))]
     pub(crate) fn spawn_e2ee_after_stop(
+        app: AppHandle,
         session: Arc<lifecycle::Session>,
         recording_done: Option<flume::Receiver<()>>,
+        pre_created_video: VideoUploadInfo,
+        required_audio: bool,
     ) -> Self {
         let recording_dir = session.directory.clone();
         let worker_session = session.clone();
@@ -1397,15 +1416,104 @@ impl SegmentUploader {
                     .run(async {
                         worker_session.acquire()?;
                         if let Some(done) = recording_done {
-                            done.recv_async().await.ok();
+                            lifecycle::cancellable(done.recv_async()).await?.ok();
                         }
-                        crate::e2ee::upload_e2ee_after_stop(&recording_dir)
-                            .await
-                            .map_err(AuthedApiError::from)
+                        crate::web_api::inherit_upload_context(
+                            worker_session.context(),
+                            Self::run_remuxed(
+                                app.clone(),
+                                recording_dir.clone(),
+                                pre_created_video,
+                                required_audio,
+                                worker_session.clone(),
+                            ),
+                        )
+                        .await
                     })
                     .await
             }),
         }
+    }
+
+    async fn run_remuxed(
+        app: AppHandle,
+        recording_dir: PathBuf,
+        pre_created_video: VideoUploadInfo,
+        required_audio: bool,
+        session: Arc<lifecycle::Session>,
+    ) -> Result<(), AuthedApiError> {
+        let source = RecordingMeta::load_for_project(&recording_dir)
+            .map_err(|error| error.to_string())?
+            .output_path();
+        session.persist_upload(UploadMeta::SegmentUpload {
+            video_id: pre_created_video.id.clone(),
+            pre_created_video: pre_created_video.clone(),
+            recording_dir: recording_dir.clone(),
+            e2ee: true,
+        })?;
+        crate::e2ee::wait_for_stable_file(&source).await?;
+        let prepared = {
+            let recording_dir = recording_dir.clone();
+            lifecycle::file_io(move || {
+                crate::e2ee::remux_for_upload(&source, &recording_dir).map_err(io::Error::other)
+            })
+            .await
+            .map_err(|error| error.to_string())?
+        };
+        if required_audio && !prepared.has_audio {
+            return Err("Recording has no audio track but audio was required".into());
+        }
+        let events = resume::collect_segment_events(&recording_dir, required_audio)?;
+        let (sender, receiver) = std::sync::mpsc::channel();
+        for event in events {
+            sender.send(event).map_err(|error| error.to_string())?;
+        }
+        drop(sender);
+        Self::run(
+            app,
+            receiver,
+            None,
+            recording_dir,
+            pre_created_video,
+            SegmentRunOptions::new(required_audio),
+            session,
+        )
+        .await
+        .map(|_| ())
+    }
+
+    pub(crate) async fn upload_remuxed_project(
+        app: AppHandle,
+        project_dir: PathBuf,
+        pre_created_video: VideoUploadInfo,
+        events: Vec<cap_enc_ffmpeg::segmented_stream::SegmentCompletedEvent>,
+        progress: SegmentProgress,
+    ) -> Result<(), AuthedApiError> {
+        let session = lifecycle::Session::new(project_dir.clone(), pre_created_video.id.clone());
+        session.acquire()?;
+        session
+            .run(async {
+                let (sender, receiver) = std::sync::mpsc::channel();
+                for event in events {
+                    sender.send(event).map_err(|error| error.to_string())?;
+                }
+                drop(sender);
+                Self::run(
+                    app,
+                    receiver,
+                    None,
+                    project_dir,
+                    pre_created_video,
+                    SegmentRunOptions {
+                        required_audio: false,
+                        progress,
+                    },
+                    session.clone(),
+                )
+                .await
+                .map(|_| ())
+            })
+            .await
     }
 
     async fn read_segment_data(
@@ -1622,10 +1730,14 @@ impl SegmentUploader {
         recording_done: Option<flume::Receiver<()>>,
         recording_dir: PathBuf,
         pre_created_video: VideoUploadInfo,
-        required_audio: bool,
+        options: SegmentRunOptions,
         session: Arc<lifecycle::Session>,
     ) -> Result<u64, AuthedApiError> {
         use cap_enc_ffmpeg::segmented_stream::SegmentMediaType;
+        let SegmentRunOptions {
+            required_audio,
+            progress,
+        } = options;
         let video_id = pre_created_video.id.clone();
 
         session.check()?;
@@ -1830,6 +1942,7 @@ impl SegmentUploader {
 
                     let context = session.context();
                     let task_session = session.clone();
+                    let progress_clone = progress.clone();
                     let handle = tokio::spawn(crate::web_api::inherit_upload_context(context, async move {
                         task_session.check()?;
                         let _read_permit = read_semaphore_clone
@@ -1928,6 +2041,9 @@ impl SegmentUploader {
                                 let mut s =
                                     state_clone.lock().unwrap_or_else(|e| e.into_inner());
                                 s.total_bytes_uploaded += bytes;
+                                if let Some(report) = &progress_clone {
+                                    report(s.total_bytes_uploaded);
+                                }
                                 if is_init {
                                     match media_type {
                                         SegmentMediaType::Video => {

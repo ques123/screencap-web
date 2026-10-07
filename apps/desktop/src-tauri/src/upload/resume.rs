@@ -1,1 +1,1 @@
-pub(crate) use cap_recording::upload_resume::collect_segment_events;
+pub(crate) use crate::e2ee::collect_events as collect_segment_events;

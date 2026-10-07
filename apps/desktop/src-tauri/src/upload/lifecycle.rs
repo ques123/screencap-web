@@ -648,7 +648,7 @@ fn verify_local_artifact(
     Ok(())
 }
 
-fn manifest_from_events(
+pub(crate) fn manifest_from_events(
     events: &[cap_enc_ffmpeg::segmented_stream::SegmentCompletedEvent],
 ) -> SegmentUploadManifest {
     use cap_enc_ffmpeg::segmented_stream::SegmentMediaType;
@@ -743,7 +743,7 @@ pub(crate) async fn resume_existing(
                     None,
                     directory.clone(),
                     pre_created_video,
-                    required_audio,
+                    SegmentRunOptions::new(required_audio),
                     worker.clone(),
                 )
                 .await?;
@@ -806,7 +806,11 @@ pub(crate) async fn resume_existing(
                     }
                     worker.check()?;
                     current.upload = Some(UploadMeta::Complete);
-                    current.sharing = Some(crate::e2ee::sharing_meta(uploaded.id, uploaded.link));
+                    current.sharing = Some(crate::e2ee::sharing_after_upload(
+                        current.sharing.as_ref(),
+                        uploaded.id,
+                        uploaded.link,
+                    ));
                     current
                         .save_for_project()
                         .map_err(|error| error.to_string())?;
@@ -819,11 +823,7 @@ pub(crate) async fn resume_existing(
         if screenshot.is_file() {
             let bytes = compress_image(screenshot).await?;
             let bytes = crate::e2ee::encrypt_thumbnail(
-                crate::e2ee::resolve_upload_key(
-                    &directory,
-                    crate::e2ee::upload_marked_e2ee(meta.upload.as_ref()),
-                )?
-                .as_ref(),
+                crate::e2ee::key_from_meta(&meta)?.as_ref(),
                 bytes,
             );
             worker.check()?;
@@ -839,6 +839,16 @@ pub(crate) async fn resume_existing(
                 futures::stream::once(async move { Ok::<_, io::Error>(Bytes::from(bytes)) }),
             )
             .await?;
+        }
+        if matches!(meta.inner, cap_project::RecordingMetaInner::Studio(_)) {
+            let mut current =
+                RecordingMeta::load_for_project(&directory).map_err(|error| error.to_string())?;
+            worker.check()?;
+            current.upload = Some(UploadMeta::Complete);
+            current
+                .save_for_project()
+                .map_err(|error| error.to_string())?;
+            return Ok(());
         }
         worker.complete_locally(&app).await
     })
@@ -911,6 +921,7 @@ fn pending_reupload(meta: &RecordingMeta, intent: &Intent) -> Result<UploadMeta,
     {
         Some(UploadArtifact::Segments { .. }) => true,
         Some(UploadArtifact::Mp4 { .. }) => false,
+        None if sharing.e2ee_key.is_some() => true,
         None => match meta.project_path.join("content/display").symlink_metadata() {
             Ok(_) => true,
             Err(error) if error.kind() == io::ErrorKind::NotFound => false,
