@@ -7,5 +7,6 @@ pub mod fragmented_mp4;
 pub mod mov;
 pub mod mp4;
 pub mod ogg;
+pub mod remux_segments;
 pub mod segmented_audio;
 pub mod segmented_stream;

@@ -15,6 +15,7 @@ pub use mux::*;
 
 mod relocatable_source;
 pub mod remux;
+pub use mux::remux_segments::{RemuxError, RemuxedSegments, remux_mp4_to_segments};
 pub use relocatable_source::{RelocatableReader, RelocatableSource};
 mod segmented_input;
 pub use segmented_input::SegmentedInput;
