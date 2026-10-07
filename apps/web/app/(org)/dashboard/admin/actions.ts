@@ -8,6 +8,7 @@ import {
 	purgeDue,
 	removeRecording,
 	requireAdmin,
+	resolveOpenReportsForVideo,
 	resolveReport,
 	restoreRecording,
 	setProRevoked,
@@ -66,9 +67,12 @@ export async function removeRecordingAction(
 
 export async function restoreRecordingAction(
 	videoId: string,
+	opts: { force?: boolean; confirm?: string } = {},
 ): Promise<ActionResult> {
 	const admin = await requireAdmin();
-	const result = await restoreRecording(videoId, admin.email);
+	// Restoring quarantined content needs the recording id typed back.
+	const force = opts.force === true && opts.confirm?.trim() === videoId;
+	const result = await restoreRecording(videoId, admin.email, { force });
 	refresh("/recordings", "/removed", "/users");
 	return result;
 }
@@ -224,10 +228,21 @@ export async function removeFromReportAction(
 		...i,
 		quarantine: Boolean(input.quarantine),
 	});
-	if (result.ok)
+	// Already removed (e.g. through another report) still settles this report.
+	const settled =
+		result.ok || /already removed|not found/i.test(result.error ?? "");
+	if (settled) {
 		await resolveReport(reportId, "actioned", admin.email, i.reason);
+		if (result.ok)
+			await resolveOpenReportsForVideo(videoId, admin.email, i.reason);
+	}
 	refresh("/reports", "/recordings", "/removed");
-	return result;
+	return settled && !result.ok
+		? {
+				ok: true,
+				message: "That recording was already removed; report closed.",
+			}
+		: result;
 }
 
 export async function blockFromReportAction(

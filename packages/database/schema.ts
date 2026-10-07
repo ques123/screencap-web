@@ -880,6 +880,7 @@ export type ScreencapRemovedState =
 	| "removed"
 	| "quarantined"
 	| "restored"
+	| "purging"
 	| "purged";
 
 export const screencapSettings = mysqlTable("screencap_settings", {

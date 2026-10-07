@@ -95,6 +95,14 @@ export async function updateSettings(
 	adminEmail: string,
 ): Promise<ScreencapSettings> {
 	const clean = validateSettingsPatch(patch);
+	// "Only these domains" with no domains would silently leave sign-up open.
+	const current = await getSettings();
+	const mode = clean.signupMode ?? current.signupMode;
+	const domains = clean.allowedDomains ?? current.allowedDomains;
+	if (mode === "allowlist" && domains.length === 0)
+		throw new Error(
+			"Add at least one allowed domain, or set sign-up to open to everyone.",
+		);
 	const keys = Object.keys(clean) as ScreencapSettingKey[];
 	for (const key of keys) {
 		const raw = clean[key];
