@@ -41,7 +41,6 @@ import {
 	DownloadIcon,
 	HomeIcon,
 	LogoutIcon,
-	MessageCircleMoreIcon,
 	ReferIcon,
 	SettingsGearIcon,
 } from "../AnimatedIcons";
@@ -70,6 +69,7 @@ const Top = () => {
 		"/dashboard/settings/organization/members": "Organization Settings",
 		"/dashboard/settings/account": "Account Settings",
 		"/dashboard/settings/notifications": "Notification Settings",
+		"/dashboard/settings/ai": "AI & transcription",
 		"/dashboard/spaces": "Spaces",
 		"/dashboard/spaces/browse": "Browse Spaces",
 		"/dashboard/analytics": "Analytics",
@@ -107,7 +107,7 @@ const Top = () => {
 		<div
 			className={clsx(
 				"flex fixed z-40 justify-between items-center py-3 pr-2 pl-5 w-full md:relative mt-[60px] lg:mt-0 lg:py-[19px] lg:pl-0 lg:pr-5",
-				"top-0 bg-gray-1",
+				"top-0 bg-gray-1 lg:bg-transparent",
 			)}
 		>
 			<div className="flex flex-col gap-0.5 min-w-0 shrink">
@@ -213,13 +213,6 @@ const User = () => {
 				onClick: () => setMenuOpen(false),
 				iconClassName: "text-gray-11 group-hover:text-gray-12",
 				showCondition: buildEnv.NEXT_PUBLIC_IS_CAP,
-			},
-			{
-				name: "Chat Support",
-				icon: <MessageCircleMoreIcon />,
-				onClick: () => window.open("https://cap.link/discord", "_blank"),
-				iconClassName: "text-gray-11 group-hover:text-gray-12",
-				showCondition: true,
 			},
 			{
 				name: "Download App",

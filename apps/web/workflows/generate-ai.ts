@@ -3,9 +3,7 @@ import { organizations, videos } from "@cap/database/schema";
 import type { VideoMetadata } from "@cap/database/types";
 import { Storage } from "@cap/web-backend/src/Storage/index";
 import {
-	AI_GENERATION_LANGUAGE_AUTO,
 	type AiGenerationLanguage,
-	getAiGenerationLanguageName,
 	parseAiGenerationLanguage,
 	type Video,
 } from "@cap/web-domain";
@@ -13,12 +11,23 @@ import { generateText } from "ai";
 import { and, eq, sql } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { FatalError } from "workflow";
-import { isAiConfigured } from "@/lib/ai/provider";
+import {
+	type ByokModelAccess,
+	getByokGeneration,
+	isAiConfiguredForUser,
+} from "@/lib/ai/byok";
 import { AiUnavailableError, runWithAiProviders } from "@/lib/ai/run";
+import {
+	getAiLanguageInstruction,
+	LEGACY_AI_TITLE_FALLBACK,
+	shouldReplaceVideoTitle,
+} from "@/lib/ai/video-title";
 import { setGeneratedAiContent } from "@/lib/ai-content-metadata";
 import { enqueueVideoStorageNameSync } from "@/lib/sync-video-storage-names";
 import { decodeStorageVideo } from "@/lib/video-storage";
 import { runWorkflowPromise } from "@/lib/workflow-runtime";
+
+export { getAiLanguageInstruction, shouldReplaceVideoTitle };
 
 interface GenerateAiWorkflowPayload {
 	videoId: string;
@@ -58,36 +67,8 @@ const getAffectedRows = (result: unknown) => {
 };
 
 const MAX_CHARS_PER_CHUNK = 24000;
-const LEGACY_AI_TITLE_FALLBACK = "Generated Title";
 const LEGACY_AI_SUMMARY_FALLBACK =
 	"The AI was unable to generate a proper summary for this content.";
-const GENERATED_TITLE_PATTERN =
-	/^(Cap (Recording|Upload) - .+|Cap \d{4}-\d{2}-\d{2} at \d{2}[.:]\d{2}[.:]\d{2}|Untitled|\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}|.+ \((Display|Window|Area|Camera)\) \d{4}-\d{2}-\d{2} \d{2}:\d{2} [AP]M)$/;
-
-export function shouldReplaceVideoTitle({
-	currentTitle,
-	previousAiTitle,
-	nextAiTitle,
-	sourceName,
-	titleManuallyEdited,
-}: {
-	currentTitle: string | null;
-	previousAiTitle?: string | null;
-	nextAiTitle?: string | null;
-	sourceName?: string | null;
-	titleManuallyEdited?: boolean | null;
-}) {
-	const nextTitle = nextAiTitle?.trim();
-	if (!nextTitle) return false;
-	if (titleManuallyEdited) return false;
-
-	const title = currentTitle?.trim();
-	if (!title) return true;
-	if (previousAiTitle?.trim() && title === previousAiTitle.trim()) return true;
-	if (sourceName?.trim() && title === sourceName.trim()) return true;
-	if (title === LEGACY_AI_TITLE_FALLBACK) return true;
-	return GENERATED_TITLE_PATTERN.test(title);
-}
 
 export async function generateAiWorkflow(payload: GenerateAiWorkflowPayload) {
 	"use workflow";
@@ -116,6 +97,7 @@ export async function generateAiWorkflow(payload: GenerateAiWorkflowPayload) {
 		const result = await generateWithAi(
 			transcript,
 			videoData.aiGenerationLanguage,
+			videoData.video.ownerId,
 		);
 
 		await saveResults(videoId, videoData, result);
@@ -130,10 +112,6 @@ export async function generateAiWorkflow(payload: GenerateAiWorkflowPayload) {
 async function validateAndSetProcessing(videoId: string): Promise<VideoData> {
 	"use step";
 
-	if (!isAiConfigured()) {
-		throw new FatalError("No AI provider configured");
-	}
-
 	const query = await db()
 		.select({ video: videos, orgSettings: organizations.settings })
 		.from(videos)
@@ -146,6 +124,10 @@ async function validateAndSetProcessing(videoId: string): Promise<VideoData> {
 
 	const { video } = query[0];
 	const metadata = (video.metadata as VideoMetadata) || {};
+
+	if (!(await isAiConfiguredForUser("generation", video.ownerId))) {
+		throw new FatalError("No AI provider configured");
+	}
 
 	if (video.transcriptionStatus !== "COMPLETE") {
 		throw new FatalError("Transcription not complete");
@@ -248,8 +230,12 @@ async function markSkipped(videoId: string): Promise<void> {
 async function generateWithAi(
 	transcript: TranscriptData,
 	language: AiGenerationLanguage,
+	ownerId: string,
 ): Promise<AiResult> {
 	"use step";
+
+	// Resolved inside the step: the key never crosses a step boundary.
+	const byok = await getByokGeneration(ownerId);
 
 	const chunks = chunkTranscriptWithTimestamps(transcript.segments);
 
@@ -262,12 +248,14 @@ async function generateWithAi(
 			transcript.segments,
 			videoDuration,
 			languageInstruction,
+			byok,
 		);
 	} else {
 		result = await generateMultipleChunks(
 			chunks,
 			videoDuration,
 			languageInstruction,
+			byok,
 		);
 	}
 
@@ -276,16 +264,6 @@ async function generateWithAi(
 	}
 
 	return result;
-}
-
-export function getAiLanguageInstruction(
-	language: AiGenerationLanguage,
-): string {
-	if (language === AI_GENERATION_LANGUAGE_AUTO) {
-		return "Write the title, summary, chapter titles, section summaries, and key points in the same language as the transcript.";
-	}
-
-	return `Write the title, summary, chapter titles, section summaries, and key points in ${getAiGenerationLanguageName(language)}.`;
 }
 
 export function getAiContentGuidelines(videoDuration: number): {
@@ -518,24 +496,29 @@ function failedOnInvalidOutput(error: unknown): boolean {
 export async function callAiApi<T>(
 	prompt: string,
 	parse: (text: string) => T,
+	byok?: ByokModelAccess | null,
 ): Promise<T> {
-	return runWithAiProviders("generation", async (selection) => {
-		const result = await generateText({
-			model: selection.model({ jsonRepair: true }),
-			prompt,
-			maxOutputTokens: selection.defaultMaxOutputTokens,
-		});
-		// Parse inside the provider loop so an empty, malformed, or truncated
-		// fulfilled response falls through to the next provider too.
-		try {
-			return parse(result.text);
-		} catch (error) {
-			throw new InvalidAiOutputError(
-				error instanceof Error ? error.message : String(error),
-				{ cause: error },
-			);
-		}
-	});
+	return runWithAiProviders(
+		"generation",
+		async (selection) => {
+			const result = await generateText({
+				model: selection.model({ jsonRepair: true }),
+				prompt,
+				maxOutputTokens: selection.defaultMaxOutputTokens,
+			});
+			// Parse inside the provider loop so an empty, malformed, or truncated
+			// fulfilled response falls through to the next provider too.
+			try {
+				return parse(result.text);
+			} catch (error) {
+				throw new InvalidAiOutputError(
+					error instanceof Error ? error.message : String(error),
+					{ cause: error },
+				);
+			}
+		},
+		{ byok },
+	);
 }
 
 function cleanJsonResponse(content: string): string {
@@ -590,6 +573,7 @@ async function generateSingleChunk(
 	segments: VttSegment[],
 	videoDuration: number,
 	languageInstruction: string,
+	byok: ByokModelAccess | null,
 ): Promise<AiResult> {
 	const transcriptWithTimestamps = segments
 		.map(
@@ -624,13 +608,14 @@ Return ONLY valid JSON without any markdown formatting or code blocks.
 Transcript:
 ${transcriptWithTimestamps}`;
 
-	return callAiApi(prompt, parseAiResponse);
+	return callAiApi(prompt, parseAiResponse, byok);
 }
 
 async function generateMultipleChunks(
 	chunks: { text: string; startTime: number; endTime: number }[],
 	videoDuration: number,
 	languageInstruction: string,
+	byok: ByokModelAccess | null,
 ): Promise<AiResult> {
 	const chunkSummaries: {
 		summary: string;
@@ -666,7 +651,7 @@ Transcript section:
 ${chunk.text}`;
 
 		try {
-			const parsed = await callAiApi(chunkPrompt, parseChunkAnalysis);
+			const parsed = await callAiApi(chunkPrompt, parseChunkAnalysis, byok);
 			chunkSummaries.push({
 				...parsed,
 				startTime: chunk.startTime,
@@ -726,7 +711,7 @@ Additional requirements:
 Return ONLY valid JSON without any markdown formatting or code blocks.`;
 
 	try {
-		const parsed = await callAiApi(finalPrompt, parseFinalSummary);
+		const parsed = await callAiApi(finalPrompt, parseFinalSummary, byok);
 		return {
 			title: parsed.title,
 			summary: parsed.summary,

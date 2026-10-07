@@ -840,6 +840,42 @@ export const s3Buckets = mysqlTable(
 	}),
 );
 
+export const userAiSettings = mysqlTable("user_ai_settings", {
+	userId: nanoId("userId").notNull().primaryKey().$type<User.UserId>(),
+	openRouterKey: encryptedTextNullable("openRouterKey"),
+	openRouterKeyLabel: varchar("openRouterKeyLabel", { length: 64 }),
+	transcriptionModel: varchar("transcriptionModel", { length: 128 }),
+	summaryModel: varchar("summaryModel", { length: 128 }),
+	zeroDataRetention: boolean("zeroDataRetention").notNull().default(false),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+});
+
+export const videoViews = mysqlTable(
+	"video_views",
+	{
+		id: bigint("id", { mode: "number", unsigned: true })
+			.autoincrement()
+			.primaryKey(),
+		videoId: nanoId("videoId").notNull().$type<Video.VideoId>(),
+		tenantId: varchar("tenantId", { length: 255 }).notNull(),
+		ownerId: nanoIdNullable("ownerId").$type<User.UserId>(),
+		sessionId: varchar("sessionId", { length: 128 }).notNull(),
+		viewerUserId: nanoIdNullable("viewerUserId").$type<User.UserId>(),
+		country: varchar("country", { length: 8 }).notNull().default(""),
+		region: varchar("region", { length: 128 }).notNull().default(""),
+		city: varchar("city", { length: 128 }).notNull().default(""),
+		browser: varchar("browser", { length: 64 }).notNull().default(""),
+		os: varchar("os", { length: 64 }).notNull().default(""),
+		device: varchar("device", { length: 32 }).notNull().default(""),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(table) => [
+		index("video_created_idx").on(table.videoId, table.createdAt),
+		index("tenant_created_idx").on(table.tenantId, table.createdAt),
+	],
+);
+
 export const storageIntegrations = mysqlTable(
 	"storage_integrations",
 	{

@@ -318,6 +318,9 @@ const forbidden = (requestId: string, message = "Access is not allowed") =>
 		code: "FORBIDDEN",
 	});
 
+const unavailableOnScreencap = (requestId: string) =>
+	forbidden(requestId, "This feature is not available on Screencap");
+
 const passwordRequired = (requestId: string) =>
 	new Agent.AgentForbiddenError({
 		...commonError(
@@ -3302,6 +3305,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						const principal = yield* Agent.AgentPrincipal;
 						yield* requireScope(principal, "integrations:read", requestId);
 						const management = yield* AgentManagement;
@@ -3361,6 +3365,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						const principal = yield* Agent.AgentPrincipal;
 						yield* requireScope(principal, "integrations:read", requestId);
 						const management = yield* AgentManagement;
@@ -4522,48 +4527,24 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 					requestId,
 				);
 			})
-			.handle("setOrganizationDomain", ({ path, payload }) => {
+			.handle("setOrganizationDomain", () => {
 				const requestId = makeRequestId();
-				const domain = payload.domain.trim().toLowerCase();
-				if (
-					!/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(
-						domain,
-					)
-				) {
-					return withMappedErrors(
-						Effect.fail(badRequest(requestId, "Custom domain is invalid")),
-						requestId,
-					);
-				}
 				return withMappedErrors(
-					queueAgentOrganizationDomain({
-						organizationId: path.organizationId,
-						kind: "set_organization_domain",
-						domain,
-						requestId,
-					}),
+					Effect.fail(unavailableOnScreencap(requestId)),
 					requestId,
 				);
 			})
-			.handle("removeOrganizationDomain", ({ path }) => {
+			.handle("removeOrganizationDomain", () => {
 				const requestId = makeRequestId();
 				return withMappedErrors(
-					queueAgentOrganizationDomain({
-						organizationId: path.organizationId,
-						kind: "remove_organization_domain",
-						requestId,
-					}),
+					Effect.fail(unavailableOnScreencap(requestId)),
 					requestId,
 				);
 			})
-			.handle("verifyOrganizationDomain", ({ path }) => {
+			.handle("verifyOrganizationDomain", () => {
 				const requestId = makeRequestId();
 				return withMappedErrors(
-					queueAgentOrganizationDomain({
-						organizationId: path.organizationId,
-						kind: "verify_organization_domain",
-						requestId,
-					}),
+					Effect.fail(unavailableOnScreencap(requestId)),
 					requestId,
 				);
 			})
@@ -5813,6 +5794,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						yield* requireAgentWrites(requestId);
 						yield* requireUserConfirmedRequest(requestId);
 						const principal = yield* Agent.AgentPrincipal;
@@ -5908,6 +5890,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						yield* requireAgentWrites(requestId);
 						yield* requireUserConfirmedRequest(requestId);
 						const principal = yield* Agent.AgentPrincipal;
@@ -5958,6 +5941,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						yield* requireAgentWrites(requestId);
 						yield* requireUserConfirmedRequest(requestId);
 						const principal = yield* Agent.AgentPrincipal;
@@ -6013,6 +5997,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						yield* requireAgentWrites(requestId);
 						yield* requireUserConfirmedRequest(requestId);
 						const principal = yield* Agent.AgentPrincipal;
@@ -6056,6 +6041,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						yield* requireAgentWrites(requestId);
 						yield* requireUserConfirmedRequest(requestId);
 						const principal = yield* Agent.AgentPrincipal;
@@ -6131,6 +6117,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						yield* requireAgentWrites(requestId);
 						yield* requireUserConfirmedRequest(requestId);
 						const principal = yield* Agent.AgentPrincipal;
@@ -6231,6 +6218,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 				const requestId = makeRequestId();
 				return withMappedErrors(
 					Effect.gen(function* () {
+						yield* unavailableOnScreencap(requestId);
 						yield* requireAgentWrites(requestId);
 						yield* requireUserConfirmedRequest(requestId);
 						const principal = yield* Agent.AgentPrincipal;

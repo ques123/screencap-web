@@ -1,12 +1,52 @@
 import {
-	SCREENCAP_BRACKET_STROKE,
-	SCREENCAP_BRACKETS,
-	SCREENCAP_DOT,
-	SCREENCAP_LOGO_VIEWBOX,
 	SCREENCAP_MARK_VIEWBOX,
 	SCREENCAP_RED,
-	SCREENCAP_WORDMARK_PATH,
+	SCREENCAP_STICKER,
+	SCREENCAP_STICKER_INK,
+	SCREENCAP_STICKER_MARK_VIEWBOX,
 } from "./screencap-brand";
+
+// The sticker logo: a white sticker tilted -4 degrees with the red record dot and the outlined
+// "screencap" wordmark. Plain shapes only (no ids), so several logos can share a page; the shadow
+// is a CSS filter on the <svg>.
+const STICKER_SHADOW =
+	"drop-shadow(0 1px 0 rgba(11,36,64,.14)) drop-shadow(0 4px 7px rgba(11,36,64,.2))";
+
+const RecordDot = ({ cx, cy, r }: { cx: number; cy: number; r: number }) => (
+	<>
+		<circle cx={cx} cy={cy} r={r} fill={SCREENCAP_RED} />
+		<circle cx={cx - r * 0.3} cy={cy - r * 0.34} r={r * 0.27} fill="#FFFFFF" fillOpacity="0.35" />
+	</>
+);
+
+export const StickerMark = () => (
+	<g transform="rotate(-4 60 60)">
+		<rect width="120" height="120" rx="30" fill="#FFFFFF" />
+		<RecordDot cx={60} cy={60} r={31} />
+	</g>
+);
+
+export const StickerLogo = () => (
+	<g transform={SCREENCAP_STICKER.transform}>
+		<rect
+			x="0"
+			y={SCREENCAP_STICKER.rect.y}
+			width={SCREENCAP_STICKER.rect.width}
+			height={SCREENCAP_STICKER.rect.height}
+			rx={SCREENCAP_STICKER.rect.rx}
+			fill="#FFFFFF"
+		/>
+		<RecordDot {...SCREENCAP_STICKER.dot} />
+		<path
+			transform={`translate(${SCREENCAP_STICKER.textX} 0)`}
+			fill={SCREENCAP_STICKER_INK}
+			d={SCREENCAP_STICKER.wordmark}
+		/>
+	</g>
+);
+
+/** @deprecated kept for older imports; the sticker mark replaced the sky tile. */
+export const SkyMark = StickerMark;
 
 export const Logo = ({
 	className,
@@ -23,16 +63,15 @@ export const Logo = ({
 	showBeta?: boolean;
 	white?: boolean;
 	hideLogoName?: boolean;
+	/** Kept for callers; the sky mark is always a squared tile now. */
 	squaredMark?: boolean;
 	style?: React.CSSProperties;
 	viewBoxDimensions?: `${string} ${string} ${string} ${string}`;
 }) => {
-	// Callers still pass Cap's "0 0 120 40" box; the Screencap wordmark is wider, so only a
-	// mark-only box (40 wide) is honoured and everything else gets the full logo box.
-	const viewBox =
-		hideLogoName || viewBoxDimensions === SCREENCAP_MARK_VIEWBOX
-			? SCREENCAP_MARK_VIEWBOX
-			: SCREENCAP_LOGO_VIEWBOX;
+	// Callers still pass Cap's "0 0 120 40" box; only a mark-only request is honoured, everything
+	// else gets the full sticker.
+	const markOnly = hideLogoName || viewBoxDimensions === SCREENCAP_MARK_VIEWBOX;
+	const viewBox = markOnly ? SCREENCAP_STICKER_MARK_VIEWBOX : SCREENCAP_STICKER.viewBox;
 	return (
 		<div className="flex items-center">
 			<svg
@@ -40,43 +79,12 @@ export const Logo = ({
 				xmlns="http://www.w3.org/2000/svg"
 				preserveAspectRatio="xMidYMid meet"
 				fill="none"
-				style={style}
+				style={{ filter: STICKER_SHADOW, overflow: "visible", ...style }}
 				role="img"
 				aria-label="Screencap"
 				className={className}
 			>
-				{squaredMark && (
-					<rect
-						width="39.5"
-						height="39.5"
-						x="0.25"
-						y="0.25"
-						fill="#fff"
-						stroke="#E7EAF0"
-						strokeWidth="0.5"
-						rx="7.75"
-					/>
-				)}
-				<g
-					className={squaredMark ? "text-[#14161A]" : white ? "text-white" : "text-gray-12"}
-					stroke="currentColor"
-					strokeWidth={SCREENCAP_BRACKET_STROKE}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					fill="none"
-				>
-					{SCREENCAP_BRACKETS.map((d) => (
-						<path key={d} d={d} />
-					))}
-				</g>
-				<circle {...SCREENCAP_DOT} fill={SCREENCAP_RED} />
-				{!hideLogoName && (
-					<path
-						className={white ? "fill-white" : "fill-gray-12"}
-						fill={white ? "#ffffff" : "#14161A"}
-						d={SCREENCAP_WORDMARK_PATH}
-					/>
-				)}
+				{markOnly ? <StickerMark /> : <StickerLogo />}
 			</svg>
 			{showVersion && (
 				<span

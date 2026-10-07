@@ -65,18 +65,6 @@ const SettingsFeedbackPage = lazy(
 const SettingsExperimentalPage = lazy(
 	() => import("./routes/(window-chrome)/settings/experimental"),
 );
-const SettingsIntegrationsPage = lazy(
-	() => import("./routes/(window-chrome)/settings/integrations"),
-);
-const SettingsS3ConfigPage = lazy(
-	() => import("./routes/(window-chrome)/settings/integrations/s3-config"),
-);
-const SettingsGoogleDriveConfigPage = lazy(
-	() =>
-		import(
-			"./routes/(window-chrome)/settings/integrations/google-drive-config"
-		),
-);
 const OnboardingPage = lazy(
 	() => import("./routes/(window-chrome)/onboarding"),
 );
@@ -214,18 +202,6 @@ function Inner() {
 							<Route
 								path="/experimental"
 								component={SettingsExperimentalPage}
-							/>
-							<Route
-								path="/integrations"
-								component={SettingsIntegrationsPage}
-							/>
-							<Route
-								path="/integrations/s3-config"
-								component={SettingsS3ConfigPage}
-							/>
-							<Route
-								path="/integrations/google-drive-config"
-								component={SettingsGoogleDriveConfigPage}
 							/>
 						</Route>
 						<Route path="/onboarding" component={OnboardingPage} />

@@ -3,11 +3,16 @@ import {
 	applyChunkToLiveTranscript,
 	canPromoteLiveTranscript,
 	createEmptyLiveTranscript,
+	getLiveTargetSeconds,
 	isNoSpokenAudioError,
+	liveTranscriptText,
 	liveTranscriptToEditTranscript,
 	offsetChunkWords,
+	openRouterWordsToChunkInput,
 	parseLiveTranscript,
 	planNextLiveChunk,
+	shouldDraftLiveTitle,
+	toOpenRouterLanguage,
 } from "@/lib/live-transcribe-core";
 
 const baseManifest = {
@@ -351,5 +356,98 @@ describe("isNoSpokenAudioError", () => {
 			isNoSpokenAudioError({ status: "error", error: "Server error" }),
 		).toBe(false);
 		expect(isNoSpokenAudioError({ status: "completed" })).toBe(false);
+	});
+});
+
+describe("getLiveTargetSeconds", () => {
+	it("uses 10 s for every OpenRouter chunk and keeps AssemblyAI's 5/10", () => {
+		expect(getLiveTargetSeconds("openrouter", 0)).toBe(10);
+		expect(getLiveTargetSeconds("openrouter", 5)).toBe(10);
+		expect(getLiveTargetSeconds("assemblyai", 0)).toBe(5);
+		expect(getLiveTargetSeconds("assemblyai", 1)).toBe(5);
+		expect(getLiveTargetSeconds("assemblyai", 2)).toBe(10);
+	});
+});
+
+describe("shouldDraftLiveTitle", () => {
+	const ready = {
+		transcribedMs: 30_000,
+		wordCount: 40,
+		lastDraftAtMs: 0,
+		draftCount: 0,
+	};
+
+	it("drafts the first title once enough audio and words exist", () => {
+		expect(shouldDraftLiveTitle(ready)).toBe(true);
+		expect(shouldDraftLiveTitle({ ...ready, transcribedMs: 19_999 })).toBe(
+			false,
+		);
+		expect(shouldDraftLiveTitle({ ...ready, wordCount: 19 })).toBe(false);
+	});
+
+	it("re-drafts only 60 s after the previous draft", () => {
+		const drafted = { ...ready, draftCount: 1, lastDraftAtMs: 30_000 };
+		expect(shouldDraftLiveTitle({ ...drafted, transcribedMs: 89_999 })).toBe(
+			false,
+		);
+		expect(shouldDraftLiveTitle({ ...drafted, transcribedMs: 90_000 })).toBe(
+			true,
+		);
+	});
+
+	it("stops after 8 drafts", () => {
+		expect(
+			shouldDraftLiveTitle({
+				transcribedMs: 900_000,
+				wordCount: 500,
+				lastDraftAtMs: 0,
+				draftCount: 8,
+			}),
+		).toBe(false);
+	});
+});
+
+describe("OpenRouter chunk mapping", () => {
+	it("maps seconds/word to the ms/text shape offsetChunkWords expects", () => {
+		const words = offsetChunkWords(
+			openRouterWordsToChunkInput([
+				{ word: "hello", start: 0.12, end: 0.5, confidence: 0.8 },
+				{ word: "there", start: 0.5, end: 99, speaker: 1 },
+			]),
+			10_000,
+			4_000,
+		);
+		expect(words).toHaveLength(2);
+		expect(words[0]).toMatchObject({
+			text: "hello",
+			startMs: 10_120,
+			endMs: 10_500,
+			confidence: 0.8,
+		});
+		expect(words[1]).toMatchObject({
+			text: "there",
+			startMs: 10_500,
+			endMs: 14_000,
+			speaker: "1",
+		});
+	});
+
+	it("yields no words for an empty transcription", () => {
+		expect(
+			offsetChunkWords(openRouterWordsToChunkInput([]), 0, 10_000),
+		).toEqual([]);
+	});
+
+	it("normalizes languages for OpenRouter, omitting auto", () => {
+		expect(toOpenRouterLanguage("en")).toBe("en");
+		expect(toOpenRouterLanguage("en_us")).toBe("en");
+		expect(toOpenRouterLanguage("auto")).toBeUndefined();
+		expect(toOpenRouterLanguage(null)).toBeUndefined();
+	});
+
+	it("joins live words into plain transcript text", () => {
+		expect(liveTranscriptText([{ text: "Hello" }, { text: "world" }])).toBe(
+			"Hello world",
+		);
 	});
 });

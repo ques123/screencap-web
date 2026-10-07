@@ -15,10 +15,6 @@ export function SettingsNav() {
 			href: "/dashboard/settings/organization/preferences",
 		},
 		{
-			label: "Integrations",
-			href: "/dashboard/settings/organization/integrations",
-		},
-		{
 			label: "Content",
 			href: "/dashboard/settings/organization/content",
 		},

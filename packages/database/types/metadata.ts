@@ -6,6 +6,14 @@
  * Video metadata structure
  */
 export interface VideoMetadata {
+	byokUsage?: {
+		transcription?: {
+			model: string;
+			costUsd: number | null;
+			audioSeconds: number | null;
+			at: string;
+		};
+	};
 	editProcessing?: {
 		token: string;
 		startedAt: string;

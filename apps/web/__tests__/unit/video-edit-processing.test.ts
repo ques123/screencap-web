@@ -102,6 +102,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/actions/videos/get-analytics", () => ({}));
 vi.mock("@/app/(org)/dashboard/dashboard-data", () => ({}));
 vi.mock("@/lib/ai/provider", () => ({}));
+vi.mock("@/lib/ai/byok", () => ({}));
 vi.mock("@/lib/desktop-segments-recovery", () => ({}));
 vi.mock("@/lib/Notification", () => ({}));
 vi.mock("@/lib/public-share-video", () => ({}));

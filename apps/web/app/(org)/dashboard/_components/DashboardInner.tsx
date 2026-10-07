@@ -11,7 +11,7 @@ export default function DashboardInner({
 			<Top />
 			<main
 				className={
-					"flex relative flex-col flex-1 h-full [grid-area:main] bg-gray-1"
+					"flex relative flex-col flex-1 h-full [grid-area:main]"
 				}
 			>
 				{/* Top cap: renders rounded corner and top/side borders without affecting scroller */}

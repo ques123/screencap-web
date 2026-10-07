@@ -13,6 +13,7 @@ import type { VideoEditSpec, VideoMetadata } from "@cap/database/types";
 import { serverEnv } from "@cap/env";
 import { Storage } from "@cap/web-backend/src/Storage/index";
 import {
+	AI_GENERATION_LANGUAGE_AUTO,
 	type AiGenerationLanguage,
 	parseAiGenerationLanguage,
 	Video,
@@ -22,6 +23,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { Either, Option, Schema } from "effect";
 import { FatalError } from "workflow";
 import { start } from "workflow/api";
+import { getByokTranscription } from "@/lib/ai/byok";
 import { getAssemblyAITranscriptionOptions } from "@/lib/assemblyai";
 import {
 	ENHANCED_AUDIO_CONTENT_TYPE,
@@ -45,6 +47,7 @@ import {
 	isMediaServerConfigured,
 	probeVideoViaMediaServer,
 } from "@/lib/media-client";
+import { transcribeWithOpenRouterChunks } from "@/lib/openrouter/transcribe";
 import { planSegmentsAudioExtraction } from "@/lib/segments-audio";
 import { downloadConcatenatedSegments } from "@/lib/segments-audio-download";
 import { decodeStorageVideo } from "@/lib/video-storage";
@@ -81,6 +84,14 @@ interface TranscriptionArtifacts {
 	editTranscript: string;
 }
 
+type TranscriptionEngine = "openrouter" | "assemblyai";
+
+interface ByokTranscriptionUsage {
+	model: string;
+	costUsd: number | null;
+	audioSeconds: number | null;
+}
+
 export async function transcribeVideoWorkflow(
 	payload: TranscribeWorkflowPayload,
 ) {
@@ -89,7 +100,9 @@ export async function transcribeVideoWorkflow(
 	const { videoId, userId, aiGenerationEnabled } = payload;
 
 	let videoData: VideoData;
+	let engine: TranscriptionEngine;
 	try {
+		engine = await resolveTranscriptionEngine(userId);
 		videoData = await validateVideo(videoId);
 	} catch (error) {
 		await markError(videoId);
@@ -153,11 +166,23 @@ export async function transcribeVideoWorkflow(
 			};
 		}
 
-		const transcription = await transcribeWithAssemblyAI(
-			audioUrl,
-			videoData.aiGenerationLanguage,
-			videoDurationMs,
-		);
+		let transcription: TranscriptionArtifacts;
+		if (engine === "openrouter") {
+			const { usage, ...artifacts } = await transcribeWithOpenRouter(
+				audioUrl,
+				userId,
+				videoData.aiGenerationLanguage,
+				videoDurationMs,
+			);
+			transcription = artifacts;
+			await recordByokTranscriptionUsage(videoId, usage);
+		} else {
+			transcription = await transcribeWithAssemblyAI(
+				audioUrl,
+				videoData.aiGenerationLanguage,
+				videoDurationMs,
+			);
+		}
 
 		await saveTranscription(videoId, userId, videoData.video, transcription);
 	} catch (error) {
@@ -199,6 +224,7 @@ export async function backfillEditTranscriptWorkflow(
 	let video: typeof videos.$inferSelect;
 
 	try {
+		const engine = await resolveTranscriptionEngine(userId);
 		video = await validateEditTranscriptBackfill(videoId, userId, requestId);
 		// Legacy videos only: the transcript must describe the ORIGINAL media, so
 		// edited videos are transcribed from their preserved source mp4.
@@ -215,10 +241,24 @@ export async function backfillEditTranscriptWorkflow(
 			return { success: false };
 		}
 
-		const editTranscript = await transcribeEditTranscriptWithAssemblyAI(
-			audioUrl,
-			videoEdit ? videoEdit.editSpec.sourceDuration : (video.duration ?? 0),
-		);
+		const sourceDurationSeconds = videoEdit
+			? videoEdit.editSpec.sourceDuration
+			: (video.duration ?? 0);
+		let editTranscript: string;
+		if (engine === "openrouter") {
+			const result = await transcribeEditTranscriptWithOpenRouter(
+				audioUrl,
+				userId,
+				sourceDurationSeconds,
+			);
+			editTranscript = result.editTranscript;
+			await recordByokTranscriptionUsage(videoId, result.usage);
+		} else {
+			editTranscript = await transcribeEditTranscriptWithAssemblyAI(
+				audioUrl,
+				sourceDurationSeconds,
+			);
+		}
 		await saveEditTranscriptBackfill(
 			videoId,
 			userId,
@@ -252,12 +292,22 @@ export async function backfillEditTranscriptWorkflow(
 	}
 }
 
-async function validateVideo(videoId: string): Promise<VideoData> {
+/**
+ * Picks the engine for this owner. The BYOK key is loaded inside the step and
+ * never returned: step inputs/outputs are persisted by the workflow runtime.
+ */
+async function resolveTranscriptionEngine(
+	userId: string,
+): Promise<TranscriptionEngine> {
 	"use step";
 
-	if (!serverEnv().ASSEMBLY_API_KEY) {
-		throw new FatalError("Missing ASSEMBLY_API_KEY");
-	}
+	if ((await getByokTranscription(userId)) !== null) return "openrouter";
+	if (serverEnv().ASSEMBLY_API_KEY) return "assemblyai";
+	throw new FatalError("Missing ASSEMBLY_API_KEY");
+}
+
+async function validateVideo(videoId: string): Promise<VideoData> {
+	"use step";
 
 	const query = await db()
 		.select({
@@ -329,10 +379,6 @@ async function validateEditTranscriptBackfill(
 	requestId: string,
 ) {
 	"use step";
-
-	if (!serverEnv().ASSEMBLY_API_KEY) {
-		throw new FatalError("Missing ASSEMBLY_API_KEY");
-	}
 
 	const [video] = await db()
 		.select()
@@ -859,6 +905,112 @@ async function transcribeEditTranscriptWithAssemblyAI(
 			? videoDurationSeconds * 1000
 			: (transcript.audio_duration ?? 0) * 1000;
 	return serializeEditTranscript(createEditTranscript(transcript, durationMs));
+}
+
+async function runOpenRouterTranscription(
+	audioUrl: string,
+	userId: string,
+	language: AiGenerationLanguage,
+	videoDurationMs: number,
+) {
+	const access = await getByokTranscription(userId);
+	if (!access) {
+		throw new FatalError("OpenRouter transcription is not configured");
+	}
+
+	const audioResponse = await fetch(audioUrl);
+	if (!audioResponse.ok) {
+		throw new Error(
+			`Audio URL not accessible: ${audioResponse.status} ${audioResponse.statusText}`,
+		);
+	}
+	const audio = Buffer.from(await audioResponse.arrayBuffer());
+
+	const { result, costUsd, audioSeconds } =
+		await transcribeWithOpenRouterChunks({
+			apiKey: access.apiKey,
+			model: access.model,
+			zeroDataRetention: access.zeroDataRetention,
+			audio,
+			// AiGenerationLanguage codes are already ISO-639-1; "auto" = detect.
+			language: language === AI_GENERATION_LANGUAGE_AUTO ? undefined : language,
+			fallbackDurationMs: videoDurationMs,
+		});
+
+	console.log(
+		`[transcribe] OpenRouter transcript finished with model=${access.model}, words=${result.words?.length ?? 0}`,
+	);
+
+	const durationMs =
+		videoDurationMs > 0 ? videoDurationMs : (audioSeconds ?? 0) * 1000;
+	const editTranscript = createEditTranscript(result, durationMs);
+	const usage: ByokTranscriptionUsage = {
+		model: access.model,
+		costUsd,
+		audioSeconds,
+	};
+	return { editTranscript, usage };
+}
+
+async function transcribeWithOpenRouter(
+	audioUrl: string,
+	userId: string,
+	language: AiGenerationLanguage,
+	videoDurationMs: number,
+): Promise<TranscriptionArtifacts & { usage: ByokTranscriptionUsage }> {
+	"use step";
+
+	const { editTranscript, usage } = await runOpenRouterTranscription(
+		audioUrl,
+		userId,
+		language,
+		videoDurationMs,
+	);
+	return {
+		vtt: editTranscriptWordsToCaptionVtt(editTranscript.words),
+		editTranscript: serializeEditTranscript(editTranscript),
+		usage,
+	};
+}
+
+async function transcribeEditTranscriptWithOpenRouter(
+	audioUrl: string,
+	userId: string,
+	videoDurationSeconds: number,
+): Promise<{ editTranscript: string; usage: ByokTranscriptionUsage }> {
+	"use step";
+
+	const { editTranscript, usage } = await runOpenRouterTranscription(
+		audioUrl,
+		userId,
+		AI_GENERATION_LANGUAGE_AUTO,
+		videoDurationSeconds * 1000,
+	);
+	return { editTranscript: serializeEditTranscript(editTranscript), usage };
+}
+
+/** Merges into videos.metadata.byokUsage without clobbering other keys. */
+async function recordByokTranscriptionUsage(
+	videoId: string,
+	usage: ByokTranscriptionUsage,
+): Promise<void> {
+	"use step";
+
+	try {
+		const entry = JSON.stringify({ ...usage, at: new Date().toISOString() });
+		await db()
+			.update(videos)
+			.set({
+				metadata: sql`JSON_SET(COALESCE(${videos.metadata}, JSON_OBJECT()), '$.byokUsage', JSON_SET(COALESCE(JSON_EXTRACT(COALESCE(${videos.metadata}, JSON_OBJECT()), '$.byokUsage'), JSON_OBJECT()), '$.transcription', CAST(${entry} AS JSON)))`,
+				updatedAt: sql`${videos.updatedAt}`,
+			})
+			.where(eq(videos.id, videoId as Video.VideoId));
+	} catch (error) {
+		console.warn(
+			`[transcribe] Failed to record BYOK usage for ${videoId}`,
+			error,
+		);
+	}
 }
 
 async function saveTranscription(

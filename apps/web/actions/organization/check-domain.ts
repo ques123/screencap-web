@@ -7,10 +7,12 @@ import type { Organisation } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { requireOrganizationSettingsManager } from "./authorization";
 import { checkDomainStatus } from "./domain-utils";
+import { assertAvailableOnScreencap } from "./unavailable";
 
 export async function checkOrganizationDomain(
 	organizationId: Organisation.OrganisationId,
 ) {
+	assertAvailableOnScreencap();
 	const user = await getCurrentUser();
 
 	if (!user || !organizationId) {

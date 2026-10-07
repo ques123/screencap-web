@@ -7,6 +7,15 @@ import { Effect } from "effect";
 
 import { runPromise } from "@/lib/server";
 
+import {
+	queryBrowsersMysql,
+	queryCitiesMysql,
+	queryCountriesMysql,
+	queryDevicesMysql,
+	queryOperatingSystemsMysql,
+	queryTopCapsMysql,
+	queryViewSeriesMysql,
+} from "./mysql-queries";
 import type {
 	AnalyticsRange,
 	BreakdownRow,
@@ -235,6 +244,39 @@ export const getOrgAnalyticsData = async (
 	const tinybirdData = await runPromise(
 		Effect.gen(function* () {
 			const tinybird = yield* Tinybird;
+
+			if (!tinybird.enabled) {
+				// Tinybird is not configured: use our own video_views table.
+				const filter = { tenantId: typedOrgId, from, to, videoIds };
+				return yield* Effect.promise(async () => {
+					const [
+						viewSeries,
+						countries,
+						cities,
+						browsers,
+						devices,
+						operatingSystems,
+						topCapsRaw,
+					] = await Promise.all([
+						queryViewSeriesMysql(filter, bucket),
+						queryCountriesMysql(filter),
+						queryCitiesMysql(filter),
+						queryBrowsersMysql(filter),
+						queryDevicesMysql(filter),
+						queryOperatingSystemsMysql(filter),
+						capId ? Promise.resolve([]) : queryTopCapsMysql(filter),
+					]);
+					return {
+						viewSeries,
+						countries,
+						cities,
+						browsers,
+						devices,
+						operatingSystems,
+						topCapsRaw,
+					} satisfies TinybirdAnalyticsData;
+				});
+			}
 
 			const viewSeries = yield* queryViewSeries(
 				tinybird,

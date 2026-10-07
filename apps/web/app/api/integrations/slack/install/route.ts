@@ -77,4 +77,6 @@ const ApiLive = HttpApiBuilder.api(Api).pipe(
 
 const handler = apiToHandler(ApiLive);
 
-export const GET = handler;
+// Slack is not available on Screencap.
+void handler;
+export const GET = () => new Response(null, { status: 404 });

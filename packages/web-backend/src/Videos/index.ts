@@ -23,6 +23,10 @@ import {
 	isInternalRecordingKey,
 } from "../Storage/recording-output.ts";
 import { Tinybird } from "../Tinybird/index.ts";
+import {
+	countViewsForVideos,
+	deleteViewsForVideo,
+} from "../VideoViews/index.ts";
 import { VideosPolicy } from "./VideosPolicy.ts";
 import type { CreateVideoInput as RepoCreateVideoInput } from "./VideosRepo.ts";
 import { VideosRepo } from "./VideosRepo.ts";
@@ -182,6 +186,32 @@ export class Videos extends Effect.Service<Videos>()("Videos", {
 						Effect.map((response) => response.data ?? []),
 					);
 
+				if (!tinybird.enabled) {
+					for (const [orgKey, entries] of videosByOrg) {
+						const counts = yield* Effect.tryPromise({
+							try: () =>
+								countViewsForVideos({
+									videoIds: entries.map((entry) => entry.videoId),
+									tenantId: orgKey.length > 0 ? orgKey : undefined,
+									since: from,
+								}),
+							catch: (cause) => new DatabaseError({ cause }),
+						}).pipe(
+							Effect.catchAll((error) => {
+								console.error("video views count query failed", error);
+								return Effect.succeed(new Map<Video.VideoId, number>());
+							}),
+						);
+						for (const entry of entries) {
+							countsByPathname.set(
+								entry.pathname,
+								counts.get(entry.videoId) ?? 0,
+							);
+						}
+					}
+					return countsByPathname;
+				}
+
 				for (const [orgKey, entries] of videosByOrg) {
 					const pathnames = entries.map((entry) => entry.pathname);
 					if (pathnames.length === 0) continue;
@@ -338,6 +368,10 @@ export class Videos extends Effect.Service<Videos>()("Videos", {
 						);
 					}
 				} while (continuationToken);
+				yield* Effect.tryPromise({
+					try: () => deleteViewsForVideo(video.id),
+					catch: (cause) => new DatabaseError({ cause }),
+				});
 				yield* repo.delete(video.id, video.ownerId);
 				yield* Effect.log(`Deleted video ${video.id}`);
 			}),

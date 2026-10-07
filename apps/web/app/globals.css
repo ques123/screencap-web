@@ -1074,3 +1074,69 @@ footer a {
 		}
 	}
 }
+
+/* Screencap "Open Sky": tinted sky photo with two slowly drifting cloud strips, used behind the
+   dashboard's sidebar and top bar (the recordings panel stays solid on top of it). The clouds move with transform only
+   (no repaints) and stay still when the system asks for reduced motion. Images in /public/sky are
+   generated for Screencap. */
+.sc-sky {
+	position: relative;
+	isolation: isolate;
+	background-color: #dcebfa;
+	background-image:
+		linear-gradient(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.58)),
+		url("/sky/peaks-sea.webp");
+	background-size: auto, cover;
+	background-position: center, center 70%;
+	background-repeat: no-repeat;
+}
+.sc-sky::before,
+.sc-sky::after {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	left: 0;
+	pointer-events: none;
+	background-repeat: repeat-x;
+	background-size: 50% auto;
+	will-change: transform;
+}
+/* Each layer is two tiles wide, so translating by -50% moves exactly one tile: a seamless loop. */
+.sc-sky::before {
+	top: 0;
+	height: 40%;
+	width: 240%;
+	background-image: url("/sky/sky-drift-top.webp");
+	background-position: 0 0;
+	opacity: 0.7;
+	animation: sc-sky-drift 300s linear infinite;
+}
+.sc-sky::after {
+	bottom: -2%;
+	height: 45%;
+	width: 280%;
+	background-image: url("/sky/sky-drift-bottom.webp");
+	background-position: 0 100%;
+	opacity: 0.8;
+	animation: sc-sky-drift 200s linear infinite reverse;
+}
+@keyframes sc-sky-drift {
+	from { transform: translate3d(0, 0, 0); }
+	to { transform: translate3d(-50%, 0, 0); }
+}
+.dark .sc-sky {
+	background-color: #0b1a2c;
+	background-image:
+		linear-gradient(rgba(8, 18, 32, 0.7), rgba(8, 18, 32, 0.7)),
+		url("/sky/peaks-sea.webp");
+}
+.dark .sc-sky::before,
+.dark .sc-sky::after {
+	opacity: 0.3;
+}
+@media (prefers-reduced-motion: reduce) {
+	.sc-sky::before,
+	.sc-sky::after {
+		animation: none;
+	}
+}

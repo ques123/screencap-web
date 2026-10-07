@@ -76,7 +76,13 @@ vi.mock("@/actions/videos/get-analytics", () => ({
 vi.mock("@/app/(org)/dashboard/dashboard-data", () => ({
 	getDashboardSpacesData: async () => [],
 }));
-vi.mock("@/lib/ai/provider", () => ({ isAiConfigured: () => false }));
+vi.mock("@/lib/ai/provider", () => ({
+	isAiConfigured: () => false,
+}));
+vi.mock("@/lib/ai/byok", () => ({
+	isTranscriptionAvailable: async () => false,
+	isAiConfiguredForUser: async () => false,
+}));
 vi.mock("@/lib/desktop-segments-recovery", () => ({
 	completeDesktopSegmentsManifestAndQueue: vi.fn(),
 }));

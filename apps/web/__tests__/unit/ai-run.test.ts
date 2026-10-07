@@ -5,6 +5,8 @@ const getAiProviderChainMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/ai/provider", () => ({
 	getAiProviderChain: getAiProviderChainMock,
+	getAiProviderChainWithByok: (...args: unknown[]) =>
+		getAiProviderChainMock(...args),
 }));
 
 import { AiUnavailableError, runWithAiProviders } from "@/lib/ai/run";

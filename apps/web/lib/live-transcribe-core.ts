@@ -41,6 +41,86 @@ export const LIVE_TRANSCRIBE = {
 	MAX_CHUNK_ATTEMPTS: 2,
 } as const;
 
+export type LiveTranscribeEngine = "openrouter" | "assemblyai";
+
+/** OpenRouter providers bill a ~10 s minimum per request, so every chunk is
+ * 10 s there (a 5 s first chunk would be billed as 10 anyway). */
+export const OPENROUTER_LIVE_CHUNK_SECONDS = 10;
+
+export function getLiveTargetSeconds(
+	engine: LiveTranscribeEngine,
+	chunkCount: number,
+): number {
+	if (engine === "openrouter") return OPENROUTER_LIVE_CHUNK_SECONDS;
+	return chunkCount < LIVE_TRANSCRIBE.GROW_AFTER_CHUNKS
+		? LIVE_TRANSCRIBE.INITIAL_CHUNK_SECONDS
+		: LIVE_TRANSCRIBE.MAX_CHUNK_SECONDS;
+}
+
+export const LIVE_TITLE_DRAFT = {
+	MIN_TRANSCRIBED_MS: 20_000,
+	MIN_WORDS: 20,
+	REDRAFT_INTERVAL_MS: 60_000,
+	MAX_DRAFTS: 8,
+} as const;
+
+/** Whether the live loop should ask for a (re)draft of the title now. Pure
+ * numbers only: the workflow tracks these across steps. */
+export function shouldDraftLiveTitle(state: {
+	transcribedMs: number;
+	wordCount: number;
+	lastDraftAtMs: number;
+	draftCount: number;
+}): boolean {
+	if (state.draftCount >= LIVE_TITLE_DRAFT.MAX_DRAFTS) return false;
+	if (state.transcribedMs < LIVE_TITLE_DRAFT.MIN_TRANSCRIBED_MS) return false;
+	if (state.wordCount < LIVE_TITLE_DRAFT.MIN_WORDS) return false;
+	if (state.draftCount === 0) return true;
+	return (
+		state.transcribedMs >=
+		state.lastDraftAtMs + LIVE_TITLE_DRAFT.REDRAFT_INTERVAL_MS
+	);
+}
+
+/** Words of the live transcript joined into plain text for title drafting. */
+export function liveTranscriptText(words: readonly { text: string }[]): string {
+	return words
+		.map((word) => word.text)
+		.join(" ")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
+/** OpenRouter takes an ISO 639 code; "auto"/unknown means omit it. Region
+ * suffixes ("en_us") are dropped. */
+export function toOpenRouterLanguage(
+	language: string | null | undefined,
+): string | undefined {
+	if (!language) return undefined;
+	const base = language.toLowerCase().split(/[-_]/)[0] ?? "";
+	return /^[a-z]{2,3}$/.test(base) && base !== "auto" ? base : undefined;
+}
+
+/** Map OpenRouter words (seconds, `word`) to the AssemblyAI-shaped input
+ * (ms, `text`) that offsetChunkWords expects. */
+export function openRouterWordsToChunkInput(
+	words: readonly {
+		word: string;
+		start: number;
+		end: number;
+		confidence?: number;
+		speaker?: string | number;
+	}[],
+): LiveChunkWordInput[] {
+	return words.map((word) => ({
+		text: word.word,
+		start: word.start * 1000,
+		end: word.end * 1000,
+		confidence: word.confidence,
+		speaker: word.speaker === undefined ? undefined : String(word.speaker),
+	}));
+}
+
 export type LiveChunkDecision =
 	| { action: "wait" }
 	| { action: "no-audio" }

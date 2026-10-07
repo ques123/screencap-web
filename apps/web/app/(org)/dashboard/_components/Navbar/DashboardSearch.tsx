@@ -215,6 +215,15 @@ export function DashboardSearch({
 				value: "notification settings comments views replies reactions",
 				icon: Bell,
 			},
+			{
+				id: "ai-settings",
+				title: "AI & transcription",
+				subtitle: "OpenRouter key, transcription and summary models",
+				href: "/dashboard/settings/ai",
+				value:
+					"ai transcription transcript summary openrouter api key captions",
+				icon: Sparkles,
+			},
 			...(canViewSettings
 				? [
 						{

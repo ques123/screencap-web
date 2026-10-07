@@ -7,10 +7,12 @@ import type { Organisation } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireOrganizationSettingsManager } from "./authorization";
+import { assertAvailableOnScreencap } from "./unavailable";
 
 export async function removeOrganizationDomain(
 	organizationId: Organisation.OrganisationId,
 ) {
+	assertAvailableOnScreencap();
 	const user = await getCurrentUser();
 
 	if (!user) {

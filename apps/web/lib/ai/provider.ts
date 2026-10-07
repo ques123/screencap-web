@@ -4,13 +4,19 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { serverEnv } from "@cap/env";
 import type { JSONValue, LanguageModel } from "ai";
+import type { ByokModelAccess } from "@/lib/ai/byok";
+import {
+	OPENROUTER_APP_HEADERS,
+	OPENROUTER_BASE_URL,
+} from "@/lib/openrouter/client";
 
 export type AiProviderId =
 	| "assemblyai"
 	| "openai"
 	| "anthropic"
 	| "groq"
-	| "openai-compatible";
+	| "openai-compatible"
+	| "openrouter";
 
 export type AiModelRole = "generation" | "chat" | "chat-streaming";
 
@@ -59,7 +65,7 @@ const ROLE_MAX_OUTPUT_TOKENS: Record<AiModelRole, number> = {
 };
 
 const DEFAULT_MODELS: Record<
-	Exclude<AiProviderId, "openai-compatible">,
+	Exclude<AiProviderId, "openai-compatible" | "openrouter">,
 	Record<AiModelRole, string>
 > = {
 	assemblyai: {
@@ -112,6 +118,9 @@ function isProviderConfigured(provider: AiProviderId): boolean {
 			return Boolean(env.GROQ_API_KEY);
 		case "openai-compatible":
 			return Boolean(env.AI_BASE_URL && env.AI_MODEL);
+		case "openrouter":
+			// Per-user BYOK only; never configured at server level.
+			return false;
 	}
 }
 
@@ -127,6 +136,8 @@ function missingCredentialHint(provider: AiProviderId): string {
 			return "GROQ_API_KEY is not set";
 		case "openai-compatible":
 			return "AI_BASE_URL and AI_MODEL are required";
+		case "openrouter":
+			return "an OpenRouter key must be added in AI settings";
 	}
 }
 
@@ -194,6 +205,7 @@ function resolveModelId(
 	provider: AiProviderId,
 	role: AiModelRole,
 ): string | undefined {
+	if (provider === "openrouter") return undefined;
 	if (provider === "openai-compatible") return openAiCompatibleModelId(role);
 	// The AI_MODEL / AI_CHAT_MODEL / AI_STREAM_MODEL overrides name models
 	// for the explicitly selected provider only — fallback providers keep
@@ -245,6 +257,9 @@ function createModel(
 				apiKey: env.AI_API_KEY,
 			})(modelId);
 		}
+		case "openrouter":
+			// Created per user in getAiProviderChainForUser (needs their key).
+			throw new Error("The openrouter provider requires a per-user key");
 	}
 }
 
@@ -308,4 +323,43 @@ export function getAiProviderChain(role: AiModelRole): AiModelSelection[] {
 
 export function getAiModel(role: AiModelRole): AiModelSelection | null {
 	return getAiProviderChain(role)[0] ?? null;
+}
+
+/**
+ * Pure (no db): BYOK selection first when `byok` is given, then the server
+ * chain. Resolve `byok` with `getByokGeneration` inside a step/action.
+ */
+export function getAiProviderChainWithByok(
+	role: AiModelRole,
+	byok?: ByokModelAccess | null,
+): AiModelSelection[] {
+	const serverChain = getAiProviderChain(role);
+	if (!byok) return serverChain;
+
+	const { apiKey, model: modelId, zeroDataRetention } = byok;
+	const selection: AiModelSelection = {
+		provider: "openrouter",
+		modelId,
+		model: () =>
+			createOpenAICompatible({
+				name: "openrouter",
+				baseURL: OPENROUTER_BASE_URL,
+				apiKey,
+				headers: { ...OPENROUTER_APP_HEADERS },
+				...(zeroDataRetention
+					? {
+							transformRequestBody: (body) => ({
+								...body,
+								provider: { zdr: true },
+							}),
+						}
+					: {}),
+			})(modelId),
+		supportsStreaming: supportsStreaming("openrouter", modelId),
+		supportsTemperature: supportsTemperature("openrouter", modelId),
+		defaultMaxOutputTokens: ROLE_MAX_OUTPUT_TOKENS[role],
+		providerOptions: parallelToolCallProviderOptions("openrouter"),
+	};
+
+	return [selection, ...serverChain];
 }

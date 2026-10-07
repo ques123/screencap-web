@@ -13,6 +13,7 @@ const SOCIAL_CRAWLER_USER_AGENT_PATTERNS = [
 	"microsoftpreview",
 	"pinterestbot",
 	"redditbot",
+	"applebot",
 	"embedly",
 	IFRAMELY_USER_AGENT_PATTERN,
 ] as const;

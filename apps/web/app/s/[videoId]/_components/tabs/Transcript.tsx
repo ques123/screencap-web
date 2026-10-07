@@ -14,6 +14,7 @@ import {
 	LoaderCircle,
 	MessageSquare,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { editTranscriptEntry } from "@/actions/videos/edit-transcript";
 import {
@@ -697,6 +698,14 @@ export const Transcript: React.FC<TranscriptProps> = ({ data, onSeek }) => {
 							? "Transcript not available"
 							: "No transcript available"}
 					</p>
+					{canEdit && (
+						<Link
+							href="/dashboard/settings/ai"
+							className="mb-4 block text-xs underline text-gray-11 hover:text-gray-12"
+						>
+							Add your OpenRouter key to get transcripts and summaries
+						</Link>
+					)}
 					{canEdit && (
 						<>
 							<Button

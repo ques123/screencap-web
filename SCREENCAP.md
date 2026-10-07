@@ -13,6 +13,13 @@ and the Mac app.
 - Web: free-beta limits (`apps/web/lib/screencap-limits.ts`, `/api/upload/limits`), a Report link on
   share pages (`/api/report`), sign-up refusal by country (off by default), sign-in codes revoked
   after five wrong guesses, email through Brevo, self-hosted Umami + Matomo analytics.
+- Web: transcripts and AI titles/summaries/chapters run on each user's own OpenRouter key (BYOK).
+  Settings → AI & transcription (`app/(org)/dashboard/settings/ai`, connect via OpenRouter OAuth PKCE
+  or paste a key); keys are encrypted in the `user_ai_settings` table (migration
+  `0050_screencap_user_ai_settings`; renumber it if upstream adds its own 0050). Transcription uses
+  `/api/v1/audio/transcriptions` on 5-minute MP3 chunks (`lib/openrouter/`), only models that return
+  word timestamps are offered, and prices shown are per hour of video, rounded up. The video owner's
+  key pays. Server-level AssemblyAI / `AI_PROVIDER` keys still work and are used when a user has no key.
 - Mac app (`apps/desktop`): bundle id `co.screencap.desktop`, URL scheme `screencap-desktop://`,
   talks to screencap.co, Screencap icons and backgrounds, updates from this repository's GitHub
   Releases (Tauri updater, our own signing key), no Cap telemetry or crash reporting.

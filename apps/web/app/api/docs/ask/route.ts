@@ -4,6 +4,7 @@ import { isAiConfigured } from "@/lib/ai/provider";
 import { runWithAiProviders } from "@/lib/ai/run";
 import { buildDocsAskContext, buildDocsAskSystemPrompt } from "@/lib/docs-ask";
 import { isRateLimited, RATE_LIMIT_IDS } from "@/lib/rate-limit";
+import { isHiddenOnScreencap } from "@/lib/screencap-hidden";
 import { getAllDocs } from "@/utils/docs";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,9 @@ function toStreamError(error: unknown): Error {
 }
 
 export async function POST(request: NextRequest) {
+	// AI chat is not available on Screencap.
+	if (isHiddenOnScreencap()) return new Response(null, { status: 404 });
+
 	if (!isAiConfigured("chat-streaming")) {
 		return Response.json(
 			{ error: "Ask AI is not available right now. Try searching instead." },

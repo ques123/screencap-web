@@ -237,11 +237,6 @@ export default function Settings(props: RouteSectionProps) {
 			icon: IconCapCaptions,
 		},
 		{
-			href: "integrations",
-			name: "Integrations",
-			icon: IconLucideUnplug,
-		},
-		{
 			href: "experimental",
 			name: "Experimental",
 			icon: IconCapSettings,

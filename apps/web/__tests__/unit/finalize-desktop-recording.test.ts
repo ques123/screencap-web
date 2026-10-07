@@ -54,6 +54,9 @@ vi.mock("@cap/database", () => ({
 vi.mock("@cap/database/schema", () => ({ users: {}, videos: {} }));
 vi.mock("drizzle-orm", () => ({ and: vi.fn(), eq: vi.fn() }));
 vi.mock("@cap/env", () => ({ serverEnv: mocks.env }));
+vi.mock("@/lib/ai/byok", () => ({
+	isTranscriptionAvailable: async () => Boolean(mocks.env().ASSEMBLY_API_KEY),
+}));
 vi.mock("workflow", () => ({ sleep: mocks.sleep }));
 vi.mock("@/lib/desktop-recording-jobs", () => ({
 	getProcessingState: mocks.state,

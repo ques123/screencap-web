@@ -1,10 +1,4 @@
-import {
-	SCREENCAP_BRACKET_STROKE,
-	SCREENCAP_BRACKETS,
-	SCREENCAP_DOT,
-	SCREENCAP_INK,
-	SCREENCAP_RED,
-} from "./screencap-brand";
+import { StickerMark } from "./Logo";
 
 export const LogoBadge = ({ className }: { className: string }) => {
 	return (
@@ -12,29 +6,16 @@ export const LogoBadge = ({ className }: { className: string }) => {
 			xmlns="http://www.w3.org/2000/svg"
 			className={className}
 			fill="none"
-			viewBox="0 0 40 40"
+			viewBox="-14 -14 148 152"
 			preserveAspectRatio="xMidYMid meet"
 			style={{
-				aspectRatio: "1 / 1",
+				aspectRatio: "148 / 152",
+				filter: "drop-shadow(0 1px 0 rgba(11,36,64,.14)) drop-shadow(0 3px 6px rgba(11,36,64,.2))",
 			}}
 			role="img"
 			aria-label="Screencap"
 		>
-			<rect width="40" height="40" fill="#fff" rx="8"></rect>
-			<g transform="translate(6 6) scale(0.7)">
-				<g
-					stroke={SCREENCAP_INK}
-					strokeWidth={SCREENCAP_BRACKET_STROKE}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					fill="none"
-				>
-					{SCREENCAP_BRACKETS.map((d) => (
-						<path key={d} d={d} />
-					))}
-				</g>
-				<circle {...SCREENCAP_DOT} fill={SCREENCAP_RED} />
-			</g>
+			<StickerMark />
 		</svg>
 	);
 };

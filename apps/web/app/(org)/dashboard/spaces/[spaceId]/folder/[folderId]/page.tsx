@@ -1,5 +1,4 @@
 import { getCurrentUser } from "@cap/database/auth/session";
-import { serverEnv } from "@cap/env";
 import { makeCurrentUserLayer, Spaces } from "@cap/web-backend";
 import { type Folder, type Organisation, Space } from "@cap/web-domain";
 import { Effect } from "effect";
@@ -173,9 +172,7 @@ const FolderPage = async (props: {
 					rootLabel={moveRootLabel}
 					currentFolderId={params.folderId}
 					canMove={canManageCollection}
-					analyticsEnabled={Boolean(
-						serverEnv().TINYBIRD_TOKEN && serverEnv().TINYBIRD_HOST,
-					)}
+					analyticsEnabled
 				/>
 			</div>
 		);

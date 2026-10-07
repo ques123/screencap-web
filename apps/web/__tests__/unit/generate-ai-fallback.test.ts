@@ -9,8 +9,15 @@ vi.mock("ai", () => ({
 	APICallError: { isInstance: () => false },
 }));
 
+vi.mock("@/lib/ai/byok", () => ({
+	getByokGeneration: vi.fn(async () => null),
+	isAiConfiguredForUser: vi.fn(async () => true),
+}));
+
 vi.mock("@/lib/ai/provider", () => ({
 	getAiProviderChain: getAiProviderChainMock,
+	getAiProviderChainWithByok: (...args: unknown[]) =>
+		getAiProviderChainMock(...args),
 	isAiConfigured: vi.fn(() => true),
 }));
 

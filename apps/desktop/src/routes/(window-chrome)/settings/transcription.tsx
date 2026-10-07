@@ -1,4 +1,5 @@
 import { Button } from "@cap/ui-solid";
+import * as shell from "@tauri-apps/plugin-shell";
 import {
 	createEffect,
 	createResource,
@@ -14,6 +15,7 @@ import {
 	type GeneralSettingsStore,
 	normalizeTranscriptionHints,
 } from "~/utils/general-settings";
+import { getConfiguredServerUrl } from "~/utils/web-api";
 import IconLucidePlus from "~icons/lucide/plus";
 import IconLucideX from "~icons/lucide/x";
 import { Section, SectionCard, SettingsPageContent } from "./Setting";
@@ -94,9 +96,38 @@ function Inner(props: { initialStore: GeneralSettingsStore | null }) {
 		if (resetTimeout) clearTimeout(resetTimeout);
 	});
 
+	const openAiSettings = () => {
+		void getConfiguredServerUrl().then((serverUrl) =>
+			shell.open(new URL("/dashboard/settings/ai", serverUrl).toString()),
+		);
+	};
+
 	return (
 		<div class="cap-settings-page flex flex-col h-full custom-scroll">
 			<SettingsPageContent>
+				<Section
+					title="Transcripts and summaries"
+					description="Transcripts, titles, summaries and chapters for your share links run on your own OpenRouter account."
+				>
+					<SectionCard padded>
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-xs leading-snug text-gray-10 min-w-0">
+								Add your OpenRouter key and pick the models on the Screencap
+								website. Every recording uses them, from this app or the
+								browser.
+							</p>
+							<Button
+								variant="primary"
+								size="sm"
+								class="shrink-0"
+								onClick={openAiSettings}
+							>
+								Open settings
+							</Button>
+						</div>
+					</SectionCard>
+				</Section>
+
 				<Section
 					title="Transcription"
 					description="Add names, spellings, domains, and capitalization preferences that caption generation should keep in mind."

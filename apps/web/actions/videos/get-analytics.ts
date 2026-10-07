@@ -2,7 +2,7 @@
 
 import { db } from "@cap/database";
 import { videos } from "@cap/database/schema";
-import { Tinybird } from "@cap/web-backend";
+import { countViewsForVideos, Tinybird } from "@cap/web-backend";
 import { Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -54,6 +54,23 @@ export async function getVideoAnalytics(
 			const rangeDays = normalizeRangeDays(options?.rangeDays);
 			const now = new Date();
 			const from = new Date(now.getTime() - rangeDays * DAY_IN_MS);
+
+			if (!tinybird.enabled) {
+				const id = Video.VideoId.make(videoId);
+				const counts = yield* Effect.tryPromise(() =>
+					countViewsForVideos({
+						videoIds: [id],
+						tenantId: orgId || undefined,
+						since: from,
+					}),
+				).pipe(
+					Effect.catchAll((e) => {
+						console.error("video views count error", e);
+						return Effect.succeed(new Map<Video.VideoId, number>());
+					}),
+				);
+				return { count: counts.get(id) ?? 0 };
+			}
 			const pathname = `/s/${videoId}`;
 			const aggregateConditions = [
 				orgId ? `tenant_id = '${escapeLiteral(orgId)}'` : undefined,

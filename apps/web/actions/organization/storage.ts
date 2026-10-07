@@ -27,6 +27,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { runPromise } from "@/lib/server";
 import { requireOrganizationSettingsManager } from "./authorization";
+import { assertAvailableOnScreencap } from "./unavailable";
 
 const googleDriveProvider = "googleDrive";
 const settingsPath = "/dashboard/settings/organization/integrations";
@@ -343,6 +344,7 @@ const createGoogleDriveState = (
 export async function getOrganizationStorageSettings(
 	organizationId: Organisation.OrganisationId,
 ): Promise<OrganizationStorageSettings> {
+	assertAvailableOnScreencap();
 	const { organization } =
 		await requireOrganizationStorageManager(organizationId);
 	const [bucket, drive, activeDrive] = await Promise.all([
@@ -381,6 +383,7 @@ export async function getOrganizationStorageSettings(
 }
 
 export async function saveOrganizationS3Config(input: S3ConfigInput) {
+	assertAvailableOnScreencap();
 	const { user } = await requireOrganizationStorageManagerPro(
 		input.organizationId,
 	);
@@ -415,6 +418,7 @@ export async function saveOrganizationS3Config(input: S3ConfigInput) {
 export async function removeOrganizationS3Config(
 	organizationId: Organisation.OrganisationId,
 ) {
+	assertAvailableOnScreencap();
 	await requireOrganizationStorageManagerPro(organizationId);
 	await db()
 		.update(s3Buckets)
@@ -425,6 +429,7 @@ export async function removeOrganizationS3Config(
 }
 
 export async function testOrganizationS3Config(input: S3ConfigInput) {
+	assertAvailableOnScreencap();
 	await requireOrganizationStorageManagerPro(input.organizationId);
 	const credentials = await getS3InputCredentials(input);
 	const controller = new AbortController();
@@ -457,6 +462,7 @@ export async function setOrganizationStorageProvider({
 	organizationId: Organisation.OrganisationId;
 	provider: OrganizationStorageProvider;
 }) {
+	assertAvailableOnScreencap();
 	await requireOrganizationStorageManagerPro(organizationId);
 
 	if (provider === "s3") {
@@ -497,6 +503,7 @@ export async function setOrganizationStorageProvider({
 export async function connectOrganizationGoogleDrive(
 	organizationId: Organisation.OrganisationId,
 ) {
+	assertAvailableOnScreencap();
 	const { user } = await requireOrganizationStorageManagerPro(organizationId);
 	const state = createGoogleDriveState(user.id, organizationId);
 	return { url: getGoogleDriveAuthUrl({ state }) };
@@ -505,6 +512,7 @@ export async function connectOrganizationGoogleDrive(
 export async function disconnectOrganizationGoogleDrive(
 	organizationId: Organisation.OrganisationId,
 ) {
+	assertAvailableOnScreencap();
 	await requireOrganizationStorageManagerPro(organizationId);
 	await db()
 		.update(storageIntegrations)
@@ -531,6 +539,7 @@ export async function disconnectOrganizationGoogleDrive(
 export async function getOrganizationGoogleDrivePickerToken(
 	organizationId: Organisation.OrganisationId,
 ) {
+	assertAvailableOnScreencap();
 	await requireOrganizationStorageManagerPro(organizationId);
 	const drive = await getOrganizationDrive(organizationId);
 	if (!drive || drive.status !== "active") {
@@ -558,6 +567,7 @@ export async function listOrganizationGoogleDriveFolders({
 	organizationId: Organisation.OrganisationId;
 	parentId?: string;
 }) {
+	assertAvailableOnScreencap();
 	await requireOrganizationStorageManagerPro(organizationId);
 	const drive = await getOrganizationDrive(organizationId);
 	if (!drive || drive.status !== "active") {
@@ -620,6 +630,7 @@ export async function setOrganizationGoogleDriveLocation({
 	driveId?: string | null;
 	driveName?: string | null;
 }) {
+	assertAvailableOnScreencap();
 	const { user } = await requireOrganizationStorageManagerPro(organizationId);
 	const drive = await getOrganizationDrive(organizationId);
 	if (!drive || drive.status !== "active") {

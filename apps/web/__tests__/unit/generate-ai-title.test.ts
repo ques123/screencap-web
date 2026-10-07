@@ -12,6 +12,11 @@ vi.mock("@cap/web-backend/src/Storage/index", () => ({
 	Storage: {},
 }));
 
+vi.mock("@/lib/ai/byok", () => ({
+	getByokGeneration: vi.fn(async () => null),
+	isAiConfiguredForUser: vi.fn(async () => true),
+}));
+
 vi.mock("@/lib/ai/provider", () => ({
 	isAiConfigured: vi.fn(() => true),
 }));

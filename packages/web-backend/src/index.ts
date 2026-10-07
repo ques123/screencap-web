@@ -47,3 +47,7 @@ export {
 	type ViewDecisionDeps,
 } from "./Videos/VideosPolicy.ts";
 export { VideosRepo } from "./Videos/VideosRepo.ts";
+export {
+	countViewsForVideos,
+	deleteViewsForVideo,
+} from "./VideoViews/index.ts";
