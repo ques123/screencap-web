@@ -28,7 +28,8 @@ export default function Stepper({
 		if (currentPath === "/onboarding/download") return "Download";
 	}, [currentPath]);
 
-	const showCustomDomain = buildEnv.NEXT_PUBLIC_IS_CAP === "true";
+	const isCap = buildEnv.NEXT_PUBLIC_IS_CAP === "true";
+	const showCustomDomain = isCap;
 	const steps = [
 		{
 			name: "Welcome",
@@ -46,10 +47,14 @@ export default function Stepper({
 					},
 				]
 			: []),
-		{
-			name: "Invite your team",
-			completed: completedSteps.inviteTeam || false,
-		},
+		...(isCap
+			? [
+					{
+						name: "Invite your team",
+						completed: completedSteps.inviteTeam || false,
+					},
+				]
+			: []),
 		{
 			name: "Download",
 			completed: completedSteps.download || false,

@@ -11,7 +11,7 @@ export default async function OnboardingLayout({
 	const completedSteps = user?.onboardingSteps || {};
 
 	return (
-		<div className="flex relative flex-col justify-center items-center px-5 py-10 w-full custom-scroll min-h-fit lg:min-h-auto h-dvh bg-gray-1">
+		<div className="flex isolate relative flex-col justify-center items-center px-5 py-10 w-full custom-scroll min-h-fit lg:min-h-auto h-dvh bg-gray-1">
 			<Stepper completedSteps={completedSteps} />
 			{children}
 			<Bottom />

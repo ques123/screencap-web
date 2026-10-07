@@ -1140,3 +1140,77 @@ footer a {
 		animation: none;
 	}
 }
+
+/* Screencap sticker style (matches the marketing site). Used by the onboarding download page. */
+@font-face {
+	font-family: "Bricolage Grotesque";
+	src: url("/fonts/BricolageGrotesque-Variable.woff2") format("woff2");
+	font-weight: 200 800;
+	font-style: normal;
+	font-display: swap;
+}
+.sc-display {
+	font-family:
+		"Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+	font-weight: 800;
+	letter-spacing: -0.045em;
+	line-height: 1;
+	color: #0b2440;
+}
+.sc-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 14px 26px;
+	border: 3px solid #0b2440;
+	border-radius: 18px;
+	font-family:
+		"Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+	font-weight: 700;
+	font-size: 18px;
+	line-height: 1.1;
+	text-decoration: none;
+	cursor: pointer;
+	box-shadow: 0 6px 0 #0b2440;
+	transition:
+		transform 0.12s ease,
+		box-shadow 0.12s ease;
+}
+.sc-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 0 #0b2440;
+}
+.sc-btn:active {
+	transform: translateY(3px);
+	box-shadow: 0 3px 0 #0b2440;
+}
+.sc-btn:focus-visible {
+	outline: 3px solid #1e66b8;
+	outline-offset: 3px;
+}
+.sc-btn-dark {
+	background: #0b2440;
+	color: #fff;
+	box-shadow: 0 6px 0 #05121f;
+}
+.sc-btn-dark:hover {
+	box-shadow: 0 8px 0 #05121f;
+}
+.sc-btn-dark:active {
+	box-shadow: 0 3px 0 #05121f;
+}
+.sc-btn-light {
+	background: #fff;
+	color: #0b2440;
+}
+.sc-btn-sm {
+	padding: 10px 20px;
+	font-size: 16px;
+	border-radius: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+	.sc-btn {
+		transition: none;
+	}
+}
