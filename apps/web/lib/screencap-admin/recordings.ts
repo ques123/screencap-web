@@ -165,6 +165,78 @@ export async function listRemoved(opts?: {
 }
 
 /** Like removeRecording but without the Telegram alert; used by bulk flows that alert once. */
+async function escalateToQuarantine(
+	videoId: string,
+	a: ActionInput,
+): Promise<ActionResult> {
+	const [res] = await db()
+		.update(screencapRemovedVideos)
+		.set({
+			state: "quarantined",
+			purgeAfter: null,
+			reason: a.reason ?? null,
+			source: a.source ?? "own",
+		})
+		.where(
+			and(
+				eq(
+					screencapRemovedVideos.videoId,
+					videoId as typeof screencapRemovedVideos.$inferSelect.videoId,
+				),
+				eq(screencapRemovedVideos.state, "removed"),
+			),
+		);
+	if ((res as { affectedRows?: number }).affectedRows !== 1)
+		return {
+			ok: false,
+			error: "Recording not found, or not in the removed list.",
+		};
+	const [row] = await db()
+		.select({
+			ownerId: screencapRemovedVideos.ownerId,
+			ownerEmail: screencapRemovedVideos.ownerEmail,
+			title: screencapRemovedVideos.title,
+		})
+		.from(screencapRemovedVideos)
+		.where(
+			eq(
+				screencapRemovedVideos.videoId,
+				videoId as typeof screencapRemovedVideos.$inferSelect.videoId,
+			),
+		)
+		.limit(1);
+	if (row?.ownerId) {
+		const { blockUser } = await import("./users");
+		await blockUser(String(row.ownerId), {
+			adminEmail: a.adminEmail,
+			reason: a.reason ?? "Quarantined content",
+			source: a.source,
+			notify: false,
+		});
+	}
+	await logAdminAction({
+		adminEmail: a.adminEmail,
+		action: "recording.quarantine",
+		targetType: "recording",
+		targetId: videoId,
+		targetLabel: row?.title ?? null,
+		reason: a.reason ?? null,
+		source: a.source ?? null,
+		details: {
+			escalatedFromRemoved: true,
+			ownerEmail: row?.ownerEmail ?? null,
+		},
+	});
+	await telegramAlert(
+		`Screencap admin: QUARANTINED removed recording ${videoId} (${row?.title ?? ""}), owner ${row?.ownerEmail ?? row?.ownerId ?? "?"}. Purge stopped. By ${a.adminEmail}.`,
+	);
+	return {
+		ok: true,
+		message:
+			"Quarantined: the files will not be purged and the owner is blocked. Report it to NCMEC.",
+	};
+}
+
 export async function removeRecordingInternal(
 	videoId: string,
 	a: ActionInput & { quarantine?: boolean },
@@ -176,8 +248,11 @@ export async function removeRecordingInternal(
 			.from(videos)
 			.where(eq(videos.id, videoId as typeof videos.$inferSelect.id))
 			.limit(1);
-		if (!video)
+		if (!video) {
+			// Already removed: a quarantine request escalates it (stops the purge, blocks the owner).
+			if (a.quarantine === true) return escalateToQuarantine(videoId, a);
 			return { ok: false, error: "Recording not found, or already removed." };
+		}
 		const uploads = await db()
 			.select()
 			.from(videoUploads)
@@ -281,6 +356,7 @@ export async function removeRecording(
 export async function restoreRecording(
 	videoId: string,
 	adminEmail: string,
+	opts: { force?: boolean } = {},
 ): Promise<ActionResult> {
 	try {
 		const [row] = await db()
@@ -298,6 +374,12 @@ export async function restoreRecording(
 			.limit(1);
 		if (!row)
 			return { ok: false, error: "Nothing to restore for that recording." };
+		// Quarantined content is evidence: restoring it must be deliberate.
+		if (row.state === "quarantined" && !opts.force)
+			return {
+				ok: false,
+				error: "This recording is quarantined. Confirm the restore explicitly.",
+			};
 		const [existing] = await db()
 			.select({ id: videos.id })
 			.from(videos)
@@ -307,6 +389,12 @@ export async function restoreRecording(
 			return { ok: false, error: "That recording already exists again." };
 
 		const videoRow = snapshotToRow(row.snapshot.video, "videos");
+		// Never bring a recording back public for a blocked owner, or after a quarantine.
+		const { isUserBlocked } = await import("./users");
+		const ownerBlocked = row.ownerId
+			? await isUserBlocked({ id: String(row.ownerId) })
+			: false;
+		if (ownerBlocked || row.state === "quarantined") videoRow.public = false;
 		const uploadRows = row.snapshot.uploads.map((u) =>
 			snapshotToRow(u, "video_uploads"),
 		);
@@ -457,7 +545,26 @@ export async function purgeDue(opts?: {
 				wouldPurge.push(id);
 				continue;
 			}
-			await deletePrefix(`${row.ownerId}/${id}/`);
+			// Claim the row first so a restore or quarantine that lands now can't race the delete.
+			const [claim] = await db()
+				.update(screencapRemovedVideos)
+				.set({ state: "purging" })
+				.where(
+					and(
+						eq(screencapRemovedVideos.videoId, row.videoId),
+						eq(screencapRemovedVideos.state, "removed"),
+					),
+				);
+			if ((claim as { affectedRows?: number }).affectedRows !== 1) continue;
+			try {
+				await deletePrefix(`${row.ownerId}/${id}/`);
+			} catch (error) {
+				await db()
+					.update(screencapRemovedVideos)
+					.set({ state: "removed" })
+					.where(eq(screencapRemovedVideos.videoId, row.videoId));
+				throw error;
+			}
 			await db().transaction(async (tx) => {
 				await tx.delete(videoViews).where(eq(videoViews.videoId, row.videoId));
 				await tx

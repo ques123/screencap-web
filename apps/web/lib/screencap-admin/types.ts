@@ -9,7 +9,12 @@ export type ActionResult =
 	| { ok: true; message: string; notified?: boolean }
 	| { ok: false; error: string };
 
-export type RemovedState = "removed" | "quarantined" | "restored" | "purged";
+export type RemovedState =
+	| "removed"
+	| "quarantined"
+	| "restored"
+	| "purging"
+	| "purged";
 
 export type AdminLogTargetType = "user" | "recording" | "report" | "settings";
 

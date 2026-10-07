@@ -1,7 +1,14 @@
 import "server-only";
 import { db } from "@cap/database";
-import { screencapUserAdmin, users, videos } from "@cap/database/schema";
-import { and, desc, eq, like, or, sql } from "drizzle-orm";
+import {
+	agentApiKeys,
+	authApiKeys,
+	mcpOAuthTokens,
+	screencapUserAdmin,
+	users,
+	videos,
+} from "@cap/database/schema";
+import { and, desc, eq, isNull, like, or, sql } from "drizzle-orm";
 import { isAdminEmail } from "./access";
 import { logAdminAction, telegramAlert } from "./audit";
 import { sendRemovalNotice } from "./notices";
@@ -161,8 +168,36 @@ export async function getUserDetail(
 }
 
 /** Marks blocked, signs out every session and hides all their recordings. No logging. */
+type Tx = Parameters<Parameters<ReturnType<typeof db>["transaction"]>[0]>[0];
+
+// Browser sessions die with authSessionVersion; the desktop app, API keys, agent keys and MCP tokens
+// authenticate separately, so they are removed or revoked too.
+async function revokeCredentials(tx: Tx, userId: string) {
+	const now = new Date();
+	await tx.delete(authApiKeys).where(eq(authApiKeys.userId, userId as UserId));
+	await tx
+		.update(agentApiKeys)
+		.set({ revokedAt: now })
+		.where(
+			and(
+				eq(agentApiKeys.userId, userId as UserId),
+				isNull(agentApiKeys.revokedAt),
+			),
+		);
+	await tx
+		.update(mcpOAuthTokens)
+		.set({ revokedAt: now })
+		.where(
+			and(
+				eq(mcpOAuthTokens.userId, userId as UserId),
+				isNull(mcpOAuthTokens.revokedAt),
+			),
+		);
+}
+
 async function applyBlock(userId: string, reason: string | null) {
 	await db().transaction(async (tx) => {
+		await revokeCredentials(tx, userId);
 		const now = new Date();
 		await tx
 			.insert(screencapUserAdmin)
@@ -256,10 +291,13 @@ export async function signOutEverywhere(
 	try {
 		const user = await findUser(userId);
 		if (!user) return { ok: false, error: "User not found." };
-		await db()
-			.update(users)
-			.set({ authSessionVersion: sql`${users.authSessionVersion} + 1` })
-			.where(eq(users.id, userId as UserId));
+		await db().transaction(async (tx) => {
+			await tx
+				.update(users)
+				.set({ authSessionVersion: sql`${users.authSessionVersion} + 1` })
+				.where(eq(users.id, userId as UserId));
+			await revokeCredentials(tx, userId);
+		});
 		await logAdminAction({
 			adminEmail,
 			action: "user.signout",
@@ -267,7 +305,11 @@ export async function signOutEverywhere(
 			targetId: userId,
 			targetLabel: user.email,
 		});
-		return { ok: true, message: "Signed out of every session." };
+		return {
+			ok: true,
+			message:
+				"Signed out of every session, including the Mac app and API keys.",
+		};
 	} catch (error) {
 		console.error("[screencap-admin] signOutEverywhere failed", error);
 		return { ok: false, error: "Could not sign the user out." };

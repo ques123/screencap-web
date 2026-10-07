@@ -81,6 +81,32 @@ export async function listReports(opts: {
 	}));
 }
 
+/** Marks every open report about one recording as actioned (after it was removed or quarantined). */
+export async function resolveOpenReportsForVideo(
+	videoId: string,
+	adminEmail: string,
+	note?: string,
+): Promise<void> {
+	try {
+		await db()
+			.update(screencapReports)
+			.set({
+				status: "actioned",
+				resolvedAt: new Date(),
+				resolvedBy: adminEmail,
+				...(note ? { adminNote: note } : {}),
+			})
+			.where(
+				and(
+					eq(screencapReports.videoId, videoId),
+					eq(screencapReports.status, "open"),
+				),
+			);
+	} catch (error) {
+		console.error("[screencap-admin] resolveOpenReportsForVideo failed", error);
+	}
+}
+
 export async function resolveReport(
 	id: number,
 	status: "actioned" | "dismissed",

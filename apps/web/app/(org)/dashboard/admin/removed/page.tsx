@@ -1,6 +1,10 @@
 import { listRemoved } from "@/lib/screencap-admin";
 import { Chip, DateText, EmptyState } from "../_components/format";
-import { PurgeDueButton, RestoreButton } from "./RemovedActions";
+import {
+	PurgeDueButton,
+	QuarantineRemovedButton,
+	RestoreButton,
+} from "./RemovedActions";
 
 export const dynamic = "force-dynamic";
 
@@ -58,8 +62,18 @@ export default async function AdminRemovedPage() {
 									</p>
 								)}
 							</div>
-							<div className="shrink-0">
-								<RestoreButton videoId={r.videoId} title={r.title} />
+							<div className="flex flex-wrap gap-2 shrink-0">
+								<RestoreButton
+									videoId={r.videoId}
+									title={r.title}
+									quarantined={r.state === "quarantined"}
+								/>
+								{r.state === "removed" && (
+									<QuarantineRemovedButton
+										videoId={r.videoId}
+										title={r.title}
+									/>
+								)}
 							</div>
 						</li>
 					))}
