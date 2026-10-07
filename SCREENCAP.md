@@ -26,6 +26,26 @@ and the Mac app.
 - CI: upstream workflows removed; `.github/workflows/screencap-image.yml` builds
   `ghcr.io/ques123/screencap-web` on every push to `main`.
 
+## Build it yourself
+You don't have to trust our download. The Mac app in this repository is the app we ship, and you can
+build it on your own Mac and still use screencap.co for sign-in, sharing and hosting.
+
+1. Get the code: `git clone https://github.com/ques123/screencap-web.git && cd screencap-web`
+2. Check it, or have an AI assistant check it. For example, open the folder in Claude Code and ask:
+   "Review this repository before I build and install it. What does the Mac app send, and to which
+   servers? What does `scripts/build-from-source.sh` download and run? Is there anything unsafe?"
+3. Install the tools: Xcode from the App Store (open it once), Rust (https://rustup.rs),
+   Bun (https://bun.sh), Node 20+ and cmake (`brew install cmake`).
+4. Build: `scripts/build-from-source.sh` (the first build takes 20 to 40 minutes).
+5. Install: `ditto target/<arch>/release/bundle/macos/Screencap.app /Applications/Screencap.app`
+   (the script prints the exact path).
+
+Your build is signed locally, so it opens without the "unidentified developer" step on the Mac that
+built it. It talks to https://screencap.co like the official app. It still checks this repository's
+releases for updates and may offer our signed build; decline it to stay on your own, and rebuild from
+the latest code when you want to update. The build script downloads FFmpeg and other native libraries
+from upstream Cap's GitHub releases (`scripts/setup.js`) and packages from npm and crates.io.
+
 ## Mac releases
 Version `0.6.1NN` means upstream 0.6.1 plus our release NN; bump `apps/desktop/src-tauri/Cargo.toml`
 (the build syncs `apps/desktop-gpui`), commit, then on a Mac with the Dharma Loop signing identity,

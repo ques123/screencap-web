@@ -1,3 +1,8 @@
+> **This is Screencap**, a fork of Cap run at [screencap.co](https://screencap.co) by Dharma Loop LLC.
+> Download the Mac app at [screencap.co/download](https://screencap.co/download), or
+> [build it yourself](SCREENCAP.md#build-it-yourself) from this code and still use screencap.co.
+> What we changed from upstream: [SCREENCAP.md](SCREENCAP.md). The rest of this README is upstream Cap's.
+
 <p align="center">
 	<img width="150" height="150" src="https://github.com/CapSoftware/Cap/blob/main/apps/desktop/src-tauri/icons/Square310x310Logo.png" alt="Cap logo">
 </p>
