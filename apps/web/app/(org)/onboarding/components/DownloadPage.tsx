@@ -81,7 +81,7 @@ export function DownloadPage() {
 				className="sc-sky -z-10 inset-0"
 				style={{ position: "fixed" }}
 			/>
-			<div className="flex flex-col gap-10 items-center py-6 w-full max-w-[1000px] mx-auto">
+			<div className="flex flex-col gap-10 items-center pt-24 pb-10 md:pt-28 w-full max-w-[1000px] mx-auto">
 				<div className="space-y-3 text-center">
 					<h1 className="sc-display text-4xl sm:text-5xl lg:text-6xl">
 						Download the Mac app
