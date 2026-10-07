@@ -53,6 +53,23 @@ function createServerEnv() {
 				.describe(
 					"Comma-separated ISO-3166 alpha-2 codes that cannot create an account",
 				),
+			// Screencap admin panel
+			SCREENCAP_ADMIN_EMAILS: z
+				.string()
+				.optional()
+				.describe("Comma-separated emails allowed into /dashboard/admin"),
+			SCREENCAP_ACCESS_TEAM_DOMAIN: z
+				.string()
+				.optional()
+				.describe(
+					"Cloudflare Access team domain, e.g. team.cloudflareaccess.com",
+				),
+			SCREENCAP_ACCESS_AUD: z
+				.string()
+				.optional()
+				.describe("Cloudflare Access application AUD tag"),
+			SCREENCAP_CRON_SECRET: z.string().optional(),
+			SCREENCAP_PURGE_DRY_RUN: z.string().optional(),
 			TELEGRAM_ALERT_BOT_TOKEN: z.string().optional(),
 			TELEGRAM_ALERT_CHAT_ID: z.string().optional(),
 

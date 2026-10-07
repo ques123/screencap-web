@@ -115,7 +115,11 @@ app.get(
 
 			const isCapPro = userIsPro(user);
 
-			const lengthCheck = checkRecordingLength(durationInSecs);
+			const lengthCheck = await checkRecordingLength(
+				durationInSecs,
+				0,
+				user.id,
+			);
 			if (!lengthCheck.ok)
 				return c.json(
 					{ error: RECORDING_LIMIT_ERROR, message: lengthCheck.message },

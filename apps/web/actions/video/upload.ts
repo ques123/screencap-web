@@ -17,11 +17,11 @@ import { eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { revalidatePath } from "next/cache";
 import { requireOrganizationAccess } from "@/actions/organization/authorization";
-import { runPromise } from "@/lib/server";
 import {
 	checkCanCreateRecording,
 	checkRecordingLength,
 } from "@/lib/screencap-limits";
+import { runPromise } from "@/lib/server";
 
 const MAX_S3_DELETE_ATTEMPTS = 3;
 const S3_DELETE_RETRY_BACKOFF_MS = 250;
@@ -150,7 +150,7 @@ export async function createVideoAndGetUploadUrl({
 		if (!userIsPro(user) && duration && duration > 300)
 			throw new Error("upgrade_required");
 
-		const lengthCheck = checkRecordingLength(duration);
+		const lengthCheck = await checkRecordingLength(duration, 0, user.id);
 		if (!lengthCheck.ok) throw new Error(lengthCheck.message);
 
 		await requireOrganizationAccess(user.id, orgId);

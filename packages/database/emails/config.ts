@@ -23,6 +23,48 @@ export const isEmailConfigured = () =>
 			serverEnv().RESEND_API_KEY,
 	);
 
+export type EmailProviderName = "cloudflare" | "brevo" | "resend";
+
+// The provider sendEmail will try first. "none" means emails are dropped.
+export const activeEmailProvider = (): EmailProviderName | "none" => {
+	if (cloudflareEmail()) return "cloudflare";
+	if (serverEnv().BREVO_API_KEY) return "brevo";
+	if (serverEnv().RESEND_API_KEY) return "resend";
+	return "none";
+};
+
+// Records every provider attempt for the admin panel. Fire-and-forget: it must
+// never throw into, or slow down, the send path.
+const logEmail = (
+	provider: EmailProviderName,
+	toEmail: string,
+	subject: string,
+	ok: boolean,
+	error?: string | null,
+) => {
+	void (async () => {
+		try {
+			const [{ db }, { screencapEmailLog }] = await Promise.all([
+				import("../index.ts"),
+				import("../schema.ts"),
+			]);
+			await db()
+				.insert(screencapEmailLog)
+				.values({
+					provider,
+					toEmail: toEmail.slice(0, 255),
+					subject: subject.slice(0, 255),
+					ok,
+					error: ok ? null : (error ?? "unknown error").slice(0, 2000),
+				});
+		} catch (e) {
+			console.warn("Email log write failed", e);
+		}
+	})();
+};
+
+const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
 const DEFAULT_FROM_NAME = "Screencap";
 
 // Parses "Name <addr@x.com>" or a bare address into Brevo's sender shape.
@@ -58,16 +100,16 @@ const ownFromOverride = (fromOverride?: string) =>
 		: undefined;
 
 // Cloudflare Email Sending REST API (Workers Paid; the domain is onboarded in Email Service).
-// Returns false when the send failed, so the caller can fall back to Brevo.
+// Returns ok=false when the send failed, so the caller can fall back to Brevo.
 const sendViaCloudflare = async (
 	cf: { token: string; accountId: string },
 	opts: SendOpts,
-): Promise<boolean> => {
+): Promise<{ ok: boolean; error?: string }> => {
 	try {
 		const sender = parseSender(ownFromOverride(opts.fromOverride));
 		if (!sender) {
 			console.error("Cloudflare email not sent: no EMAIL_FROM configured");
-			return false;
+			return { ok: false, error: "no EMAIL_FROM configured" };
 		}
 		const html = await render(opts.react);
 		const text = await render(opts.react, { plainText: true });
@@ -103,7 +145,7 @@ const sendViaCloudflare = async (
 		if (!res.ok || !body?.success) {
 			const msg = body?.errors?.map((e) => e.message).join("; ") ?? "";
 			console.error(`Cloudflare email failed: HTTP ${res.status} ${msg}`);
-			return false;
+			return { ok: false, error: `HTTP ${res.status} ${msg}`.trim() };
 		}
 		const dropped = [
 			...(body.result?.permanent_bounces ?? []),
@@ -111,10 +153,10 @@ const sendViaCloudflare = async (
 		];
 		if (dropped.length)
 			console.warn(`Cloudflare email not delivered to: ${dropped.join(", ")}`);
-		return true;
+		return { ok: true };
 	} catch (e) {
 		console.error("Cloudflare email failed", e);
-		return false;
+		return { ok: false, error: errorText(e) };
 	}
 };
 
@@ -133,7 +175,7 @@ const sendViaBrevo = async (
 		idempotencyKey?: string;
 		test?: boolean;
 	},
-) => {
+): Promise<{ ok: boolean; error?: string }> => {
 	try {
 		if (
 			!brevoIgnoredOptionsLogged &&
@@ -152,7 +194,7 @@ const sendViaBrevo = async (
 		const sender = parseSender(override);
 		if (!sender) {
 			console.error("Brevo email not sent: no EMAIL_FROM configured");
-			return;
+			return { ok: false, error: "no EMAIL_FROM configured" };
 		}
 		const htmlContent = await render(opts.react);
 		const textContent = await render(opts.react, { plainText: true });
@@ -186,9 +228,12 @@ const sendViaBrevo = async (
 				message = body?.message ?? "";
 			} catch {}
 			console.error(`Brevo email failed: HTTP ${res.status} ${message}`);
+			return { ok: false, error: `HTTP ${res.status} ${message}`.trim() };
 		}
+		return { ok: true };
 	} catch (e) {
 		console.error("Brevo email failed", e);
+		return { ok: false, error: errorText(e) };
 	}
 };
 
@@ -239,12 +284,13 @@ export const sendEmail = async ({
 			replyTo,
 			fromOverride,
 		});
-		if (sent || !brevoKey) return;
+		logEmail("cloudflare", email, subject, sent.ok, sent.error);
+		if (sent.ok || !brevoKey) return;
 		console.warn("Cloudflare email failed; falling back to Brevo");
 	}
 
 	if (brevoKey) {
-		return sendViaBrevo(brevoKey, {
+		const result = await sendViaBrevo(brevoKey, {
 			email,
 			subject,
 			react,
@@ -255,6 +301,8 @@ export const sendEmail = async ({
 			idempotencyKey,
 			test,
 		});
+		logEmail("brevo", email, subject, result.ok, result.error);
+		return;
 	}
 	if (!r) return;
 	let from: string;
@@ -266,17 +314,30 @@ export const sendEmail = async ({
 	else
 		from = serverEnv().EMAIL_FROM || `auth@${serverEnv().RESEND_FROM_DOMAIN}`;
 
-	return r.emails.send(
-		{
-			from,
-			to: test ? "delivered@resend.dev" : email,
+	try {
+		const result = await r.emails.send(
+			{
+				from,
+				to: test ? "delivered@resend.dev" : email,
+				subject,
+				react,
+				scheduledAt,
+				cc: test ? undefined : cc,
+				replyTo: replyTo,
+				attachments,
+			},
+			idempotencyKey ? { idempotencyKey } : undefined,
+		);
+		logEmail(
+			"resend",
+			email,
 			subject,
-			react,
-			scheduledAt,
-			cc: test ? undefined : cc,
-			replyTo: replyTo,
-			attachments,
-		},
-		idempotencyKey ? { idempotencyKey } : undefined,
-	);
+			!result.error,
+			result.error ? result.error.message : null,
+		);
+		return result;
+	} catch (e) {
+		logEmail("resend", email, subject, false, errorText(e));
+		throw e;
+	}
 };

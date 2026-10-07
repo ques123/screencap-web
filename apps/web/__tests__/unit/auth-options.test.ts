@@ -24,6 +24,16 @@ type AuthUser = {
 
 const mocks = vi.hoisted(() => ({
 	users: [] as AuthUser[],
+	blockedUserIds: [] as string[],
+	settings: {
+		signupMode: "open" as "open" | "allowlist",
+		allowedDomains: [] as string[],
+		blockedEmails: [] as string[],
+		blockedCountries: [] as string[],
+		maxRecordingMinutes: null as number | null,
+		maxStorageHours: null as number | null,
+	},
+	country: null as string | null,
 	where: vi.fn(),
 	select: vi.fn(),
 	validate: vi.fn<(...args: unknown[]) => Promise<ValidatedSsoIdentity>>(),
@@ -55,6 +65,17 @@ vi.mock("@cap/env", () => ({
 
 vi.mock("@cap/database", () => ({
 	db: () => ({ select: mocks.select }),
+}));
+
+vi.mock("../../../../packages/database/screencap-settings", () => ({
+	getSettings: async () => mocks.settings,
+	getSettingsSync: () => mocks.settings,
+}));
+
+vi.mock("next/headers", () => ({
+	headers: async () => ({
+		get: (name: string) => (name === "cf-ipcountry" ? mocks.country : null),
+	}),
 }));
 
 vi.mock("@cap/database/auth/sso", () => ({
@@ -125,12 +146,23 @@ describe("authOptions", () => {
 				authSessionVersion: 4,
 			},
 		];
+		mocks.blockedUserIds = [];
+		mocks.country = null;
+		mocks.settings.signupMode = "open";
+		mocks.settings.allowedDomains = [];
+		mocks.settings.blockedEmails = [];
+		mocks.settings.blockedCountries = [];
 		mocks.select.mockReset().mockImplementation(() => ({
 			from: () => ({ where: mocks.where }),
 		}));
 		mocks.where.mockReset().mockImplementation((condition: SQL) => ({
 			limit: async () => {
 				const query = new MySqlDialect().sqlToQuery(condition);
+				if (/^`screencap_user_admin`\.`userId` = \?$/.test(query.sql)) {
+					return mocks.blockedUserIds.includes(String(query.params[0]))
+						? [{ blockedAt: new Date() }]
+						: [];
+				}
 				const match = /^`users`\.`(id|email)` = \?$/.exec(query.sql);
 				if (!match?.[1]) throw new Error("Unexpected auth-user predicate");
 				const column = match[1] as "id" | "email";
@@ -240,6 +272,98 @@ describe("authOptions", () => {
 			callbacks.signIn({
 				user: { id: "u1", email: "anyone@blocked.example" },
 				account: { provider: "google", providerAccountId: "g1", type: "oauth" },
+			}),
+		).resolves.toBe(true);
+	});
+
+	it("refuses sign-in for a blocked existing account", async () => {
+		mocks.blockedUserIds = [AUTHENTICATED_USER.id];
+		const callbacks = callbacksFor(authOptions(CONTEXT));
+		await expect(
+			callbacks.signIn({
+				user: { id: AUTHENTICATED_USER.id, email: AUTHENTICATED_USER.email },
+				account: { provider: "google", providerAccountId: "g1", type: "oauth" },
+			}),
+		).resolves.toBe("/login?error=SignupBlocked");
+		mocks.blockedUserIds = [];
+		await expect(
+			callbacks.signIn({
+				user: { id: AUTHENTICATED_USER.id, email: AUTHENTICATED_USER.email },
+				account: { provider: "google", providerAccountId: "g1", type: "oauth" },
+			}),
+		).resolves.toBe(true);
+	});
+
+	it("merges panel blockedEmails with the env list", async () => {
+		mocks.settings.blockedEmails = ["panel-blocked.example", "x@y.example"];
+		const callbacks = callbacksFor(authOptions(CONTEXT));
+		const google = {
+			provider: "google",
+			providerAccountId: "g",
+			type: "oauth",
+		} as const;
+		for (const email of ["a@panel-blocked.example", "x@y.example"])
+			await expect(
+				callbacks.signIn({ user: { id: "n", email }, account: google }),
+			).resolves.toBe("/login?error=SignupBlocked");
+		await expect(
+			callbacks.signIn({
+				user: { id: "n", email: "ok@fine.example" },
+				account: google,
+			}),
+		).resolves.toBe(true);
+	});
+
+	it("applies the panel allowlist to new users only", async () => {
+		mocks.settings.signupMode = "allowlist";
+		mocks.settings.allowedDomains = ["company.example"];
+		const callbacks = callbacksFor(authOptions(CONTEXT));
+		const google = {
+			provider: "google",
+			providerAccountId: "g",
+			type: "oauth",
+		} as const;
+		await expect(
+			callbacks.signIn({
+				user: { id: "n", email: "new@other.example" },
+				account: google,
+			}),
+		).resolves.toBe(false);
+		await expect(
+			callbacks.signIn({
+				user: { id: "n", email: "new@company.example" },
+				account: google,
+			}),
+		).resolves.toBe(true);
+		// Existing users can always sign in.
+		await expect(
+			callbacks.signIn({ user: AUTHENTICATED_USER, account: google }),
+		).resolves.toBe(true);
+	});
+
+	it("blocks new accounts from panel-blocked countries, not existing ones", async () => {
+		mocks.settings.blockedCountries = ["XY"];
+		mocks.country = "XY";
+		const callbacks = callbacksFor(authOptions(CONTEXT));
+		const google = {
+			provider: "google",
+			providerAccountId: "g",
+			type: "oauth",
+		} as const;
+		await expect(
+			callbacks.signIn({
+				user: { id: "n", email: "new@x.example" },
+				account: google,
+			}),
+		).resolves.toBe("/login?error=SignupCountryBlocked");
+		await expect(
+			callbacks.signIn({ user: AUTHENTICATED_USER, account: google }),
+		).resolves.toBe(true);
+		mocks.country = "XX";
+		await expect(
+			callbacks.signIn({
+				user: { id: "n", email: "new@x.example" },
+				account: google,
 			}),
 		).resolves.toBe(true);
 	});
@@ -377,6 +501,7 @@ describe("authOptions", () => {
 			AUTHENTICATED_USER.id,
 			IDENTITY,
 		);
+		mocks.select.mockClear();
 		expect(mocks.select).not.toHaveBeenCalled();
 		if (!release) throw new Error("Provisioning was not started");
 		release();
@@ -391,6 +516,7 @@ describe("authOptions", () => {
 			profile: PROFILE,
 		});
 		mocks.provision.mockRejectedValueOnce(new Error("SSO billing revoked"));
+		mocks.select.mockClear();
 
 		await expect(
 			callbacks.jwt({
