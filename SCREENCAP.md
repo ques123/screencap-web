@@ -36,7 +36,7 @@ build it on your own Mac and still use screencap.co for sign-in, sharing and hos
    servers? What does `scripts/build-from-source.sh` download and run? Is there anything unsafe?"
 3. Install the tools: Xcode from the App Store (open it once), Rust (https://rustup.rs),
    Bun (https://bun.sh), Node 20+ and cmake (`brew install cmake`).
-4. Build: `scripts/build-from-source.sh` (the first build takes 20 to 40 minutes).
+4. Build: `scripts/build-from-source.sh` (the first build takes 15 to 40 minutes).
 5. Install: `ditto target/<arch>/release/bundle/macos/Screencap.app /Applications/Screencap.app`
    (the script prints the exact path).
 

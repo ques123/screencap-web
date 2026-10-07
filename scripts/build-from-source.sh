@@ -8,7 +8,7 @@
 #   scripts/build-from-source.sh
 #
 # You need: Xcode (from the App Store, opened once), Rust (https://rustup.rs), Bun (https://bun.sh),
-# Node 20+ and cmake (`brew install cmake`). The first build takes 20 to 40 minutes.
+# Node 20+ and cmake (`brew install cmake`). The first build takes 15 to 40 minutes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
