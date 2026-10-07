@@ -71,6 +71,8 @@ type SharedVideoData = {
 	}[];
 	hasActiveUpload: boolean | undefined;
 	settings?: Partial<Record<ViewerSettingKey, boolean>> | null;
+	e2ee?: number | null;
+	keyFingerprint?: string | null;
 }[];
 
 type SpaceData = {

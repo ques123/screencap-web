@@ -190,6 +190,8 @@ export const getVideosByFolderId = Effect.fn(function* (
 				isScreenshot: videos.isScreenshot,
 				duration: videos.duration,
 				settings: videos.settings,
+				e2ee: videos.e2ee,
+				keyFingerprint: videos.keyFingerprint,
 				orgId: videos.orgId,
 				totalComments: sql<number>`COUNT(DISTINCT CASE WHEN ${comments.type} = 'text' THEN ${comments.id} END)`,
 				totalReactions: sql<number>`COUNT(DISTINCT CASE WHEN ${comments.type} = 'emoji' THEN ${comments.id} END)`,
@@ -254,6 +256,8 @@ export const getVideosByFolderId = Effect.fn(function* (
 				videos.isScreenshot,
 				videos.duration,
 				videos.settings,
+				videos.e2ee,
+				videos.keyFingerprint,
 				videos.orgId,
 				videos.password,
 				users.name,
@@ -345,6 +349,8 @@ export const getVideosByFolderId = Effect.fn(function* (
 					inheritedSpaceSettings: rules.inheritedSettings,
 					settings: video.settings,
 					hasActiveUpload: video.hasActiveUpload,
+					e2ee: video.e2ee,
+					keyFingerprint: video.keyFingerprint,
 					foldersData: [], // Empty array since videos in a folder don't need folder data
 				};
 			}),

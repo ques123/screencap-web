@@ -12,6 +12,7 @@ import moment from "moment";
 import type React from "react";
 import { memo, useState } from "react";
 import { useTheme } from "@/app/(org)/dashboard/Contexts";
+import { isE2eeFlag } from "@/app/s/[videoId]/_components/e2ee/key-acquisition";
 import { Tooltip } from "@/components/Tooltip";
 import {
 	type ImageLoadingStatus,
@@ -141,6 +142,7 @@ const VideoCard: React.FC<VideoCardProps> = memo(
 						imageStatus={imageStatus}
 						setImageStatus={setImageStatus}
 						showPreview={video.isScreenshot !== true}
+						e2ee={isE2eeFlag(video.e2ee)}
 					/>
 					{video.isScreenshot === true && (
 						<span

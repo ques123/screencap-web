@@ -467,6 +467,7 @@ export class Videos extends Effect.Service<Videos>()("Videos", {
 						},
 						{ id: newVideoId },
 					);
+					return { videoId: newVideoId };
 				}).pipe(
 					Effect.onError(() =>
 						Effect.gen(function* () {

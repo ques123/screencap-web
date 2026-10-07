@@ -80,6 +80,7 @@ export type PublicCollectionVideo = {
 	ownerName: string;
 	hasPassword: boolean;
 	hasActiveUpload: boolean;
+	e2ee: boolean;
 };
 
 type PublicCollectionVideoRow = {
@@ -93,6 +94,7 @@ type PublicCollectionVideoRow = {
 	ownerName: string | null;
 	hasPassword: boolean;
 	hasActiveUpload: boolean;
+	e2ee: number | null;
 };
 
 export type PublicCollectionPageData = {
@@ -431,6 +433,7 @@ const videoSelect = {
 		sql`MAX(${videoUploads.videoId} IS NOT NULL AND ${videos.isScreenshot} = false)`.mapWith(
 			Boolean,
 		),
+	e2ee: videos.e2ee,
 };
 
 const videoGroupBy = [
@@ -446,6 +449,7 @@ const videoGroupBy = [
 	videos.public,
 	videos.settings,
 	videos.password,
+	videos.e2ee,
 	users.name,
 ];
 
@@ -465,6 +469,7 @@ function toPublicCollectionVideos(
 		ownerName: video.ownerName ?? "",
 		hasPassword: video.hasPassword,
 		hasActiveUpload: video.hasActiveUpload,
+		e2ee: video.e2ee !== null && video.e2ee !== 0,
 	}));
 }
 

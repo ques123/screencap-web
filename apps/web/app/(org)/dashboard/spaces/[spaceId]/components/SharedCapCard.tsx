@@ -37,6 +37,8 @@ interface SharedCapCardProps {
 		}[];
 		hasActiveUpload: boolean | undefined;
 		settings?: Partial<Record<ViewerSettingKey, boolean>> | null;
+		e2ee?: number | null;
+		keyFingerprint?: string | null;
 	};
 	analytics: number;
 	isLoadingAnalytics: boolean;

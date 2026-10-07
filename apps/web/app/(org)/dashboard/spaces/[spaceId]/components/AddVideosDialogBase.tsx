@@ -28,6 +28,7 @@ export interface VideoData {
 	name: string;
 	createdAt: Date;
 	isScreenshot?: boolean;
+	e2ee?: number | null;
 	totalComments: number;
 	totalReactions: number;
 	ownerName: string;

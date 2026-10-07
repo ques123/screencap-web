@@ -23,6 +23,7 @@ type PublicCapCardVideo = {
 	ownerName: string;
 	hasPassword: boolean;
 	hasActiveUpload: boolean;
+	e2ee?: boolean;
 };
 
 const relativeTimeFormatter = new Intl.RelativeTimeFormat("en", {
@@ -108,6 +109,7 @@ export function PublicCapCard({
 						imageStatus={imageStatus}
 						setImageStatus={setImageStatus}
 						hasActiveUpload={cap.hasActiveUpload}
+						e2ee={cap.e2ee ?? false}
 					/>
 					{lockBadge}
 				</div>
@@ -144,6 +146,7 @@ export function PublicCapCard({
 					imageStatus={imageStatus}
 					setImageStatus={setImageStatus}
 					hasActiveUpload={cap.hasActiveUpload}
+					e2ee={cap.e2ee ?? false}
 				/>
 				{lockBadge}
 			</div>

@@ -330,6 +330,8 @@ export default async function SharedCapsPage(props: {
 						duration: videos.duration,
 						public: videos.public,
 						settings: videos.settings,
+						e2ee: videos.e2ee,
+						keyFingerprint: videos.keyFingerprint,
 						hasPassword: sql`${videos.password} IS NOT NULL`.mapWith(Boolean),
 						totalComments: sql<number>`COUNT(DISTINCT CASE WHEN ${comments.type} = 'text' THEN ${comments.id} END)`,
 						totalReactions: sql<number>`COUNT(DISTINCT CASE WHEN ${comments.type} = 'emoji' THEN ${comments.id} END)`,
@@ -363,6 +365,8 @@ export default async function SharedCapsPage(props: {
 						videos.duration,
 						videos.public,
 						videos.settings,
+						videos.e2ee,
+						videos.keyFingerprint,
 						videos.password,
 						users.name,
 					)
@@ -459,6 +463,8 @@ export default async function SharedCapsPage(props: {
 						duration: videos.duration,
 						public: videos.public,
 						settings: videos.settings,
+						e2ee: videos.e2ee,
+						keyFingerprint: videos.keyFingerprint,
 						hasPassword: sql`${videos.password} IS NOT NULL`.mapWith(Boolean),
 						totalComments: sql<number>`COUNT(DISTINCT CASE WHEN ${comments.type} = 'text' THEN ${comments.id} END)`,
 						totalReactions: sql<number>`COUNT(DISTINCT CASE WHEN ${comments.type} = 'emoji' THEN ${comments.id} END)`,
@@ -491,6 +497,8 @@ export default async function SharedCapsPage(props: {
 						videos.duration,
 						videos.public,
 						videos.settings,
+						videos.e2ee,
+						videos.keyFingerprint,
 						videos.password,
 					)
 					.orderBy(desc(videos.effectiveCreatedAt))

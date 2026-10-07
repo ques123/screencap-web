@@ -359,6 +359,7 @@ export class VideoRpcs extends RpcGroup.make(
 	}).middleware(RpcAuthMiddleware),
 	Rpc.make("VideoDuplicate", {
 		payload: VideoId,
+		success: Schema.Struct({ videoId: VideoId }),
 		error: Schema.Union(NotFoundError, InternalError, PolicyDeniedError),
 	}).middleware(RpcAuthMiddleware),
 	Rpc.make("GetUploadProgress", {
