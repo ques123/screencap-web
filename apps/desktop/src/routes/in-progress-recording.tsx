@@ -11,6 +11,7 @@ import {
 } from "@tauri-apps/api/menu";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import * as dialog from "@tauri-apps/plugin-dialog";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { type as ostype } from "@tauri-apps/plugin-os";
 import { cx } from "cva";
 import {
@@ -49,6 +50,7 @@ import type {
 	RecordingInputKind,
 } from "~/utils/tauri";
 import { commands, events } from "~/utils/tauri";
+import { getConfiguredServerUrl, maybeProtectedHeaders } from "~/utils/web-api";
 
 type State =
 	| { variant: "initializing" }
@@ -65,15 +67,41 @@ declare global {
 	}
 }
 
-// Screencap's free beta caps instant recordings at 15 minutes for everyone. The server enforces the
-// same limit (SCREENCAP_MAX_RECORDING_SECONDS, see /api/upload/limits); keep the two in step.
-const MAX_RECORDING_FOR_FREE = 15 * 60 * 1000;
+// Instant recordings stop at the server's limit (admin panel → Settings, or a per-user override),
+// read from /api/upload/limits when the recording window opens. Until the answer arrives, or if the
+// server can't be reached, the app falls back to 15 minutes; the server enforces the real limit on
+// upload either way.
+const FALLBACK_MAX_RECORDING_MS = 15 * 60 * 1000;
+const [maxRecordingMs, setMaxRecordingMs] = createSignal<number | null>(
+	FALLBACK_MAX_RECORDING_MS,
+);
+let limitFetchedAt = 0;
+async function refreshRecordingLimit() {
+	if (Date.now() - limitFetchedAt < 60_000) return;
+	limitFetchedAt = Date.now();
+	try {
+		const { authorization } = await maybeProtectedHeaders();
+		const res = await tauriFetch(
+			`${await getConfiguredServerUrl()}/api/upload/limits`,
+			{ headers: authorization ? { authorization } : {} },
+		);
+		if (!res.ok) return;
+		const body = (await res.json()) as { maxRecordingSeconds?: number | null };
+		const s = body.maxRecordingSeconds;
+		if (s === null) setMaxRecordingMs(null);
+		else if (typeof s === "number" && Number.isFinite(s) && s > 0)
+			setMaxRecordingMs(s * 1000);
+	} catch {
+		limitFetchedAt = 0;
+	}
+}
 const NO_MICROPHONE = "No Microphone";
 const NO_WEBCAM = "No Webcam";
 const FAKE_WINDOW_BOUNDS_NAME = "recording-controls-interactive-area";
 
 export default function () {
 	console.log("[in-progress-recording] Wrapper rendering");
+	void refreshRecordingLimit();
 
 	document.documentElement.setAttribute("data-transparent-window", "true");
 	document.body.style.background = "transparent";
@@ -856,9 +884,12 @@ function InProgressRecordingInner() {
 		// reused window and must never trigger a stop.
 		const variant = state().variant;
 		if (variant !== "recording" && variant !== "paused") return;
+		// The window is reused between recordings: pick up a limit changed in the admin panel.
+		void refreshRecordingLimit();
 		if (
 			isMaxRecordingLimitEnabled() &&
-			adjustedTime() > MAX_RECORDING_FOR_FREE &&
+			maxRecordingMs() !== null &&
+			adjustedTime() > (maxRecordingMs() as number) &&
 			!aborted
 		) {
 			aborted = true;
@@ -867,8 +898,10 @@ function InProgressRecordingInner() {
 	});
 
 	const remainingRecordingTime = () => {
-		if (MAX_RECORDING_FOR_FREE < adjustedTime()) return 0;
-		return MAX_RECORDING_FOR_FREE - adjustedTime();
+		const max = maxRecordingMs();
+		if (max === null) return Number.POSITIVE_INFINITY;
+		if (max < adjustedTime()) return 0;
+		return max - adjustedTime();
 	};
 
 	const isInitializing = () => state().variant === "initializing";
@@ -1012,7 +1045,10 @@ function InProgressRecordingInner() {
 													}
 													fallback={
 														<Show
-															when={isMaxRecordingLimitEnabled()}
+															when={
+																isMaxRecordingLimitEnabled() &&
+																maxRecordingMs() !== null
+															}
 															fallback={formatTime(adjustedTime() / 1000)}
 														>
 															{formatTime(remainingRecordingTime() / 1000)}

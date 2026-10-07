@@ -102,6 +102,15 @@ export async function checkCanCreateRecording(
 	return { ok: true };
 }
 
+/** The recording limit that applies to one user (their override, else the site-wide limit). */
+export async function maxRecordingSecondsFor(
+	userId?: string,
+): Promise<number | null> {
+	const overrides = await userOverrides(userId);
+	const minutes = positiveOrNull(overrides.recordingMinutesOverride);
+	return minutes !== null ? Math.round(minutes * 60) : maxRecordingSeconds();
+}
+
 /**
  * `graceSeconds` covers stop/finalize latency for honest recorders that stop at the cap.
  */
