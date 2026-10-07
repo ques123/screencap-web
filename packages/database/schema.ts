@@ -28,6 +28,7 @@ import {
 	primaryKey,
 	text,
 	timestamp,
+	tinyint,
 	unique,
 	uniqueIndex,
 	varchar,
@@ -486,6 +487,8 @@ export const videos = mysqlTable(
 		updatedAt: timestamp("updatedAt").notNull().defaultNow().onUpdateNow(),
 		// PRIVATE
 		password: encryptedTextNullable("password"),
+		e2ee: tinyint("e2ee"),
+		keyFingerprint: varchar("keyFingerprint", { length: 32 }),
 		// LEGACY
 		xStreamInfo: text("xStreamInfo"),
 		firstViewEmailSentAt: timestamp("firstViewEmailSentAt"),
@@ -940,6 +943,7 @@ export const screencapReports = mysqlTable(
 		reason: varchar("reason", { length: 64 }).notNull(),
 		details: text("details"),
 		reporterEmail: varchar("reporterEmail", { length: 255 }),
+		decryptionKey: encryptedTextNullable("decryptionKey"),
 		country: varchar("country", { length: 8 }).notNull().default(""),
 		status: varchar("status", { length: 16 })
 			.notNull()

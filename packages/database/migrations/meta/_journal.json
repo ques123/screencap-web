@@ -372,6 +372,13 @@
       "when": 1791355890276,
       "tag": "0052_screencap_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "5",
+      "when": 1791387232097,
+      "tag": "0053_screencap_e2ee",
+      "breakpoints": true
     }
   ]
 }
