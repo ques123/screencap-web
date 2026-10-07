@@ -2,9 +2,13 @@ import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
 import { authApiKeys } from "@cap/database/schema";
 import { eq } from "drizzle-orm";
-import { maxRecordingSecondsFor } from "@/lib/screencap-limits";
+import {
+	maxRecordingSecondsFor,
+	maxStorageSecondsFor,
+} from "@/lib/screencap-limits";
 
-// Non-sensitive: lets the browser recorder and the Mac app stop at the configured limit (set in the
+// Non-sensitive: lets the browser recorder and the Mac app stop at the configured limit, and the
+// public pricing page and homepage show the current limits (set in the
 // admin panel, env as fallback). Signed-in callers (cookie, or the Mac app's API key) get their own
 // limit when an admin gave them a different one.
 export const dynamic = "force-dynamic";
@@ -30,7 +34,10 @@ async function callerUserId(request: Request): Promise<string | undefined> {
 export async function GET(request: Request) {
 	const userId = await callerUserId(request);
 	return Response.json(
-		{ maxRecordingSeconds: await maxRecordingSecondsFor(userId) },
+		{
+			maxRecordingSeconds: await maxRecordingSecondsFor(userId),
+			maxStorageSeconds: await maxStorageSecondsFor(userId),
+		},
 		{ headers: { "cache-control": "no-store" } },
 	);
 }

@@ -121,6 +121,15 @@ export async function checkCanCreateRecording(
 	return { ok: true };
 }
 
+/** The storage limit that applies to one user (their override, else the site-wide limit). */
+export async function maxStorageSecondsFor(
+	userId?: string,
+): Promise<number | null> {
+	const overrides = await userOverrides(userId);
+	const hours = positiveOrNull(overrides.storageHoursOverride);
+	return hours !== null ? Math.round(hours * 3600) : freshStorageSeconds();
+}
+
 /** The recording limit that applies to one user (their override, else the site-wide limit). */
 export async function maxRecordingSecondsFor(
 	userId?: string,
