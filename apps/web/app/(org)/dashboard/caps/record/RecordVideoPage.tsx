@@ -110,7 +110,7 @@ const FaqAccordion = () => {
 		{
 			id: "install",
 			q: "Do I need to install the app?",
-			a: "No. You can record in your browser. For system audio and advanced editing, use the Mac app. During the free beta, recordings can be up to 15 minutes.",
+			a: "No. You can record in your browser. For system audio and advanced editing, use the Mac app.",
 		},
 	];
 

@@ -7,8 +7,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# One build per branch at a time; a branch build never cancels (or tags over) a main build.
 concurrency:
-  group: screencap-image
+  group: screencap-image-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -39,9 +40,12 @@ jobs:
           file: apps/web/Dockerfile
           platforms: linux/amd64
           push: true
+          # Only main moves :latest (what ship.sh --pull deploys); manual branch builds (staging) get
+          # their sha and a branch tag only.
           tags: |
-            ghcr.io/ques123/screencap-web:latest
+            ${{ github.ref == 'refs/heads/main' && 'ghcr.io/ques123/screencap-web:latest' || '' }}
             ghcr.io/ques123/screencap-web:${{ github.sha }}
+            ghcr.io/ques123/screencap-web:branch-${{ github.ref_name }}
           labels: |
             org.opencontainers.image.source=https://github.com/ques123/screencap-web
             org.opencontainers.image.description=Screencap web (self-hosted fork of Cap)

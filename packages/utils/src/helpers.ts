@@ -13,8 +13,10 @@ export const uuidFormat = (uuid: string) => {
 	return uuid.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, "$1-$2-$3-$4-$5");
 };
 
+// Logo in every email: the Screencap app icon, served by the static site (ques123/screencap
+// site/assets/img; keep that file when changing the site). The name stays for upstream merges.
 export const CAP_LOGO_URL =
-	"https://raw.githubusercontent.com/CapSoftware/cap/main/apps/desktop/src-tauri/icons/Square310x310Logo.png";
+	"https://screencap.co/assets/img/screencap-icon-sticker-128.png";
 
 export const saveLatestVideoId = (videoId: string) => {
 	try {

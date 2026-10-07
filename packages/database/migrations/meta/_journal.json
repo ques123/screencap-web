@@ -365,6 +365,13 @@
       "when": 1791303288131,
       "tag": "0051_screencap_video_views",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "5",
+      "when": 1791355890276,
+      "tag": "0052_screencap_admin",
+      "breakpoints": true
     }
   ]
 }

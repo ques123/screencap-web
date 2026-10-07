@@ -66,7 +66,7 @@ export function OrganizationSetupPage({
 				router.push(
 					buildEnv.NEXT_PUBLIC_IS_CAP === "true"
 						? "/onboarding/custom-domain"
-						: "/onboarding/invite-team",
+						: "/onboarding/download",
 				);
 				router.refresh();
 			});

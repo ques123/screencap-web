@@ -30,9 +30,18 @@ function createServerEnv() {
 			RESEND_API_KEY: z.string().optional(),
 			RESEND_FROM_DOMAIN: z.string().optional(),
 
+			// Screencap: Cloudflare Email Sending (preferred when set), then Brevo, then Resend
+			CLOUDFLARE_EMAIL_API_TOKEN: z
+				.string()
+				.optional()
+				.describe("Cloudflare API token with Email Sending: Edit"),
+			CLOUDFLARE_EMAIL_ACCOUNT_ID: z.string().optional(),
 			// Screencap: Brevo transactional email (preferred over Resend when set)
 			BREVO_API_KEY: z.string().optional(),
-			EMAIL_FROM: z.string().optional().describe("From address, e.g. auth@screencap.co"),
+			EMAIL_FROM: z
+				.string()
+				.optional()
+				.describe("From address, e.g. auth@screencap.co"),
 			EMAIL_FROM_NAME: z.string().optional().describe("From display name"),
 
 			// Screencap: usage limits and sign-up rules (all off when unset)
@@ -44,6 +53,23 @@ function createServerEnv() {
 				.describe(
 					"Comma-separated ISO-3166 alpha-2 codes that cannot create an account",
 				),
+			// Screencap admin panel
+			SCREENCAP_ADMIN_EMAILS: z
+				.string()
+				.optional()
+				.describe("Comma-separated emails allowed into /dashboard/admin"),
+			SCREENCAP_ACCESS_TEAM_DOMAIN: z
+				.string()
+				.optional()
+				.describe(
+					"Cloudflare Access team domain, e.g. team.cloudflareaccess.com",
+				),
+			SCREENCAP_ACCESS_AUD: z
+				.string()
+				.optional()
+				.describe("Cloudflare Access application AUD tag"),
+			SCREENCAP_CRON_SECRET: z.string().optional(),
+			SCREENCAP_PURGE_DRY_RUN: z.string().optional(),
 			TELEGRAM_ALERT_BOT_TOKEN: z.string().optional(),
 			TELEGRAM_ALERT_CHAT_ID: z.string().optional(),
 

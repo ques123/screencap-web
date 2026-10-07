@@ -1,118 +1,56 @@
 <p align="center">
-	<img width="150" height="150" src="https://github.com/CapSoftware/Cap/blob/main/apps/desktop/src-tauri/icons/Square310x310Logo.png" alt="Cap logo">
+	<img width="150" height="150" src=".github/readme/screencap-icon.png" alt="Screencap app icon">
 </p>
 
-<h1 align="center">Cap</h1>
+<h1 align="center">Screencap</h1>
 
 <p align="center">
-	Beautiful, shareable screen recordings. Open source, fast, and built for teams that want to own their data.
-</p>
-
-<p align="center">
-	<a href="https://cap.so">Website</a>
-	 |
-	<a href="https://cap.so/download">Download</a>
-	 |
-	<a href="https://cap.so/docs">Docs</a>
-	 |
-	<a href="https://cap.so/pricing">Pricing</a>
-	 |
-	<a href="https://cap.link/discord">Discord</a>
+	Screen recordings, one link away. Record your screen, stop, and send the link. It plays in any browser.
 </p>
 
 <p align="center">
-	<a href="https://console.algora.io/org/CapSoftware/bounties?status=open">
-		<img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2FCapSoftware%2Fbounties%3Fstatus%3Dopen" alt="Open bounties">
-	</a>
+	<a href="https://screencap.co">Website</a>
+	 |
+	<a href="https://screencap.co/download">Download for Mac</a>
+	 |
+	<a href="SCREENCAP.md#build-it-yourself">Build it yourself</a>
+	 |
+	<a href="SCREENCAP.md">What we changed</a>
 </p>
 
-<img src="https://raw.githubusercontent.com/CapSoftware/Cap/refs/heads/main/apps/web/public/landing-cover.png" alt="Cap app preview">
+<img src=".github/readme/hero.jpg" alt="The screencap.co homepage: Screen recordings, one link away">
 
-Cap is the open source alternative to Loom. It gives you fast screen recording, polished local editing, instant share links, comments, transcripts, analytics, team workspaces, custom domains, custom S3 storage, and full self-hosting when you need complete control.
+Screencap is a free screen recorder with instant share links, run at [screencap.co](https://screencap.co)
+by Dharma Loop LLC. It is an open-source fork of [Cap](https://github.com/CapSoftware/Cap), and this
+repository is the exact code behind the hosted service and the Mac app.
 
-Use Cap for product demos, bug reports, onboarding, tutorials, design reviews, engineering walkthroughs, async standups, client updates, and any moment where showing the work is faster than scheduling another call.
+## Features
 
-## Why Cap
+- **Record, stop, share.** Capture a screen, a window or an area, with a camera bubble, your microphone and system audio.
+- **Instant Mode.** The recording uploads while you record, so the link is ready the moment you stop.
+- **Studio Mode.** Record locally, edit with backgrounds, zooms and trims, then export or share.
+- **Transcripts, titles and summaries.** Bring your own [OpenRouter](https://openrouter.ai) key and pick the models; prices are shown per hour of video. Titles are drafted while you are still recording.
+- **Comments and views.** Viewers can comment and react, and you see how many times a recording was watched.
+- **Private or password-protected links.**
+- **Browser recording** on Windows and Linux, straight from the dashboard.
+- **Free.** No plans, no seats, no upgrade prompts.
 
-- **Record, edit, share.** Capture your screen, camera, and microphone, then share a link or export a finished video.
-- **Instant Mode for speed.** Upload while recording and get a shareable link the moment you stop.
-- **Studio Mode for polish.** Record locally, edit with backgrounds, zooms, trimming, captions, and export controls.
-- **Desktop apps for your team.** Cap runs on macOS and Windows, with a web dashboard for viewing, sharing, and managing recordings.
-- **Own your storage.** Use Cap Cloud, connect your own S3-compatible bucket, keep recordings local, or self-host the full platform.
-- **Privacy by default.** Share publicly or privately, add passwords, use your own domain, or keep sensitive recordings off hosted infrastructure.
-- **Async collaboration.** Comments, reactions, transcripts, viewer analytics, and team workspaces keep feedback attached to the video.
-- **Cap AI.** Generate titles, summaries, clickable chapters, captions, and transcripts automatically.
-- **Move from Loom.** Import existing Loom videos into Cap and keep your library in one place.
+<img src=".github/readme/how-it-works.jpg" alt="Record, Stop, Share the link">
 
-## Recording Modes
+## Get started
 
-| Mode | Best for | How it works |
-| --- | --- | --- |
-| Instant Mode | Fast feedback, bug reports, async updates | Cap uploads while you record, then gives you a share link as soon as recording stops. |
-| Studio Mode | Product demos, tutorials, launches, client work | Cap records locally, opens the editor, and lets you export or share a polished video. |
+1. Download the Mac app from [screencap.co/download](https://screencap.co/download) (Apple Silicon or Intel), or record in your browser on Windows and Linux.
+2. Sign up at [screencap.co](https://screencap.co).
+3. Record, stop, and paste the link anywhere.
 
-## Data Ownership
+Prefer not to trust our download? [Build the Mac app yourself](SCREENCAP.md#build-it-yourself) from this
+repository; it still signs in to screencap.co.
 
-Cap is designed for people and teams who do not want their recording workflow locked inside a black box.
-
-- Use Cap Cloud for the fastest hosted experience.
-- Connect AWS S3, Cloudflare R2, Backblaze B2, MinIO, Wasabi, or another S3-compatible provider.
-- Serve share pages from your own domain.
-- Self-host Cap Web, the API, database, media server, and object storage with Docker Compose.
-- Point Cap Desktop at your self-hosted instance from `Settings > Cap Server URL`.
-
-## Get Started
-
-For most users, the fastest path is:
-
-1. Download Cap for macOS or Windows from [cap.so/download](https://cap.so/download).
-2. Sign in or create an account.
-3. Choose Instant Mode or Studio Mode.
-4. Record your first Cap.
-5. Share the link, export the file, or keep it local.
-
-The full product docs live at [cap.so/docs](https://cap.so/docs).
-
-## Self-Hosting
-
-The fastest way to self-host Cap Web is Docker Compose:
-
-```bash
-git clone https://github.com/CapSoftware/Cap.git
-cd Cap
-docker compose up -d
-```
-
-Cap will be available at `http://localhost:3000`.
-
-Login links appear in the service logs when email is not configured:
-
-```bash
-docker compose logs cap-web
-```
-
-### Deployment Options
-
-| Method | Best for |
-| --- | --- |
-| Docker Compose | VPS, home servers, and any Docker-capable host |
-| [Railway](https://railway.com/new/template/PwpGcf) | One-click managed hosting |
-| Coolify | Self-hosted PaaS deployments with `docker-compose.coolify.yml` |
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/PwpGcf)
-
-For production, configure public URLs and replace the default secrets before exposing the deployment to the internet:
-
-```bash
-CAP_URL=https://cap.yourdomain.com
-S3_PUBLIC_URL=https://s3.yourdomain.com
-```
-
-See the [self-hosting guide](https://cap.so/docs/self-hosting) for email setup, AI providers, SSL, storage, production hardening, and troubleshooting.
+<img src=".github/readme/features.jpg" alt="Screencap features">
 
 ## Local Development
 
-Cap is a Turborepo monorepo with Rust, TypeScript, Tauri, SolidStart, Next.js, Drizzle, MySQL, Tailwind CSS, and shared media crates.
+Screencap is a Turborepo monorepo with Rust, TypeScript, Tauri, SolidStart, Next.js, Drizzle, MySQL, Tailwind CSS, and shared media crates.
 
 Requirements:
 
@@ -159,7 +97,6 @@ Database commands:
 | `apps/web` | Next.js web app for marketing, docs, dashboard, sharing, API routes, and auth |
 | `apps/cli` | Rust CLI |
 | `apps/media-server` | Media processing service used by the web app |
-| `apps/discord-bot` | Discord integration |
 | `packages/database` | Drizzle schema and database access |
 | `packages/ui` | Shared React UI |
 | `packages/ui-solid` | Shared Solid UI |
@@ -174,29 +111,14 @@ Database commands:
 
 The web API uses Effect and `@effect/platform` HTTP APIs. Desktop capture and export paths are backed by Rust crates for fast recording, rendering, and platform-specific media access.
 
-## Analytics
-
-Cap uses [Tinybird](https://www.tinybird.co) for viewer telemetry dashboards. Set `TINYBIRD_ADMIN_TOKEN` or `TINYBIRD_TOKEN` before running analytics commands.
-
-| Command | Purpose |
-| --- | --- |
-| `bun run analytics:setup` | Deploy Tinybird datasources and pipes from `scripts/analytics/tinybird` |
-| `bun run analytics:check` | Validate that the Tinybird workspace matches the app expectations |
-
-`analytics:setup` can remove Tinybird resources outside the checked-in analytics configuration. Use it only against the workspace you intend to manage from this repo.
-
-## Contributing
-
-Cap is built in public. Issues, pull requests, design feedback, bug reports, docs fixes, and bounties are welcome.
-
-- Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
-- Join the community on [Discord](https://cap.link/discord).
-- Check open bounties on [Algora](https://console.algora.io/org/CapSoftware/bounties?status=open).
-
 ## License
 
-Portions of this software are licensed as follows:
-
-- Code in the `cap-camera*` and `scap-*` crate families is licensed under the MIT License. See [licenses/LICENSE-MIT](https://github.com/CapSoftware/Cap/blob/main/licenses/LICENSE-MIT).
+- Code in the `cap-camera*` and `scap-*` crate families is licensed under the MIT License. See [licenses/LICENSE-MIT](licenses/LICENSE-MIT).
+- Fonts are under the SIL Open Font License; see [licenses/fonts](licenses/fonts). Other bundled assets are listed in [ASSETS.md](ASSETS.md).
 - Third-party components are licensed under the original license provided by their owner.
-- All other content not mentioned above is available under the AGPLv3 license as defined in [LICENSE](https://github.com/CapSoftware/Cap/blob/main/LICENSE).
+- Everything else is available under the AGPLv3 license as defined in [LICENSE](LICENSE).
+
+## Credits
+
+Screencap is built on [Cap](https://github.com/CapSoftware/Cap) by Cap Software and its contributors.
+The changes we made are listed in [SCREENCAP.md](SCREENCAP.md).

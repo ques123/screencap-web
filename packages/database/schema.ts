@@ -876,6 +876,123 @@ export const videoViews = mysqlTable(
 	],
 );
 
+export type ScreencapRemovedState =
+	| "removed"
+	| "quarantined"
+	| "restored"
+	| "purging"
+	| "purged";
+
+export const screencapSettings = mysqlTable("screencap_settings", {
+	key: varchar("key", { length: 64 }).primaryKey(),
+	value: json("value").notNull().$type<unknown>(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+	updatedBy: varchar("updatedBy", { length: 255 }),
+});
+
+export const screencapUserAdmin = mysqlTable("screencap_user_admin", {
+	userId: nanoId("userId").notNull().primaryKey().$type<User.UserId>(),
+	blockedAt: timestamp("blockedAt"),
+	blockReason: text("blockReason"),
+	storageHoursOverride: int("storageHoursOverride"),
+	recordingMinutesOverride: int("recordingMinutesOverride"),
+	note: text("note"),
+	updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+});
+
+export const screencapRemovedVideos = mysqlTable(
+	"screencap_removed_videos",
+	{
+		videoId: nanoId("videoId").notNull().primaryKey().$type<Video.VideoId>(),
+		ownerId: nanoIdNullable("ownerId").$type<User.UserId>(),
+		ownerEmail: varchar("ownerEmail", { length: 255 }),
+		title: varchar("title", { length: 255 }),
+		snapshot: json("snapshot").notNull().$type<{
+			video: Record<string, unknown>;
+			uploads: Record<string, unknown>[];
+		}>(),
+		state: varchar("state", { length: 16 })
+			.notNull()
+			.$type<ScreencapRemovedState>(),
+		reason: text("reason"),
+		source: varchar("source", { length: 16 })
+			.notNull()
+			.default("own")
+			.$type<"report" | "own">(),
+		removedBy: varchar("removedBy", { length: 255 }).notNull(),
+		removedAt: timestamp("removedAt").notNull().defaultNow(),
+		purgeAfter: timestamp("purgeAfter"),
+		resolvedAt: timestamp("resolvedAt"),
+	},
+	(table) => [index("state_purge_idx").on(table.state, table.purgeAfter)],
+);
+
+export const screencapReports = mysqlTable(
+	"screencap_reports",
+	{
+		id: bigint("id", { mode: "number", unsigned: true })
+			.autoincrement()
+			.primaryKey(),
+		videoId: varchar("videoId", { length: 15 }).notNull(),
+		videoTitle: varchar("videoTitle", { length: 255 }),
+		ownerId: varchar("ownerId", { length: 15 }),
+		ownerEmail: varchar("ownerEmail", { length: 255 }),
+		reason: varchar("reason", { length: 64 }).notNull(),
+		details: text("details"),
+		reporterEmail: varchar("reporterEmail", { length: 255 }),
+		country: varchar("country", { length: 8 }).notNull().default(""),
+		status: varchar("status", { length: 16 })
+			.notNull()
+			.default("open")
+			.$type<"open" | "actioned" | "dismissed">(),
+		adminNote: text("adminNote"),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+		resolvedAt: timestamp("resolvedAt"),
+		resolvedBy: varchar("resolvedBy", { length: 255 }),
+	},
+	(table) => [index("status_created_idx").on(table.status, table.createdAt)],
+);
+
+export const screencapAdminLog = mysqlTable(
+	"screencap_admin_log",
+	{
+		id: bigint("id", { mode: "number", unsigned: true })
+			.autoincrement()
+			.primaryKey(),
+		at: timestamp("at").notNull().defaultNow(),
+		adminEmail: varchar("adminEmail", { length: 255 }).notNull(),
+		action: varchar("action", { length: 48 }).notNull(),
+		targetType: varchar("targetType", { length: 16 })
+			.notNull()
+			.$type<"user" | "recording" | "report" | "settings">(),
+		targetId: varchar("targetId", { length: 255 }),
+		targetLabel: varchar("targetLabel", { length: 255 }),
+		reason: text("reason"),
+		source: varchar("source", { length: 16 }),
+		notified: boolean("notified").notNull().default(false),
+		details: json("details").$type<Record<string, unknown>>(),
+	},
+	(table) => [index("admin_log_at_idx").on(table.at)],
+);
+
+export const screencapEmailLog = mysqlTable(
+	"screencap_email_log",
+	{
+		id: bigint("id", { mode: "number", unsigned: true })
+			.autoincrement()
+			.primaryKey(),
+		at: timestamp("at").notNull().defaultNow(),
+		provider: varchar("provider", { length: 16 })
+			.notNull()
+			.$type<"cloudflare" | "brevo" | "resend">(),
+		toEmail: varchar("toEmail", { length: 255 }).notNull(),
+		subject: varchar("subject", { length: 255 }).notNull(),
+		ok: boolean("ok").notNull(),
+		error: text("error"),
+	},
+	(table) => [index("email_log_at_idx").on(table.at)],
+);
+
 export const storageIntegrations = mysqlTable(
 	"storage_integrations",
 	{
