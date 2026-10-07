@@ -30,9 +30,18 @@ function createServerEnv() {
 			RESEND_API_KEY: z.string().optional(),
 			RESEND_FROM_DOMAIN: z.string().optional(),
 
+			// Screencap: Cloudflare Email Sending (preferred when set), then Brevo, then Resend
+			CLOUDFLARE_EMAIL_API_TOKEN: z
+				.string()
+				.optional()
+				.describe("Cloudflare API token with Email Sending: Edit"),
+			CLOUDFLARE_EMAIL_ACCOUNT_ID: z.string().optional(),
 			// Screencap: Brevo transactional email (preferred over Resend when set)
 			BREVO_API_KEY: z.string().optional(),
-			EMAIL_FROM: z.string().optional().describe("From address, e.g. auth@screencap.co"),
+			EMAIL_FROM: z
+				.string()
+				.optional()
+				.describe("From address, e.g. auth@screencap.co"),
 			EMAIL_FROM_NAME: z.string().optional().describe("From display name"),
 
 			// Screencap: usage limits and sign-up rules (all off when unset)

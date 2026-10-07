@@ -157,7 +157,7 @@ const sendMobileEmailCode = async (email: string, code: string) => {
 	if (!isEmailConfigured()) {
 		if (process.env.NODE_ENV === "production") {
 			throw new Error(
-				"BREVO_API_KEY or RESEND_API_KEY is required to send mobile email codes",
+				"An email provider (Cloudflare, Brevo or Resend) is required to send mobile email codes",
 			);
 		}
 		console.log("");
