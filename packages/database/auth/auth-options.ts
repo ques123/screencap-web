@@ -13,7 +13,8 @@ import type { Provider } from "next-auth/providers/index";
 import WorkOSProvider from "next-auth/providers/workos";
 import { isEmailConfigured, sendEmail } from "../emails/config.ts";
 import { db } from "../index.ts";
-import { users } from "../schema.ts";
+import { screencapUserAdmin, users } from "../schema.ts";
+import { getSettings, getSettingsSync } from "../screencap-settings.ts";
 import {
 	isBlockedAccountEmail,
 	isEmailAllowedForSignup,
@@ -31,13 +32,15 @@ import { ssoLoginErrorPath } from "./sso-state.ts";
 export const maxDuration = 120;
 
 // Reads Cloudflare's CF-IPCountry header for the current request. "XX"/"T1"
-// (unknown/Tor) and anything unreadable count as allowed.
-async function isSignupCountryBlocked(): Promise<boolean> {
-	const blocked = serverEnv()
-		.SCREENCAP_SIGNUP_BLOCKED_COUNTRIES?.split(",")
+// (unknown/Tor) and anything unreadable count as allowed. The blocked list
+// comes from the admin settings (env is the fallback).
+async function isSignupCountryBlocked(
+	blockedCountries: string[],
+): Promise<boolean> {
+	const blocked = blockedCountries
 		.map((c) => c.trim().toUpperCase())
 		.filter(Boolean);
-	if (!blocked?.length) return false;
+	if (!blocked.length) return false;
 	try {
 		const { headers } = await import("next/headers");
 		const country = (await headers()).get("cf-ipcountry")?.trim().toUpperCase();
@@ -57,6 +60,14 @@ export async function decodeSessionToken(
 	if (!token) return null;
 	// A blocked email loses its existing sessions, not just new sign-ins.
 	if (typeof token.email === "string" && isBlockedAccountEmail(token.email))
+		return null;
+	if (
+		typeof token.email === "string" &&
+		isEmailBlockedFromSignup(
+			token.email,
+			getSettingsSync().blockedEmails.join(","),
+		)
+	)
 		return null;
 
 	const userId = typeof token.id === "string" ? token.id : null;
@@ -259,21 +270,18 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 				if (!rawEmail || typeof rawEmail !== "string") return true;
 				const userEmail = rawEmail.toLowerCase();
 
+				const settings = await getSettings();
+
 				if (
 					isEmailBlockedFromSignup(
 						userEmail,
 						serverEnv().CAP_BLOCKED_SIGNUP_DOMAINS,
-					)
+					) ||
+					isEmailBlockedFromSignup(userEmail, settings.blockedEmails.join(","))
 				) {
 					console.warn(`Sign-in blocked for email: ${userEmail}`);
 					return "/login?error=SignupBlocked";
 				}
-
-				const allowedDomains = serverEnv().CAP_ALLOWED_SIGNUP_DOMAINS;
-				const countryRuleActive = Boolean(
-					serverEnv().SCREENCAP_SIGNUP_BLOCKED_COUNTRIES?.trim(),
-				);
-				if (!allowedDomains && !countryRuleActive) return true;
 
 				const [existingUser] = await db()
 					.select()
@@ -281,11 +289,30 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 					.where(eq(users.email, userEmail))
 					.limit(1);
 
+				// A blocked account (admin panel) cannot sign in, even with a valid code.
+				// If the lookup fails (e.g. the table is not migrated yet), sign-in still works.
+				if (existingUser) {
+					const adminRow = await db()
+						.select({ blockedAt: screencapUserAdmin.blockedAt })
+						.from(screencapUserAdmin)
+						.where(eq(screencapUserAdmin.userId, existingUser.id))
+						.limit(1)
+						.then((rows) => rows[0])
+						.catch((e) => {
+							console.error("blocked-account lookup failed", e);
+							return undefined;
+						});
+					if (adminRow?.blockedAt) {
+						console.warn(`Sign-in blocked for account: ${userEmail}`);
+						return "/login?error=SignupBlocked";
+					}
+				}
+
 				// Only apply domain restrictions for new users, existing ones can always sign in
 				if (
 					!existingUser &&
-					allowedDomains &&
-					!isEmailAllowedForSignup(userEmail, allowedDomains)
+					settings.signupMode === "allowlist" &&
+					!isEmailAllowedForSignup(userEmail, settings.allowedDomains.join(","))
 				) {
 					console.warn(`Signup blocked for email domain: ${userEmail}`);
 					return false;
@@ -293,7 +320,10 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 
 				// Country rule: new accounts only. This also runs on the email
 				// verificationRequest step (before a code is sent) and on OAuth.
-				if (!existingUser && (await isSignupCountryBlocked())) {
+				if (
+					!existingUser &&
+					(await isSignupCountryBlocked(settings.blockedCountries))
+				) {
 					console.warn(`Signup blocked for country: ${userEmail}`);
 					return "/login?error=SignupCountryBlocked";
 				}

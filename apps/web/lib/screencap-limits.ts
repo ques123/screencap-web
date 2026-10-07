@@ -1,7 +1,9 @@
 import { db } from "@cap/database";
 import { videos } from "@cap/database/schema";
+import { getSettingsSync } from "@cap/database/screencap-settings";
 import { serverEnv } from "@cap/env";
 import { eq, sql } from "drizzle-orm";
+import { getUserLimitOverrides } from "@/lib/screencap-admin/limit-overrides";
 
 /** Error code returned to clients. Deliberately not "upgrade_required", which triggers Cap's upgrade UI. */
 export const RECORDING_LIMIT_ERROR = "recording_limit";
@@ -14,12 +16,34 @@ export function parseLimit(value: string | undefined | null): number | null {
 	return Number.isSafeInteger(n) && n > 0 ? n : null;
 }
 
+function positiveOrNull(n: number | null | undefined): number | null {
+	return typeof n === "number" && Number.isFinite(n) && n > 0 ? n : null;
+}
+
+// Admin settings (minutes / hours) win; the env vars (seconds) are the fallback.
 export function maxRecordingSeconds(): number | null {
+	const minutes = positiveOrNull(getSettingsSync().maxRecordingMinutes);
+	if (minutes !== null) return Math.round(minutes * 60);
 	return parseLimit(serverEnv().SCREENCAP_MAX_RECORDING_SECONDS);
 }
 
 export function maxStorageSeconds(): number | null {
+	const hours = positiveOrNull(getSettingsSync().maxStorageHours);
+	if (hours !== null) return Math.round(hours * 3600);
 	return parseLimit(serverEnv().SCREENCAP_MAX_STORAGE_SECONDS);
+}
+
+// Per-user overrides set in the admin panel. Never throws: on any failure the
+// global limit applies.
+async function userOverrides(userId: string | undefined) {
+	if (!userId)
+		return { storageHoursOverride: null, recordingMinutesOverride: null };
+	try {
+		return await getUserLimitOverrides(userId);
+	} catch (error) {
+		console.warn("[limits] could not load user overrides", error);
+		return { storageHoursOverride: null, recordingMinutesOverride: null };
+	}
 }
 
 function formatHours(seconds: number): string {
@@ -64,22 +88,32 @@ export async function getStoredSecondsForUser(userId: string): Promise<number> {
 export async function checkCanCreateRecording(
 	userId: string,
 ): Promise<LimitCheck> {
-	const limit = maxStorageSeconds();
+	const overrides = await userOverrides(userId);
+	const hours = positiveOrNull(overrides.storageHoursOverride);
+	const limit = hours !== null ? Math.round(hours * 3600) : maxStorageSeconds();
 	if (limit === null) return { ok: true };
 	const stored = await getStoredSecondsForUser(userId);
 	if (stored >= limit)
-		return { ok: false, code: "storage_full", message: storageFullMessage(limit) };
+		return {
+			ok: false,
+			code: "storage_full",
+			message: storageFullMessage(limit),
+		};
 	return { ok: true };
 }
 
 /**
  * `graceSeconds` covers stop/finalize latency for honest recorders that stop at the cap.
  */
-export function checkRecordingLength(
+export async function checkRecordingLength(
 	seconds: number | null | undefined,
 	graceSeconds = 0,
-): LimitCheck {
-	const limit = maxRecordingSeconds();
+	userId?: string,
+): Promise<LimitCheck> {
+	const overrides = await userOverrides(userId);
+	const minutes = positiveOrNull(overrides.recordingMinutesOverride);
+	const limit =
+		minutes !== null ? Math.round(minutes * 60) : maxRecordingSeconds();
 	if (limit === null) return { ok: true };
 	if (
 		typeof seconds === "number" &&

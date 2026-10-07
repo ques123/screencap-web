@@ -16,11 +16,11 @@ import {
 import { Option } from "effect";
 import { revalidatePath } from "next/cache";
 import { requireOrganizationAccess } from "@/actions/organization/authorization";
-import { runPromise } from "@/lib/server";
 import {
 	checkCanCreateRecording,
 	checkRecordingLength,
 } from "@/lib/screencap-limits";
+import { runPromise } from "@/lib/server";
 
 export interface CreateForProcessingResult {
 	id: Video.VideoId;
@@ -64,7 +64,7 @@ export async function createVideoForServerProcessing({
 		throw new Error("upgrade_required");
 	}
 
-	const lengthCheck = checkRecordingLength(duration);
+	const lengthCheck = await checkRecordingLength(duration, 0, user.id);
 	if (!lengthCheck.ok) throw new Error(lengthCheck.message);
 
 	await requireOrganizationAccess(user.id, orgId);

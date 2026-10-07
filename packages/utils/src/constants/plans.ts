@@ -27,13 +27,17 @@ export const STRIPE_SAML_SSO_PRICE_ID = "price_1UBJpTFJxA1XpeSsQmAOhibr";
 export const STRIPE_SAML_SSO_LEGACY_PRICE_ID = "price_1UBJQuFJxA1XpeSsnxL2KhP7";
 export const STRIPE_SAML_SSO_PRODUCT_ID = "prod_VBgo5t1scWLUPy";
 
+// Screencap: everyone is Pro unless an admin revokes it in the admin panel.
+export const SCREENCAP_PRO_REVOKED = "screencap_revoked";
+
 export const userIsPro = (
 	user?: {
 		stripeSubscriptionStatus?: string | null;
 		thirdPartyStripeSubscriptionId?: string | null;
 	} | null,
 ) => {
-	if (!buildEnv.NEXT_PUBLIC_IS_CAP) return true;
+	if (!buildEnv.NEXT_PUBLIC_IS_CAP)
+		return user?.stripeSubscriptionStatus !== SCREENCAP_PRO_REVOKED;
 
 	if (!user) return false;
 

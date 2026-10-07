@@ -22,7 +22,7 @@ import { faBuilding } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import clsx from "clsx";
 import { motion } from "framer-motion";
-import { Check, ChevronDown, Plus } from "lucide-react";
+import { Check, ChevronDown, Plus, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -67,7 +67,8 @@ interface Props {
 const AdminNavItems = ({ toggleMobileNav }: Props) => {
 	const pathname = usePathname();
 	const [open, setOpen] = useState(false);
-	const { user, sidebarCollapsed, userCapsCount } = useDashboardContext();
+	const { user, sidebarCollapsed, userCapsCount, isAdmin } =
+		useDashboardContext();
 
 	const DEVELOPER_DASHBOARD_ALLOWED_EMAILS = ["richie@cap.so"];
 
@@ -393,6 +394,48 @@ const AdminNavItems = ({ toggleMobileNav }: Props) => {
 										/>
 									</div>
 								))}
+
+							{isAdmin && (
+								<div className="flex relative justify-center items-center mb-1.5 w-full">
+									{pathname.startsWith("/dashboard/admin") && (
+										<div className="absolute h-[36px] w-full rounded-xl pointer-events-none bg-gray-3" />
+									)}
+									<Tooltip
+										disable={!sidebarCollapsed}
+										content="Admin"
+										position="right"
+									>
+										{/* Plain <a> on purpose: a full page load lets Cloudflare Access intercept. */}
+										<a
+											href="/dashboard/admin"
+											className={clsx(
+												"relative border border-transparent transition z-3",
+												sidebarCollapsed
+													? "flex justify-center items-center px-0 w-full size-9"
+													: "px-3 py-2 w-full",
+												"flex overflow-hidden justify-start items-center tracking-tight rounded-xl outline-none hover:bg-gray-2",
+											)}
+										>
+											<ShieldCheck
+												className={clsx(
+													sidebarCollapsed
+														? "text-gray-12 mx-auto"
+														: "text-gray-10",
+												)}
+												size={sidebarCollapsed ? 18 : 16}
+											/>
+											<p
+												className={clsx(
+													"text-sm text-gray-12 truncate",
+													sidebarCollapsed ? "hidden" : "ml-2.5",
+												)}
+											>
+												Admin
+											</p>
+										</a>
+									</Tooltip>
+								</div>
+							)}
 
 							<SpacesList toggleMobileNav={() => toggleMobileNav?.()} />
 						</div>

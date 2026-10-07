@@ -498,9 +498,12 @@ app.post(
 					Video.FREE_PLAN_MAX_RECORDING_SECONDS +
 						FREE_PLAN_DURATION_GRACE_SECONDS;
 
-			const configuredLengthCheck = checkRecordingLength(
-				reportedDuration,
-				FREE_PLAN_DURATION_GRACE_SECONDS,
+			const configuredLengthCheck = yield* Effect.promise(() =>
+				checkRecordingLength(
+					reportedDuration,
+					FREE_PLAN_DURATION_GRACE_SECONDS,
+					user.id,
+				),
 			);
 
 			if (
@@ -577,8 +580,8 @@ app.post(
 						!configuredLengthCheck.ok
 							? configuredLengthCheck.message
 							: reportedDuration === null
-							? "Recording duration is required to complete a free plan upload."
-							: "Recording exceeds the free plan duration limit. Upgrade to Cap Pro to upload longer recordings.",
+								? "Recording duration is required to complete a free plan upload."
+								: "Recording exceeds the free plan duration limit. Upgrade to Cap Pro to upload longer recordings.",
 					);
 				}
 			}

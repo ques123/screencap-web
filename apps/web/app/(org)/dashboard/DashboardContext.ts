@@ -41,6 +41,8 @@ export type SharedContext = {
 	developerApps: DeveloperApp[] | null;
 	setDeveloperApps: (apps: DeveloperApp[] | null) => void;
 	shareableLinkUsage: { used: number; limit: number } | null;
+	/** Email-only check on the server; the admin pages enforce the real gate. */
+	isAdmin: boolean;
 };
 
 export type ITheme = "light" | "dark";
