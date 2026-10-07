@@ -34,7 +34,9 @@ function ShareButton() {
 					const customUrl = () =>
 						customDomain.data?.custom_domain &&
 						customDomain.data?.domain_verified
-							? new URL(`${customDomain.data.custom_domain}/s/${sharing().id}`)
+							? new URL(
+									`${customDomain.data.custom_domain}/s/${sharing().id}${normalUrl().hash}`,
+								)
 							: null;
 					const [preferCustom, setPreferCustom] = createSignal(true);
 					const selectedUrl = () =>

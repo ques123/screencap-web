@@ -81,6 +81,7 @@ cap-audio = { path = "../../../crates/audio" }
 cap-camera = { path = "../../../crates/camera", features = ["serde", "specta"] }
 cap-camera-effects = { path = "../../../crates/camera-effects" }
 cap-utils = { path = "../../../crates/utils" }
+cap-e2ee = { path = "../../../crates/e2ee" }
 cap-project = { path = "../../../crates/project" }
 cap-rendering = { path = "../../../crates/rendering" }
 cap-editor = { path = "../../../crates/editor" }

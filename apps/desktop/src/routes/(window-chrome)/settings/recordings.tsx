@@ -381,6 +381,18 @@ function RecordingItem(props: {
 							<p>{firstLetterUpperCase()}</p>
 						</div>
 
+						<Show when={props.recording.meta.sharing?.e2eeKey}>
+							<CapTooltip content="End-to-end encrypted">
+								<div
+									role="img"
+									aria-label="End-to-end encrypted"
+									class="px-2 py-0.5 flex items-center font-medium text-[11px] text-gray-12 rounded-full w-fit bg-gray-4"
+								>
+									<IconLucideLock class="size-2.5" />
+								</div>
+							</CapTooltip>
+						</Show>
+
 						<Show when={props.recording.meta.clip_count > 1}>
 							<div class="px-2 py-0.5 flex items-center font-medium text-[11px] text-gray-12 rounded-full w-fit bg-gray-4">
 								<p>{props.recording.meta.clip_count} clips</p>

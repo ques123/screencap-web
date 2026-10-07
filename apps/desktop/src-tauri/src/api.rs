@@ -414,6 +414,11 @@ pub async fn verify_recording_complete(
     video_id: &str,
     verification: &cap_recording::upload_verification::UploadVerification,
 ) -> Result<Option<cap_recording::upload_verification::VerifiedUploadReceipt>, AuthedApiError> {
+    let mut request_verification = serde_json::to_value(verification)
+        .map_err(|error| format!("Could not encode recording verification: {error}"))?;
+    if let Some(fields) = request_verification.as_object_mut() {
+        fields.remove("e2ee");
+    }
     let response = app
         .authed_api_request("/api/upload/recording-complete", |client, url| {
             client
@@ -421,7 +426,7 @@ pub async fn verify_recording_complete(
                 .timeout(std::time::Duration::from_secs(45))
                 .json(&serde_json::json!({
                     "videoId": video_id,
-                    "verification": verification,
+                    "verification": request_verification,
                 }))
         })
         .await?;

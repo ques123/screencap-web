@@ -80,6 +80,8 @@ pub struct SharingMeta {
     pub link: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub content_hash: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub e2ee_key: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -148,6 +150,8 @@ pub enum UploadMeta {
         video_id: String,
         pre_created_video: VideoUploadInfo,
         recording_dir: PathBuf,
+        #[serde(default)]
+        e2ee: bool,
     },
     Failed {
         error: String,
@@ -1509,5 +1513,39 @@ mod ordinary_media_access_tests {
                 .is_err()
         );
         assert!(diagnostics.is_dir());
+    }
+}
+
+#[cfg(test)]
+mod e2ee_meta_tests {
+    use super::*;
+
+    #[test]
+    fn sharing_without_e2ee_key_loads_and_round_trips_unchanged() {
+        let old: SharingMeta =
+            serde_json::from_str(r#"{"id":"abc","link":"https://screencap.co/s/abc"}"#).unwrap();
+        assert!(old.e2ee_key.is_none());
+        let json = serde_json::to_string(&old).unwrap();
+        assert!(!json.contains("e2ee"));
+
+        let keyed = SharingMeta {
+            e2ee_key: Some("k".into()),
+            ..old
+        };
+        let back: SharingMeta =
+            serde_json::from_str(&serde_json::to_string(&keyed).unwrap()).unwrap();
+        assert_eq!(back.e2ee_key.as_deref(), Some("k"));
+    }
+
+    #[test]
+    fn segment_upload_without_e2ee_flag_loads_as_plaintext() {
+        let upload: UploadMeta = serde_json::from_str(
+            r#"{"state":"SegmentUpload","video_id":"v","pre_created_video":{"id":"v","link":"l","config":{"id":"v"}},"recording_dir":"/tmp/x"}"#,
+        )
+        .unwrap();
+        assert!(matches!(
+            upload,
+            UploadMeta::SegmentUpload { e2ee: false, .. }
+        ));
     }
 }

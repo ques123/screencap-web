@@ -217,6 +217,8 @@ pub struct GeneralSettingsStore {
     #[serde(default = "default_instant_mode_max_resolution")]
     pub instant_mode_max_resolution: u32,
     #[serde(default)]
+    pub encrypt_recordings: bool,
+    #[serde(default)]
     pub default_project_name_template: Option<String>,
     #[serde(default = "default_crash_recovery_recording")]
     pub crash_recovery_recording: bool,
@@ -347,6 +349,7 @@ impl Default for GeneralSettingsStore {
             excluded_windows: default_excluded_windows(),
             delete_instant_recordings_after_upload: false,
             instant_mode_max_resolution: cap_recording::DEFAULT_INSTANT_MODE_MAX_RESOLUTION,
+            encrypt_recordings: false,
             default_project_name_template: None,
             crash_recovery_recording: cap_recording::DEFAULT_CRASH_RECOVERY_RECORDING,
             max_fps: cap_recording::DEFAULT_STUDIO_MAX_FPS,

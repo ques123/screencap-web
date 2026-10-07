@@ -23,6 +23,8 @@ pub struct UploadVerification {
     pub version: u32,
     pub artifact: UploadArtifact,
     pub required_audio: bool,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub e2ee: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -37,6 +39,8 @@ pub struct VerifiedUploadReceipt {
     pub full_decode: bool,
     #[serde(default)]
     pub required_audio_verified: bool,
+    #[serde(default)]
+    pub e2ee: bool,
 }
 
 impl UploadVerification {
@@ -47,7 +51,13 @@ impl UploadVerification {
                 manifest_sha256: hex::encode(Sha256::digest(manifest_json)),
             },
             required_audio,
+            e2ee: false,
         }
+    }
+
+    pub fn with_e2ee(mut self, e2ee: bool) -> Self {
+        self.e2ee = e2ee;
+        self
     }
 
     pub fn mp4(
@@ -71,6 +81,7 @@ impl UploadVerification {
                 object_identity,
             },
             required_audio,
+            e2ee: false,
         })
     }
 
@@ -104,7 +115,8 @@ impl UploadVerification {
             || receipt.file_size == 0
             || !receipt.duration.is_finite()
             || receipt.duration <= 0.0
-            || !receipt.full_decode
+            || receipt.e2ee != self.e2ee
+            || (!self.e2ee && !receipt.full_decode)
             || (self.required_audio && (!receipt.has_audio || !receipt.required_audio_verified))
         {
             return Err("Recording verification did not match the local recording".into());
@@ -223,6 +235,45 @@ mod tests {
             invalid["verification"][field] = value;
             assert!(request.verified_receipt("owned-video", &invalid).is_err());
         }
+    }
+
+    #[test]
+    fn e2ee_receipt_needs_no_full_decode_but_must_be_flagged_on_both_sides() {
+        let request = UploadVerification::segments(b"final manifest", true).with_e2ee(true);
+        let mut receipt = response(&request);
+        receipt["verification"]["fullDecode"] = json!(false);
+        receipt["verification"]["e2ee"] = json!(true);
+        assert!(
+            request
+                .verified_receipt("owned-video", &receipt)
+                .unwrap()
+                .is_some()
+        );
+        receipt["verification"]["e2ee"] = json!(false);
+        assert!(request.verified_receipt("owned-video", &receipt).is_err());
+
+        let plain = UploadVerification::segments(b"final manifest", true);
+        let mut forged = response(&plain);
+        forged["verification"]["fullDecode"] = json!(false);
+        forged["verification"]["e2ee"] = json!(true);
+        assert!(plain.verified_receipt("owned-video", &forged).is_err());
+        forged["verification"]["e2ee"] = json!(false);
+        assert!(plain.verified_receipt("owned-video", &forged).is_err());
+    }
+
+    #[test]
+    fn plain_requests_serialise_without_the_e2ee_flag() {
+        let request = UploadVerification::segments(b"m", false);
+        assert!(
+            serde_json::to_value(&request)
+                .unwrap()
+                .get("e2ee")
+                .is_none()
+        );
+        let flagged = request.with_e2ee(true);
+        let round: UploadVerification =
+            serde_json::from_value(serde_json::to_value(&flagged).unwrap()).unwrap();
+        assert!(round.e2ee);
     }
 
     #[test]

@@ -55,7 +55,9 @@ pub(crate) fn acquire_upload_lock(recording_dir: &Path) -> Result<UploadLock, Au
     let lock = UploadLock::acquire(recording_dir).map_err(|error| error.to_string())?;
     match std::fs::symlink_metadata(recording_dir.join("instant-upload.json")) {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(lock),
-        Ok(_) => Err("This recording's upload is managed by Screencap GPUI; local files retained".into()),
+        Ok(_) => {
+            Err("This recording's upload is managed by Screencap GPUI; local files retained".into())
+        }
         Err(error) => Err(format!("Could not verify recording upload ownership: {error}").into()),
     }
 }
@@ -721,9 +723,18 @@ pub async fn create_or_get_video(
         name,
         meta,
         organization_id,
-        "desktopMP4",
+        VideoCreateMode {
+            recording_mode: "desktopMP4",
+            e2ee_fingerprint: None,
+        },
     )
     .await
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct VideoCreateMode<'a> {
+    pub recording_mode: &'a str,
+    pub e2ee_fingerprint: Option<&'a str>,
 }
 
 #[instrument(skip(app))]
@@ -734,8 +745,12 @@ pub async fn create_or_get_video_with_mode(
     name: Option<String>,
     meta: Option<S3VideoMeta>,
     organization_id: Option<String>,
-    recording_mode: &str,
+    mode: VideoCreateMode<'_>,
 ) -> Result<S3UploadMeta, AuthedApiError> {
+    let VideoCreateMode {
+        recording_mode,
+        e2ee_fingerprint,
+    } = mode;
     let mut s3_config_url = if let Some(id) = video_id {
         let mut url =
             format!("/api/desktop/video/create?recordingMode={recording_mode}&videoId={id}");
@@ -764,6 +779,10 @@ pub async fn create_or_get_video_with_mode(
 
     if let Some(org_id) = organization_id {
         s3_config_url.push_str(&format!("&orgId={org_id}"));
+    }
+
+    if let Some(fingerprint) = e2ee_fingerprint {
+        s3_config_url.push_str(&format!("&e2ee=1&keyFingerprint={fingerprint}"));
     }
 
     let response = app
@@ -1364,6 +1383,31 @@ impl SegmentUploader {
         }
     }
 
+    #[cfg(not(target_os = "linux"))]
+    pub(crate) fn spawn_e2ee_after_stop(
+        session: Arc<lifecycle::Session>,
+        recording_done: Option<flume::Receiver<()>>,
+    ) -> Self {
+        let recording_dir = session.directory.clone();
+        let worker_session = session.clone();
+        Self {
+            session,
+            handle: spawn_actor(async move {
+                worker_session
+                    .run(async {
+                        worker_session.acquire()?;
+                        if let Some(done) = recording_done {
+                            done.recv_async().await.ok();
+                        }
+                        crate::e2ee::upload_e2ee_after_stop(&recording_dir)
+                            .await
+                            .map_err(AuthedApiError::from)
+                    })
+                    .await
+            }),
+        }
+    }
+
     async fn read_segment_data(
         file_path: &Path,
         subpath: &str,
@@ -1446,8 +1490,10 @@ impl SegmentUploader {
         file_bytes: Bytes,
         url_cache: &PresignedUrlCache,
         prefetched_url: Option<String>,
+        e2ee_key: Option<&cap_e2ee::ContentKey>,
     ) -> Result<u64, AuthedApiError> {
         const MAX_RETRIES: u32 = 3;
+        let file_bytes = crate::e2ee::encrypt_for_upload(e2ee_key, subpath, file_bytes);
         let file_size = file_bytes.len();
         let mut cached_url = prefetched_url;
 
@@ -1591,19 +1637,34 @@ impl SegmentUploader {
         let active_upload = ActiveUploadGuard::new(&ACTIVE_UPLOADS);
         info!("Starting segment uploader for {video_id}");
 
+        let marked_e2ee = crate::e2ee::upload_marked_e2ee(
+            RecordingMeta::load_for_project(&recording_dir)
+                .map_err(|error| error.to_string())?
+                .upload
+                .as_ref(),
+        );
+        let e2ee_key = Arc::new(crate::e2ee::resolve_upload_key(
+            &recording_dir,
+            marked_e2ee,
+        )?);
+        let is_e2ee = e2ee_key.is_some();
+
         session.persist_upload(UploadMeta::SegmentUpload {
             video_id: video_id.clone(),
             pre_created_video: pre_created_video.clone(),
             recording_dir: recording_dir.clone(),
+            e2ee: is_e2ee,
         })?;
 
         let state = Arc::new(Mutex::new(SegmentUploadState::new()));
-        let preparation = preparation::start(
-            app.clone(),
-            video_id.clone(),
-            state.clone(),
-            session.clone(),
-        );
+        let preparation = (!is_e2ee).then(|| {
+            preparation::start(
+                app.clone(),
+                video_id.clone(),
+                state.clone(),
+                session.clone(),
+            )
+        });
         let semaphore = Arc::new(tokio::sync::Semaphore::new(6));
         let read_semaphore = Arc::new(tokio::sync::Semaphore::new(12));
         let consecutive_failures = Arc::new(std::sync::atomic::AtomicU32::new(0));
@@ -1745,16 +1806,9 @@ impl SegmentUploader {
                         break;
                     };
 
-                    let subpath = match (event.is_init, event.media_type) {
-                        (true, SegmentMediaType::Video) => "segments/video/init.mp4".to_string(),
-                        (true, SegmentMediaType::Audio) => "segments/audio/init.mp4".to_string(),
-                        (false, SegmentMediaType::Video) => {
-                            format!("segments/video/segment_{:03}.m4s", event.index)
-                        }
-                        (false, SegmentMediaType::Audio) => {
-                            format!("segments/audio/segment_{:03}.m4s", event.index)
-                        }
-                    };
+                    let subpath =
+                        crate::e2ee::segment_subpath(event.is_init, event.media_type, event.index);
+                    let e2ee_key_clone = e2ee_key.clone();
 
                     let app_clone = app.clone();
                     let video_id_clone = video_id.clone();
@@ -1840,6 +1894,7 @@ impl SegmentUploader {
                             file_data,
                             &url_cache_clone,
                             prefetched_url,
+                            (*e2ee_key_clone).as_ref(),
                         )
                         .await;
 
@@ -1933,7 +1988,9 @@ impl SegmentUploader {
         }
 
         drain_segment_upload_tasks(&state, &mut in_flight).await;
-        preparation.stop().await;
+        if let Some(preparation) = preparation {
+            preparation.stop().await;
+        }
 
         if bridge_handle.join().is_err() {
             state
@@ -1987,6 +2044,7 @@ impl SegmentUploader {
                     file_data,
                     &url_cache,
                     None,
+                    (*e2ee_key).as_ref(),
                 )
                 .await
                 {
@@ -2034,7 +2092,8 @@ impl SegmentUploader {
         )?;
         publish_completed_segments(completion_state, |final_manifest| async move {
             let final_json = serde_json::to_vec_pretty(&final_manifest)?;
-            let verification = UploadVerification::segments(&final_json, required_audio);
+            let verification =
+                UploadVerification::segments(&final_json, required_audio).with_e2ee(is_e2ee);
             {
                 let mut manifest_err: Option<AuthedApiError> = None;
                 for attempt in 0..3u32 {
@@ -3251,6 +3310,7 @@ mod tests {
             id: "existing-video".into(),
             link: "https://screencap.co/s/existing-video".into(),
             content_hash: None,
+            e2ee_key: None,
         };
         for upload in [
             None,

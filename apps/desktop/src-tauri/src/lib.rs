@@ -17,6 +17,7 @@ mod clip_thumbnails;
 mod crash_sentinel;
 mod deeplink_actions;
 mod diagnostics;
+mod e2ee;
 mod editor_preparing;
 mod editor_recording;
 mod editor_window;
@@ -5179,6 +5180,17 @@ async fn upload_exported_video(
         }
     }
 
+    if let Some(error) = e2ee::studio_upload_blocker(
+        GeneralSettingsStore::get(&app)
+            .ok()
+            .flatten()
+            .is_some_and(|settings| e2ee::setting_enabled(settings.encrypt_recordings)),
+        meta.sharing.as_ref(),
+    ) {
+        notifications::send_notification(&app, notifications::NotificationType::UploadFailed);
+        return Err(error.to_string());
+    }
+
     let file_path = meta.output_path();
     if !file_path.exists() {
         notifications::send_notification(&app, notifications::NotificationType::UploadFailed);
@@ -5270,11 +5282,7 @@ async fn upload_exported_video(
                 .unwrap_or(uploaded_video.link);
 
             meta.upload = Some(UploadMeta::Complete);
-            meta.sharing = Some(SharingMeta {
-                link: link.clone(),
-                id: uploaded_video.id.clone(),
-                content_hash: None,
-            });
+            meta.sharing = Some(e2ee::sharing_meta(uploaded_video.id.clone(), link.clone()));
             meta.save_for_project()
                 .map_err(|error| format!("Failed to persist sharing state: {error}"))?;
 
@@ -5331,6 +5339,7 @@ fn save_screenshot_sharing(
         link: uploaded.link.clone(),
         id: uploaded.id.clone(),
         content_hash,
+        e2ee_key: None,
     });
     meta.save_for_project()
         .map_err(|err| format!("Error saving project {}: {err}", project_path.display()))
@@ -10525,6 +10534,7 @@ mod screenshot_share_cache_tests {
             id: String::from("video-id"),
             link: String::from("https://screencap.co/s/video-id"),
             content_hash: content_hash.map(str::to_string),
+            e2ee_key: None,
         }
     }
 
@@ -10720,6 +10730,7 @@ mod instant_resume_safety_tests {
                         id: "synthetic".into(),
                     },
                 },
+                e2ee: false,
             }),
         };
         meta.save_for_project().unwrap();

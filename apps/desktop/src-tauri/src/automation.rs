@@ -244,7 +244,7 @@ impl AutomationHost for DesktopAutomationHost {
 
             uploaded.link
         } else if let Some(existing) = ctx.share_link.as_ref() {
-            info!(link = %existing, "Automation: recording already uploaded, reusing existing link");
+            info!(link = %crate::e2ee::link_without_fragment(existing), "Automation: recording already uploaded, reusing existing link");
             existing.clone()
         } else if let Some(project_path) = ctx.project_path.as_ref() {
             info!(path = %project_path.display(), "Automation: uploading recording");

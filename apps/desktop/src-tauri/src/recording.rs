@@ -5,9 +5,9 @@ use cap_project::CursorMoveEvent;
 use cap_project::cursor::SHORT_CURSOR_SHAPE_DEBOUNCE_MS;
 use cap_project::{
     CameraShape, CursorClickEvent, GlideDirection, InstantRecordingMeta, MultipleSegments,
-    Platform, ProjectConfiguration, RecordingMeta, RecordingMetaInner, SharingMeta,
-    StudioRecordingMeta, StudioRecordingStatus, TimelineConfiguration, TimelineSegment, ZoomMode,
-    ZoomSegment, cursor::CursorEvents,
+    Platform, ProjectConfiguration, RecordingMeta, RecordingMetaInner, StudioRecordingMeta,
+    StudioRecordingStatus, TimelineConfiguration, TimelineSegment, ZoomMode, ZoomSegment,
+    cursor::CursorEvents,
 };
 #[cfg(target_os = "macos")]
 use cap_recording::SendableShareableContent;
@@ -85,11 +85,7 @@ use crate::{
 use crate::upload::InstantMultipartUpload;
 
 fn recording_stopped_share_url(link: &str) -> String {
-    if link.contains('?') {
-        format!("{link}&recordingStopped=1")
-    } else {
-        format!("{link}?recordingStopped=1")
-    }
+    crate::e2ee::recording_stopped_url(link)
 }
 
 const CURRENT_DESKTOP_BACKGROUND_BASENAME: &str = "current-desktop-background";
@@ -2297,11 +2293,18 @@ async fn start_recording_prepared(
             } else {
                 cap_recording::FREE_INSTANT_MODE_MAX_RESOLUTION
             };
-            let upload_mode = if matches!(inputs.capture_target, ScreenCaptureTarget::CameraOnly) {
+            let e2ee_key = crate::e2ee::setting_enabled(
+                general_settings.is_some_and(|settings| settings.encrypt_recordings),
+            )
+            .then(cap_e2ee::ContentKey::generate);
+            let upload_mode = if e2ee_key.is_none()
+                && matches!(inputs.capture_target, ScreenCaptureTarget::CameraOnly)
+            {
                 "desktopMP4"
             } else {
                 "desktopSegments"
             };
+            let key_fingerprint = e2ee_key.as_ref().map(cap_e2ee::ContentKey::fingerprint);
 
             let s3_config = match crate::upload::create_or_get_video_with_mode(
                 &app,
@@ -2310,7 +2313,10 @@ async fn start_recording_prepared(
                 Some(project_name.clone()),
                 None,
                 inputs.organization_id.clone(),
-                upload_mode,
+                crate::upload::VideoCreateMode {
+                    recording_mode: upload_mode,
+                    e2ee_fingerprint: key_fingerprint.as_deref(),
+                },
             )
             .await
             {
@@ -2342,7 +2348,14 @@ async fn start_recording_prepared(
             };
 
             let link = app.make_app_url(format!("/s/{}", s3_config.id)).await;
-            info!("Pre-created shareable link: {}", link);
+            let link = match &e2ee_key {
+                Some(key) => cap_e2ee::share_link(&link, None, key),
+                None => link,
+            };
+            info!(
+                "Pre-created shareable link: {}",
+                crate::e2ee::link_without_fragment(&link)
+            );
 
             (
                 Some(VideoUploadInfo {
@@ -2384,7 +2397,10 @@ async fn start_recording_prepared(
                 return Err("Use take_screenshot for screenshots".to_string());
             }
         },
-        sharing: None,
+        sharing: video_upload_info
+            .as_ref()
+            .filter(|video| crate::e2ee::key_from_link(&video.link).is_some())
+            .map(|video| crate::e2ee::sharing_meta(video.id.clone(), video.link.clone())),
         upload: None,
     };
 
@@ -2837,6 +2853,13 @@ async fn start_recording_prepared(
                                         upload_session,
                                         video_upload_info.clone(),
                                         inputs.capture_system_audio || mic_feed.is_some(),
+                                    )
+                                } else if crate::e2ee::key_from_link(&video_upload_info.link)
+                                    .is_some()
+                                {
+                                    SegmentUploader::spawn_e2ee_after_stop(
+                                        upload_session,
+                                        Some(finish_upload_rx.clone()),
                                     )
                                 } else {
                                     let progressive_upload = InstantMultipartUpload::spawn(
@@ -6175,11 +6198,10 @@ async fn handle_recording_finish(
             session
                 .persist_local_complete(
                     recording.meta.clone(),
-                    SharingMeta {
-                        id: video_upload_info.id.clone(),
-                        link: video_upload_info.link.clone(),
-                        content_hash: None,
-                    },
+                    crate::e2ee::sharing_meta(
+                        video_upload_info.id.clone(),
+                        video_upload_info.link.clone(),
+                    ),
                 )
                 .map_err(|error| error.to_string())?;
             session
@@ -6198,11 +6220,15 @@ async fn handle_recording_finish(
                         .map_err(AuthedApiError::from)?;
                     job_session.check()?;
                     let bytes = compress_image(display_screenshot).await?;
+                    let bytes = crate::e2ee::encrypt_thumbnail(
+                        crate::e2ee::key_from_link(&video.link).as_ref(),
+                        bytes,
+                    );
                     crate::upload::singlepart_uploader(
                         app.clone(),
                         crate::api::PresignedS3PutRequest {
                             video_id: video.id.clone(),
-                            subpath: "screenshot/screen-capture.jpg".into(),
+                            subpath: crate::e2ee::THUMBNAIL_SUBPATH.into(),
                             method: PresignedS3PutRequestMethod::Put,
                             meta: None,
                         },
@@ -6227,11 +6253,10 @@ async fn handle_recording_finish(
 
             (
                 RecordingMetaInner::Instant(recording.meta),
-                Some(SharingMeta {
-                    link: video_upload_info.link,
-                    id: video_upload_info.id,
-                    content_hash: None,
-                }),
+                Some(crate::e2ee::sharing_meta(
+                    video_upload_info.id,
+                    video_upload_info.link,
+                )),
             )
         }
     };
@@ -6739,7 +6764,10 @@ fn apply_recording_presentation_defaults(
     let default_wallpaper_path = if using_default_config {
         stored_desktop_background_path.or_else(|| {
             app.path()
-                .resolve("assets/backgrounds/screencap/1.jpg", BaseDirectory::Resource)
+                .resolve(
+                    "assets/backgrounds/screencap/1.jpg",
+                    BaseDirectory::Resource,
+                )
                 .ok()
                 .map(|path| path.to_string_lossy().into_owned())
         })
@@ -8583,6 +8611,7 @@ pub(crate) mod linux_instant {
                 video_id: video.id.clone(),
                 pre_created_video: video.clone(),
                 recording_dir: directory.into(),
+                e2ee: false,
             }
         } else {
             cap_project::UploadMeta::MultipartUpload {
@@ -8622,11 +8651,10 @@ pub(crate) mod linux_instant {
         let mut meta =
             RecordingMeta::load_for_project(directory).map_err(|error| error.to_string())?;
         attempt.checked(Ok(()))?;
-        meta.sharing = Some(SharingMeta {
-            link: video_upload_info.link.clone(),
-            id: video_upload_info.id.clone(),
-            content_hash: None,
-        });
+        meta.sharing = Some(crate::e2ee::sharing_meta(
+            video_upload_info.id.clone(),
+            video_upload_info.link.clone(),
+        ));
         meta.inner = RecordingMetaInner::Instant(recording.meta.clone());
         meta.save_for_project().map_err(|error| error.to_string())?;
         attempt.checked(Ok(()))?;

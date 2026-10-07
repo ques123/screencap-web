@@ -30,7 +30,7 @@ import {
 import { createStore, produce, reconcile } from "solid-js/store";
 import { TransitionGroup } from "solid-transition-group";
 import Tooltip from "~/components/Tooltip";
-import { authStore } from "~/store";
+import { authStore, generalSettingsStore } from "~/store";
 import { getCameraWindow } from "~/utils/camera-window";
 import { createTauriEventListener } from "~/utils/createEventListener";
 import {
@@ -134,6 +134,9 @@ function InProgressRecordingInner() {
 		setState({ variant: "stopped" });
 	};
 	const currentRecording = createCurrentRecordingQuery();
+	const generalSettings = generalSettingsStore.createQuery();
+	const isEncrypted = () =>
+		ostype() === "macos" && generalSettings.data?.encryptRecordings === true;
 	const cleanCapture = createCleanCaptureQuery();
 	const optionsQuery = createOptionsQuery();
 	const startedWithMicrophone = optionsQuery.rawOptions.micName != null;
@@ -1049,6 +1052,18 @@ function InProgressRecordingInner() {
 											</Show>
 										</span>
 									</RecordingControlButton>
+								</Show>
+
+								<Show when={isEncrypted()}>
+									<RecordingControlTooltip content="End-to-end encrypted">
+										<span
+											role="img"
+											aria-label="End-to-end encrypted"
+											class="flex shrink-0 items-center px-1 text-gray-11"
+										>
+											<IconLucideLock class="size-3.5" />
+										</span>
+									</RecordingControlTooltip>
 								</Show>
 
 								<div class="flex shrink-0 items-center">

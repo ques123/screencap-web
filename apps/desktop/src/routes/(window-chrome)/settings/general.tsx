@@ -125,6 +125,9 @@ const MAX_FPS_OPTIONS = [
 	label: string;
 }[];
 
+const ENCRYPTION_COSTS =
+	"No transcripts or AI titles, no preview image in chat apps, and no download from the browser. Screencap can't recover a recording if you lose this Mac and the link.";
+
 const DEFAULT_PROJECT_NAME_TEMPLATE =
 	"{target_name} ({target_kind}) {date} {time}";
 
@@ -308,6 +311,18 @@ function Inner(props: {
 	};
 
 	const ostype: OsType = type();
+
+	const handleEncryptRecordingsChange = async (value: boolean) => {
+		if (
+			value &&
+			!(await confirm(
+				`Recordings are encrypted on this Mac before upload. Only people with the full link can watch.\n\n${ENCRYPTION_COSTS}`,
+				{ title: "End-to-end encrypt recordings?", okLabel: "Turn on" },
+			))
+		)
+			return;
+		handleChange("encryptRecordings", value);
+	};
 	const excludedWindows = createMemo(() => settings.excludedWindows ?? []);
 	const missingDefaultExclusions = createMemo(() =>
 		defaultExcludedWindows().filter(
@@ -530,6 +545,14 @@ function Inner(props: {
 							value={confirmBeforeRecordingWithoutMicrophone()}
 							onChange={handleRecordingStartSafetyChange}
 						/>
+						{ostype === "macos" && (
+							<ToggleSettingItem
+								label="End-to-end encrypt recordings"
+								description={`Recordings are encrypted on this Mac before upload. Only people with the full link can watch. ${ENCRYPTION_COSTS}`}
+								value={!!settings.encryptRecordings}
+								onChange={handleEncryptRecordingsChange}
+							/>
+						)}
 						<ToggleSettingItem
 							label="Studio Sound on new recordings"
 							description="Clean up microphone audio automatically. You can still turn it off for any recording in the editor."

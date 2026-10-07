@@ -554,14 +554,26 @@ export default function TargetCard(props: TargetCardProps) {
 									</Show>
 								</Show>
 								<Show when={recording.sharing}>
-									<Tooltip content="Open link">
+									<Tooltip
+										content={
+											recording.sharing?.e2eeKey
+												? "Open link (end-to-end encrypted)"
+												: "Open link"
+										}
+									>
 										<div
 											role="button"
 											tabIndex={-1}
 											onClick={handleOpenRecordingLink}
-											class="flex-1 flex items-center justify-center p-1 rounded-sm hover:bg-gray-5 text-gray-11 hover:text-gray-12 transition-colors"
+											class="flex-1 flex items-center justify-center gap-1 p-1 rounded-sm hover:bg-gray-5 text-gray-11 hover:text-gray-12 transition-colors"
 										>
 											<IconCapLink class="size-3.5" />
+											<Show when={recording.sharing?.e2eeKey}>
+												<IconLucideLock
+													class="size-3"
+													aria-label="End-to-end encrypted"
+												/>
+											</Show>
 										</div>
 									</Tooltip>
 								</Show>

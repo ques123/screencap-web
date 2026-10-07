@@ -56,6 +56,7 @@ export function createDefaultGeneralSettings(): GeneralSettingsStore {
 		maxFps: 60,
 		transcriptionHints: [...DEFAULT_TRANSCRIPTION_HINTS],
 		enableTelemetry: true,
+		encryptRecordings: false,
 	};
 }
 

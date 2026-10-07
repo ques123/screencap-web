@@ -725,6 +725,7 @@ pub(crate) async fn resume_existing(
                 video_id,
                 pre_created_video,
                 recording_dir,
+                ..
             }) => {
                 verify_bundle_path(&directory, &recording_dir)?;
                 if video_id != pre_created_video.id || video_id != pre_created_video.config.id {
@@ -805,11 +806,7 @@ pub(crate) async fn resume_existing(
                     }
                     worker.check()?;
                     current.upload = Some(UploadMeta::Complete);
-                    current.sharing = Some(cap_project::SharingMeta {
-                        id: uploaded.id,
-                        link: uploaded.link,
-                        content_hash: None,
-                    });
+                    current.sharing = Some(crate::e2ee::sharing_meta(uploaded.id, uploaded.link));
                     current
                         .save_for_project()
                         .map_err(|error| error.to_string())?;
@@ -821,12 +818,20 @@ pub(crate) async fn resume_existing(
         let screenshot = directory.join("screenshots/display.jpg");
         if screenshot.is_file() {
             let bytes = compress_image(screenshot).await?;
+            let bytes = crate::e2ee::encrypt_thumbnail(
+                crate::e2ee::resolve_upload_key(
+                    &directory,
+                    crate::e2ee::upload_marked_e2ee(meta.upload.as_ref()),
+                )?
+                .as_ref(),
+                bytes,
+            );
             worker.check()?;
             singlepart_uploader(
                 app.clone(),
                 PresignedS3PutRequest {
                     video_id,
-                    subpath: "screenshot/screen-capture.jpg".into(),
+                    subpath: crate::e2ee::THUMBNAIL_SUBPATH.into(),
                     method: PresignedS3PutRequestMethod::Put,
                     meta: None,
                 },
@@ -917,6 +922,7 @@ fn pending_reupload(meta: &RecordingMeta, intent: &Intent) -> Result<UploadMeta,
             video_id: intent.video_id.clone(),
             pre_created_video: video,
             recording_dir: meta.project_path.clone(),
+            e2ee: sharing.e2ee_key.is_some(),
         }
     } else {
         UploadMeta::MultipartUpload {
@@ -1285,6 +1291,7 @@ mod tests {
             has_audio: true,
             full_decode: true,
             required_audio_verified: request.required_audio,
+            e2ee: false,
         }
     }
 
@@ -1493,6 +1500,7 @@ mod tests {
                     id: "owned-video".into(),
                     link: "https://example.invalid/s/owned-video".into(),
                     content_hash: None,
+                    e2ee_key: None,
                 },
             )
             .unwrap();
@@ -1648,6 +1656,7 @@ mod tests {
                     id: "owned-video".into(),
                     link: "https://example.invalid/s/owned-video".into(),
                     content_hash: None,
+                    e2ee_key: None,
                 },
             )
             .unwrap();
