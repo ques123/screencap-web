@@ -243,6 +243,7 @@
         "@aws-sdk/s3-presigned-post": "^3.485.0",
         "@aws-sdk/s3-request-presigner": "^3.485.0",
         "@cap/database": "workspace:*",
+        "@cap/e2ee": "workspace:*",
         "@cap/env": "workspace:*",
         "@cap/recorder-core": "workspace:*",
         "@cap/ui": "workspace:*",
@@ -468,6 +469,14 @@
         "react-router-dom": "^6.18.0",
         "tsconfig": "workspace:*",
         "typescript": "^5.8.3",
+      },
+    },
+    "packages/e2ee": {
+      "name": "@cap/e2ee",
+      "devDependencies": {
+        "tsconfig": "workspace:*",
+        "typescript": "^5.8.3",
+        "vitest": "^3.2.0",
       },
     },
     "packages/env": {
@@ -977,6 +986,8 @@
     "@cap/desktop": ["@cap/desktop@workspace:apps/desktop"],
 
     "@cap/discord-bot": ["@cap/discord-bot@workspace:apps/discord-bot"],
+
+    "@cap/e2ee": ["@cap/e2ee@workspace:packages/e2ee"],
 
     "@cap/env": ["@cap/env@workspace:packages/env"],
 

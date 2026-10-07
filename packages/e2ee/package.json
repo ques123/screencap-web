@@ -1,0 +1,19 @@
+{
+	"name": "@cap/e2ee",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"scripts": {
+		"test": "vitest run",
+		"typecheck": "tsc -b"
+	},
+	"devDependencies": {
+		"tsconfig": "workspace:*",
+		"typescript": "^5.8.3",
+		"vitest": "^3.2.0"
+	}
+}

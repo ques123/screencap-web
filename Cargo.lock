@@ -1640,6 +1640,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "cap-e2ee"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "ring",
+ "serde_json",
+ "thiserror 1.0.69",
+ "zeroize",
+]
+
+[[package]]
 name = "cap-editor"
 version = "0.1.0"
 dependencies = [

@@ -1,0 +1,15 @@
+{
+	"extends": "../config/base.tsconfig.json",
+	"include": ["src", "test-vectors.json"],
+	"exclude": ["dist", "node_modules"],
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"composite": true,
+		"outDir": "dist",
+		"noEmit": false,
+		"emitDeclarationOnly": true,
+		"resolveJsonModule": true,
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
+		"types": ["node"]
+	}
+}

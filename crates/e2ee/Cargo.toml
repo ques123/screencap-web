@@ -1,0 +1,20 @@
+[package]
+name = "cap-e2ee"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "screencap-e2ee"
+path = "src/bin/screencap-e2ee.rs"
+
+[dependencies]
+base64 = "0.22"
+ring = "0.17"
+thiserror.workspace = true
+zeroize = "1.8"
+
+[dev-dependencies]
+serde_json = "1.0.127"
