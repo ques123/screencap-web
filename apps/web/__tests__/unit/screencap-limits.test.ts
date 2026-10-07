@@ -25,6 +25,7 @@ vi.mock("@cap/database", () => ({
 vi.mock("@cap/database/schema", () => ({ videos: {} }));
 vi.mock("@cap/database/screencap-settings", () => ({
 	getSettingsSync: () => settings,
+	getSettings: async () => settings,
 }));
 vi.mock("@/lib/screencap-admin/limit-overrides", () => ({
 	getUserLimitOverrides: async (userId: string) => {
@@ -73,34 +74,33 @@ describe("screencap limits", () => {
 		expect(await checkRecordingLength(99999)).toEqual({ ok: true });
 	});
 
-	it("rejects over-length recordings with the beta message", async () => {
-		env.SCREENCAP_MAX_RECORDING_SECONDS = "900";
+	it("rejects over-length recordings", async () => {
+		settings.maxRecordingMinutes = 15;
 		expect(await checkRecordingLength(900)).toEqual({ ok: true });
 		expect(await checkRecordingLength(920, 30)).toEqual({ ok: true });
 		expect(await checkRecordingLength(901)).toEqual({
 			ok: false,
 			code: "recording_too_long",
-			message: "Recordings can be up to 15 minutes during the free beta.",
+			message: "Recordings can be up to 15 minutes.",
 		});
 	});
 
 	it("formats the storage message", () => {
 		expect(storageFullMessage(36000)).toBe(
-			"You've used your 10 hours of free storage. Delete some recordings to make room.",
+			"You've used your 10 hours of storage. Delete some recordings to make room.",
 		);
 	});
 
-	it("panel settings (minutes/hours) override the env vars", () => {
-		env.SCREENCAP_MAX_RECORDING_SECONDS = "900";
-		env.SCREENCAP_MAX_STORAGE_SECONDS = "36000";
+	it("uses the merged settings (panel over env) and treats null as no limit", () => {
+		// Env fallback is merged in screencap-settings; here the settings are already merged.
 		settings.maxRecordingMinutes = 30;
 		settings.maxStorageHours = 2;
 		expect(maxRecordingSeconds()).toBe(1800);
 		expect(maxStorageSeconds()).toBe(7200);
 		settings.maxRecordingMinutes = null;
 		settings.maxStorageHours = null;
-		expect(maxRecordingSeconds()).toBe(900);
-		expect(maxStorageSeconds()).toBe(36000);
+		expect(maxRecordingSeconds()).toBeNull();
+		expect(maxStorageSeconds()).toBeNull();
 	});
 
 	it("uses the per-user recording override when a userId is given", async () => {

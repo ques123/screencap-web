@@ -897,13 +897,6 @@ function InProgressRecordingInner() {
 		}
 	});
 
-	const remainingRecordingTime = () => {
-		const max = maxRecordingMs();
-		if (max === null) return Number.POSITIVE_INFINITY;
-		if (max < adjustedTime()) return 0;
-		return max - adjustedTime();
-	};
-
 	const isInitializing = () => state().variant === "initializing";
 	const closeStartingBar = async () => {
 		setStartingDismissed(true);
@@ -1044,15 +1037,9 @@ function InProgressRecordingInner() {
 														pausePendingAction() || state().variant === "paused"
 													}
 													fallback={
-														<Show
-															when={
-																isMaxRecordingLimitEnabled() &&
-																maxRecordingMs() !== null
-															}
-															fallback={formatTime(adjustedTime() / 1000)}
-														>
-															{formatTime(remainingRecordingTime() / 1000)}
-														</Show>
+														// Always count up: how long you've been recording is more
+														// useful than time left. The limit still stops the recording.
+														formatTime(adjustedTime() / 1000)
 													}
 												>
 													<span role="status" aria-live="polite">
