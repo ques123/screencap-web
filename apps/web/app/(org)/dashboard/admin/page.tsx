@@ -101,9 +101,9 @@ export default async function AdminOverviewPage() {
 				<div className="space-y-1">
 					<CardTitle>Email health</CardTitle>
 					<CardDescription>
-						Sending through {providerNames[s.emailProvider]}.{" "}
-						{s.emailProvider === "none" &&
-							"No emails leave the app until a provider is set."}
+						{s.emailProvider === "none"
+							? "No email provider is set up, so no emails leave the app."
+							: `Sending through ${providerNames[s.emailProvider]}.`}
 					</CardDescription>
 				</div>
 				{s.recentEmailFailures.length === 0 ? (

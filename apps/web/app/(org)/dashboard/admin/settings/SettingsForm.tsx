@@ -240,8 +240,9 @@ export function SettingsForm({
 			<Card className="space-y-3">
 				<CardTitle>Email</CardTitle>
 				<CardDescription>
-					Sending through {providerNames[emailProvider]}. The test email goes to
-					your own address.
+					{emailProvider === "none"
+						? "No email provider is set up, so no emails leave the app."
+						: `Sending through ${providerNames[emailProvider]}. The test email goes to your own address.`}
 				</CardDescription>
 				<div>
 					<Button

@@ -270,7 +270,10 @@ export async function updateSettingsAction(
 	try {
 		await updateSettings(patch, admin.email);
 		refresh("/settings");
-		return { ok: true, message: "Settings saved." };
+		return {
+			ok: true,
+			message: "Settings saved. They apply everywhere within 30 seconds.",
+		};
 	} catch (e) {
 		return {
 			ok: false,
