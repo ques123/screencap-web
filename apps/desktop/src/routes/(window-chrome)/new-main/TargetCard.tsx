@@ -556,7 +556,7 @@ export default function TargetCard(props: TargetCardProps) {
 								<Show when={recording.sharing}>
 									<Tooltip
 										content={
-											recording.sharing?.e2eeKey
+											recording.sharing?.e2ee_key
 												? "Open link (end-to-end encrypted)"
 												: "Open link"
 										}
@@ -568,7 +568,7 @@ export default function TargetCard(props: TargetCardProps) {
 											class="flex-1 flex items-center justify-center gap-1 p-1 rounded-sm hover:bg-gray-5 text-gray-11 hover:text-gray-12 transition-colors"
 										>
 											<IconCapLink class="size-3.5" />
-											<Show when={recording.sharing?.e2eeKey}>
+											<Show when={recording.sharing?.e2ee_key}>
 												<IconLucideLock
 													class="size-3"
 													aria-label="End-to-end encrypted"

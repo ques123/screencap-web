@@ -381,7 +381,7 @@ function RecordingItem(props: {
 							<p>{firstLetterUpperCase()}</p>
 						</div>
 
-						<Show when={props.recording.meta.sharing?.e2eeKey}>
+						<Show when={props.recording.meta.sharing?.e2ee_key}>
 							<CapTooltip content="End-to-end encrypted">
 								<div
 									role="img"

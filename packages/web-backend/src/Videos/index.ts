@@ -414,7 +414,7 @@ export class Videos extends Effect.Service<Videos>()("Videos", {
 							newKey,
 						);
 					});
-				yield* Effect.gen(function* () {
+				return yield* Effect.gen(function* () {
 					for (const key of publishedKeys) yield* copyObject(key);
 					let continuationToken: string | undefined;
 					const seenTokens = new Set<string>();
