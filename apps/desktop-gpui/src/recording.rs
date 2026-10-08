@@ -1799,6 +1799,8 @@ fn persist_instant_meta(
                 id: upload.id.clone(),
                 link: upload.link.clone(),
                 content_hash: None,
+                // The experimental gpui app does not do end-to-end encryption (Tauri app only).
+                e2ee_key: None,
             }),
             inner: RecordingMetaInner::Instant(meta),
             upload: previous_upload,
@@ -1904,6 +1906,7 @@ fn persist_in_progress_instant_meta(
                 video_id: video.id.clone(),
                 pre_created_video: video.clone(),
                 recording_dir: project_path.to_path_buf(),
+                e2ee: false,
             }
         } else {
             cap_project::UploadMeta::MultipartUpload {

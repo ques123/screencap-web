@@ -2304,6 +2304,8 @@ impl ScreenshotEditorWindow {
                 id: uploaded.id,
                 link: uploaded.link,
                 content_hash: Some(content_hash),
+                // The experimental gpui app does not do end-to-end encryption (Tauri app only).
+                e2ee_key: None,
             });
             let saved = cx
                 .background_executor()

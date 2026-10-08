@@ -1207,6 +1207,8 @@ async fn upload_exported_video_inner(
                 link: link.clone(),
                 id: s3_config.id.clone(),
                 content_hash: None,
+                // The experimental gpui app does not do end-to-end encryption (Tauri app only).
+                e2ee_key: None,
             });
             meta.save_for_project()
                 .map_err(|error| format!("Failed to persist sharing state: {error}"))?;
@@ -2642,6 +2644,7 @@ mod tests {
             link: "https://screencap.co/s/shared".into(),
             id: "shared".into(),
             content_hash: None,
+            e2ee_key: None,
         };
         let upload = UploadMeta::SinglePartUpload {
             video_id: "pending".into(),
