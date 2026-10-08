@@ -29,6 +29,7 @@ export type VideoOgVariant =
 	| { kind: "video"; video: VideoOgData }
 	| { kind: "locked" }
 	| { kind: "password" }
+	| { kind: "encrypted" }
 	| { kind: "not-found" };
 
 // Thumbnails and titles can change, so cache briefly at the edge and let
@@ -375,7 +376,8 @@ export async function renderVideoOg(variant: VideoOgVariant) {
 				return statusLayout(
 					{
 						heading: "This recording is private",
-						subline: "Ask the owner for access, or sign in to watch it on Screencap.",
+						subline:
+							"Ask the owner for access, or sign in to watch it on Screencap.",
 						icon: "lock",
 					},
 					assets,
@@ -385,6 +387,15 @@ export async function renderVideoOg(variant: VideoOgVariant) {
 					{
 						heading: "This recording is password protected",
 						subline: "Enter the password on Screencap to watch this recording.",
+						icon: "lock",
+					},
+					assets,
+				);
+			case "encrypted":
+				return statusLayout(
+					{
+						heading: "This recording is end-to-end encrypted",
+						subline: "Open the full link to watch this recording.",
 						icon: "lock",
 					},
 					assets,

@@ -103,7 +103,7 @@ describe("video og", () => {
 		expect(height).toBe(630);
 	});
 
-	it.each(["locked", "password", "not-found"] as const)(
+	it.each(["locked", "password", "encrypted", "not-found"] as const)(
 		"renders the %s variant",
 		async (kind) => {
 			const res = await renderVideoOg({ kind });
