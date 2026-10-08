@@ -6962,6 +6962,7 @@ fn specta_builder() -> tauri_specta::Builder {
             cli::uninstall_cli,
             recording::start_recording,
             recording::stop_recording,
+            recording::skip_recording_countdown,
             recording::pause_recording,
             recording::get_recording_pause_state,
             recording::resume_recording,

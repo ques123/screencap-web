@@ -73,6 +73,9 @@ async startRecording(inputs: StartRecordingInputs) : Promise<RecordingAction> {
 async stopRecording() : Promise<null> {
     return await TAURI_INVOKE("stop_recording");
 },
+async skipRecordingCountdown() : Promise<boolean> {
+    return await TAURI_INVOKE("skip_recording_countdown");
+},
 async pauseRecording() : Promise<null> {
     return await TAURI_INVOKE("pause_recording");
 },
