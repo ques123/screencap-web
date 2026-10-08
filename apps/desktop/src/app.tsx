@@ -78,6 +78,7 @@ const InProgressRecordingPage = lazy(
 );
 const ModeSelectPage = lazy(() => import("./routes/mode-select"));
 const NotificationsPage = lazy(() => import("./routes/notifications"));
+const ClickHighlightPage = lazy(() => import("./routes/click-highlight"));
 const RecordingsOverlayPage = lazy(() => import("./routes/recordings-overlay"));
 const ScreenshotEditorPage = lazy(() => import("./routes/screenshot-editor"));
 const TargetSelectOverlayPage = lazy(
@@ -163,7 +164,8 @@ function Inner() {
 								location.pathname === "/" ||
 								location.pathname === "/camera" ||
 								location.pathname === "/target-select-overlay" ||
-								location.pathname === "/window-capture-occluder"
+								location.pathname === "/window-capture-occluder" ||
+								location.pathname === "/click-highlight"
 							) {
 								return;
 							}
@@ -222,6 +224,7 @@ function Inner() {
 					<Route path="/mode-select" component={ModeSelectPage} />
 					<Route path="/notifications" component={NotificationsPage} />
 					<Route path="/recordings-overlay" component={RecordingsOverlayPage} />
+					<Route path="/click-highlight" component={ClickHighlightPage} />
 					<Route
 						path="/screenshot-editor"
 						info={{ AUTO_SHOW_WINDOW: false }}
