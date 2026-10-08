@@ -64,7 +64,7 @@ describe("homepage SEO", () => {
 			(entity) => entity["@type"] === "Organization",
 		)?.logo;
 		const image = readFileSync(
-			new URL("../../public/cap-logo.png", import.meta.url),
+			new URL("../../public/screencap-logo.png", import.meta.url),
 		);
 		expect(logo).toMatchObject({
 			width: image.readUInt32BE(16),
