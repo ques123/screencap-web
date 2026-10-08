@@ -127,6 +127,7 @@ import { getPostResizeWindowPosition } from "./window-geometry";
 
 const MAIN_WINDOW_SIZE = { width: 330, height: 395 } as const;
 const MAIN_WINDOW_SCREEN_PADDING = 12;
+const MAIN_WINDOW_MOVE_SETTLE_MS = 400;
 const CAPTURE_LIST_STALE_TIME = 5_000;
 const CAPTURE_LIST_GC_TIME = 60_000;
 const CAPTURE_THUMBNAIL_STALE_TIME = 10_000;
@@ -2422,6 +2423,16 @@ function Page() {
 			},
 		);
 
+		let moveSettleTimer: ReturnType<typeof setTimeout> | undefined;
+		const unlistenMoved = currentWindow.onMoved(() => {
+			clearTimeout(moveSettleTimer);
+			moveSettleTimer = setTimeout(() => {
+				void resizeMainWindow().catch((error) => {
+					console.error("Failed to keep main window on screen:", error);
+				});
+			}, MAIN_WINDOW_MOVE_SETTLE_MS);
+		});
+
 		const unlistenSetTargetMode = events.requestSetTargetMode.listen(
 			async (event) => {
 				const newTargetMode = event.payload.target_mode;
@@ -2455,7 +2466,9 @@ function Page() {
 		commands.updateAuthPlan();
 
 		onCleanup(async () => {
+			clearTimeout(moveSettleTimer);
 			(await unlistenFocus)?.();
+			(await unlistenMoved)?.();
 			(await unlistenSetTargetMode)?.();
 		});
 	});
