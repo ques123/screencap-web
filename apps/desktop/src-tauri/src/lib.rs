@@ -17,6 +17,7 @@ mod click_highlight;
 mod clip_thumbnails;
 mod crash_sentinel;
 mod deeplink_actions;
+mod desktop_blur;
 mod diagnostics;
 mod e2ee;
 mod editor_preparing;
@@ -1672,6 +1673,7 @@ impl App {
         click_highlight::stop();
         self.close_occluder_windows();
         crate::windows::apply_content_protection(&self.handle, false);
+        desktop_blur::hide(&self.handle);
         if let Some(camera) = CapWindowId::Camera.get(&self.handle) {
             let _ = camera.set_content_protected(false);
         }
@@ -1691,6 +1693,7 @@ impl App {
                 click_highlight::stop();
                 self.close_occluder_windows();
                 crate::windows::apply_content_protection(&self.handle, false);
+                desktop_blur::hide(&self.handle);
                 Some(recording)
             }
             state => {
@@ -1709,6 +1712,7 @@ impl App {
         click_highlight::stop();
         self.close_occluder_windows();
         crate::windows::apply_content_protection(&self.handle, false);
+        desktop_blur::hide(&self.handle);
         match previous {
             RecordingState::Active(recording) => Some(recording),
             _ => None,

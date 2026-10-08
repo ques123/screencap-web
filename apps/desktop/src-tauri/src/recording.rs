@@ -1987,6 +1987,9 @@ async fn start_recording_inner(
         clean_generation,
     )
     .await;
+    if !matches!(&result, Ok(RecordingAction::Started)) {
+        crate::desktop_blur::hide(&app);
+    }
     if !matches!(&result, Ok(RecordingAction::Started))
         && let Some(generation) = clean_generation
     {
@@ -2454,6 +2457,12 @@ async fn start_recording_prepared(
     let start_cue = crate::audio::prime_recording_start_sound();
     let start_cancelled: Arc<std::sync::OnceLock<&'static str>> = Arc::default();
     crate::windows::apply_content_protection(&app, true);
+    if cfg!(target_os = "macos")
+        && general_settings.is_some_and(|settings| settings.blur_desktop_while_recording)
+        && !is_camera_only
+    {
+        crate::desktop_blur::show(&app).await;
+    }
 
     if let Some(editor_target) = EditorRecordingTarget::current(&app)
         && let Some(editor_window) = editor_window_for_path(&app, &editor_target)
@@ -2646,6 +2655,12 @@ async fn start_recording_prepared(
                     &app_handle,
                     &window_exclusions,
                 );
+                let blur_window_numbers = crate::desktop_blur::window_numbers();
+                excluded_window_ids.retain(|id| {
+                    !id.to_string()
+                        .parse::<u32>()
+                        .is_ok_and(|native| blur_window_numbers.contains(&native))
+                });
                 info!(
                     configured_exclusions = window_exclusions.len(),
                     resolved_window_ids = excluded_window_ids.len(),

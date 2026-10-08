@@ -58,6 +58,7 @@ export function createDefaultGeneralSettings(): GeneralSettingsStore {
 		enableTelemetry: true,
 		encryptRecordings: false,
 		highlightClicksInInstant: false,
+		blurDesktopWhileRecording: false,
 	};
 }
 

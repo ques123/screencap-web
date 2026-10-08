@@ -221,6 +221,8 @@ pub struct GeneralSettingsStore {
     #[serde(default)]
     pub highlight_clicks_in_instant: bool,
     #[serde(default)]
+    pub blur_desktop_while_recording: bool,
+    #[serde(default)]
     pub default_project_name_template: Option<String>,
     #[serde(default = "default_crash_recovery_recording")]
     pub crash_recovery_recording: bool,
@@ -353,6 +355,7 @@ impl Default for GeneralSettingsStore {
             instant_mode_max_resolution: cap_recording::DEFAULT_INSTANT_MODE_MAX_RESOLUTION,
             encrypt_recordings: false,
             highlight_clicks_in_instant: false,
+            blur_desktop_while_recording: false,
             default_project_name_template: None,
             crash_recovery_recording: cap_recording::DEFAULT_CRASH_RECOVERY_RECORDING,
             max_fps: cap_recording::DEFAULT_STUDIO_MAX_FPS,
