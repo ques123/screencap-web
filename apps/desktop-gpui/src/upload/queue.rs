@@ -1080,6 +1080,7 @@ mod tests {
                     id: video.id.clone(),
                     link: video.link.clone(),
                     content_hash: None,
+                    e2ee_key: None,
                 }),
                 inner: RecordingMetaInner::Instant(InstantRecordingMeta::Complete {
                     fps: 30,
@@ -1145,6 +1146,7 @@ mod tests {
                 UploadVerification::mp4(12, 2.0, true, "\"fake-object\"".into()).unwrap();
             state.receipt = Some(VerifiedUploadReceipt {
                 version: 1,
+                e2ee: false,
                 video_id: state.video_id.clone(),
                 artifact: verification.artifact.clone(),
                 file_size: 12,
@@ -1245,6 +1247,7 @@ mod tests {
             if self.verified.load(Ordering::Acquire) {
                 Ok(Confirmation::Verified(VerifiedUploadReceipt {
                     version: 1,
+                    e2ee: false,
                     video_id: video_id.into(),
                     artifact: verification.artifact.clone(),
                     file_size: 12,
