@@ -596,6 +596,11 @@ function InProgressRecordingInner() {
 		},
 	}));
 
+	const skipCountdown = () => {
+		if (!isCountdown() || countdownCurrent() === 0) return;
+		void commands.skipRecordingCountdown();
+	};
+
 	const requestStopRecording = () => {
 		if (isCountdown() || stopRequested()) return;
 		stopRecording.mutate();
@@ -968,9 +973,8 @@ function InProgressRecordingInner() {
 									<RecordingControlButton
 										flexible
 										disabled={
-											stopRequested() ||
-											stopRecording.isPending ||
-											isCountdown()
+											!isCountdown() &&
+											(stopRequested() || stopRecording.isPending)
 										}
 										class="flex min-w-0 flex-1 flex-row items-center gap-1 rounded-lg py-1 px-1.5 text-red-300 transition-colors duration-100 hover:bg-red-500/8 active:bg-red-500/12 disabled:opacity-60 disabled:hover:bg-transparent"
 										type="button"
@@ -978,11 +982,17 @@ function InProgressRecordingInner() {
 											if (event.button !== 0) return;
 											event.preventDefault();
 											event.stopPropagation();
-											requestStopRecording();
+											if (isCountdown()) skipCountdown();
+											else requestStopRecording();
 										}}
-										onClick={requestStopRecording}
-										title="Stop recording"
-										aria-label="Stop recording"
+										onClick={() => {
+											if (isCountdown()) skipCountdown();
+											else requestStopRecording();
+										}}
+										title={isCountdown() ? "Start now" : "Stop recording"}
+										aria-label={
+											isCountdown() ? "Skip countdown" : "Stop recording"
+										}
 									>
 										<IconCapStopCircle class="size-5 shrink-0" />
 										<span class="truncate text-sm font-medium tabular-nums">
@@ -1051,6 +1061,11 @@ function InProgressRecordingInner() {
 												</Show>
 											</Show>
 										</span>
+										<Show when={isCountdown()}>
+											<span class="truncate text-xs font-normal text-gray-11">
+												Click to start now
+											</span>
+										</Show>
 									</RecordingControlButton>
 								</Show>
 

@@ -2479,9 +2479,16 @@ async fn start_recording_prepared(
     };
 
     let countdown = countdown.unwrap_or(0);
+    let countdown_guard = (countdown > 0).then(|| {
+        countdown_begin();
+        CountdownGuard
+    });
     // Every countdown second but the last elapses before the pipeline is
     // primed; the last one overlaps its warm-up so capture is live at the cue.
     for t in 0..countdown.saturating_sub(1) {
+        if countdown_skipped() {
+            break;
+        }
         if let Some(reason) = start_cancel_reason() {
             return Err(reason.into());
         }
@@ -2498,13 +2505,17 @@ async fn start_recording_prepared(
         let start_cancelled = start_cancelled.clone();
         let start_cancel_reason = start_cancel_reason.clone();
         async move {
+            let _countdown_guard = countdown_guard;
             if countdown >= 1 {
-                let _ = RecordingEvent::Countdown { value: 1 }.emit(&app);
-                if let Err(reason) = countdown_tick(&start_cancel_reason).await {
-                    let _ = start_cancelled.set(reason);
-                    start_gate.arm();
-                    return;
+                if !countdown_skipped() {
+                    let _ = RecordingEvent::Countdown { value: 1 }.emit(&app);
+                    if let Err(reason) = countdown_tick(&start_cancel_reason).await {
+                        let _ = start_cancelled.set(reason);
+                        start_gate.arm();
+                        return;
+                    }
                 }
+                countdown_end();
                 let _ = RecordingEvent::Countdown { value: 0 }.emit(&app);
             }
             let cue = crate::audio::play_recording_start_sound(start_cue, start_gate);
@@ -3456,12 +3467,55 @@ async fn start_recording_prepared(
     Ok(RecordingAction::Started)
 }
 
+const COUNTDOWN_IDLE: u8 = 0;
+const COUNTDOWN_RUNNING: u8 = 1;
+const COUNTDOWN_SKIPPED: u8 = 2;
+
+static COUNTDOWN_STATE: std::sync::atomic::AtomicU8 =
+    std::sync::atomic::AtomicU8::new(COUNTDOWN_IDLE);
+
+fn countdown_begin() {
+    COUNTDOWN_STATE.store(COUNTDOWN_RUNNING, std::sync::atomic::Ordering::SeqCst);
+}
+
+fn countdown_end() {
+    COUNTDOWN_STATE.store(COUNTDOWN_IDLE, std::sync::atomic::Ordering::SeqCst);
+}
+
+fn countdown_skipped() -> bool {
+    COUNTDOWN_STATE.load(std::sync::atomic::Ordering::SeqCst) == COUNTDOWN_SKIPPED
+}
+
+struct CountdownGuard;
+
+impl Drop for CountdownGuard {
+    fn drop(&mut self) {
+        countdown_end();
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn skip_recording_countdown() -> bool {
+    COUNTDOWN_STATE
+        .compare_exchange(
+            COUNTDOWN_RUNNING,
+            COUNTDOWN_SKIPPED,
+            std::sync::atomic::Ordering::SeqCst,
+            std::sync::atomic::Ordering::SeqCst,
+        )
+        .is_ok()
+}
+
 async fn countdown_tick(
     cancel_reason: &impl Fn() -> Option<&'static str>,
 ) -> Result<(), &'static str> {
     let tick = tokio::time::sleep(Duration::from_secs(1));
     tokio::pin!(tick);
     loop {
+        if countdown_skipped() {
+            break;
+        }
         tokio::select! {
             _ = &mut tick => break,
             _ = tokio::time::sleep(Duration::from_millis(50)) => {}
