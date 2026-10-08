@@ -30,7 +30,7 @@ impl NotificationType {
             }
             NotificationType::InstantLinkCopied => (
                 "Link copied",
-                "Your recording's link is on your clipboard and it's finishing uploading.",
+                "Your recording's link is on your clipboard, ready to share.",
                 false,
             ),
             NotificationType::UploadFailed => (
