@@ -15,6 +15,14 @@ pub fn setting_enabled(encrypt_recordings: bool) -> bool {
     cfg!(target_os = "macos") && encrypt_recordings
 }
 
+pub fn neutral_title(datetime: chrono::DateTime<chrono::Local>) -> String {
+    format!(
+        "Encrypted recording {} {}",
+        datetime.format("%Y-%m-%d"),
+        datetime.format("%I:%M %p")
+    )
+}
+
 pub fn key_from_link(link: &str) -> Option<ContentKey> {
     let (_, fragment) = link.split_once('#')?;
     cap_e2ee::parse_key_fragment(fragment).ok().flatten()
@@ -349,6 +357,15 @@ mod tests {
 
     fn key() -> ContentKey {
         ContentKey::from_bytes([7u8; 32])
+    }
+
+    #[test]
+    fn neutral_title_has_only_date_and_time() {
+        use chrono::TimeZone;
+        let at = chrono::Local
+            .with_ymd_and_hms(2026, 10, 8, 13, 48, 0)
+            .unwrap();
+        assert_eq!(neutral_title(at), "Encrypted recording 2026-10-08 01:48 PM");
     }
 
     #[test]
