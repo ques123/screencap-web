@@ -10,6 +10,7 @@ import { Video } from "@cap/web-domain";
 import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { firstMatchingKey, isE2eeVideo } from "@/lib/e2ee";
 import { logAdminAction, writeAdminLogStrict } from "./audit";
+import { notifyReporters } from "./reporter-notices";
 import type { ActionResult, AdminReportRow } from "./types";
 
 const clip = (v: string | null, n: number) =>
@@ -98,13 +99,25 @@ export async function listReports(opts: {
 	}));
 }
 
-/** Marks every open report about one recording as actioned (after it was removed or quarantined). */
+/** Marks every open report about one recording as actioned (after it was removed or quarantined) and tells the reporters. */
 export async function resolveOpenReportsForVideo(
 	videoId: string,
 	adminEmail: string,
 	note?: string,
 ): Promise<void> {
 	try {
+		const open = await db()
+			.select({
+				reporterEmail: screencapReports.reporterEmail,
+				videoId: screencapReports.videoId,
+			})
+			.from(screencapReports)
+			.where(
+				and(
+					eq(screencapReports.videoId, videoId),
+					eq(screencapReports.status, "open"),
+				),
+			);
 		await db()
 			.update(screencapReports)
 			.set({
@@ -119,6 +132,7 @@ export async function resolveOpenReportsForVideo(
 					eq(screencapReports.status, "open"),
 				),
 			);
+		await notifyReporters(open, "actioned");
 	} catch (error) {
 		console.error("[screencap-admin] resolveOpenReportsForVideo failed", error);
 	}
@@ -155,6 +169,8 @@ export async function resolveReport(
 			reason: note ?? null,
 			details: { videoId: row.videoId },
 		});
+		// Tell the reporter once, when the report first leaves "open".
+		if (row.status === "open") await notifyReporters([row], status);
 		return {
 			ok: true,
 			message:

@@ -5,6 +5,7 @@ import { Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { isE2eeVideo } from "@/lib/e2ee";
+import { sendReportReceipt } from "@/lib/screencap-admin/reporter-notices";
 import { createReport } from "@/lib/screencap-admin/reports";
 import {
 	MAX_REPORT_BODY_BYTES,
@@ -105,6 +106,7 @@ export async function POST(request: NextRequest) {
 		country,
 		decryptionKey: storedKey,
 	});
+	if (report.email) await sendReportReceipt(report.email, video.id);
 	const keyIncluded = storedKey !== null;
 
 	const token = process.env.TELEGRAM_ALERT_BOT_TOKEN;
