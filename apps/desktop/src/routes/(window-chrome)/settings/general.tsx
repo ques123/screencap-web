@@ -548,6 +548,16 @@ function Inner(props: {
 								onChange={handleEncryptRecordingsChange}
 							/>
 						)}
+						{ostype === "macos" && (
+							<ToggleSettingItem
+								label="Blur desktop while recording"
+								description="Blurs your wallpaper and desktop icons during recordings. Windows stay sharp."
+								value={!!settings.blurDesktopWhileRecording}
+								onChange={(value) =>
+									handleChange("blurDesktopWhileRecording", value)
+								}
+							/>
+						)}
 						<ToggleSettingItem
 							label="Studio Sound on new recordings"
 							description="Clean up microphone audio automatically. You can still turn it off for any recording in the editor."

@@ -57,6 +57,7 @@ export function createDefaultGeneralSettings(): GeneralSettingsStore {
 		transcriptionHints: [...DEFAULT_TRANSCRIPTION_HINTS],
 		enableTelemetry: true,
 		encryptRecordings: false,
+		blurDesktopWhileRecording: false,
 	};
 }
 

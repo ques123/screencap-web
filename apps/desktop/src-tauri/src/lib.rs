@@ -16,6 +16,7 @@ mod cli;
 mod clip_thumbnails;
 mod crash_sentinel;
 mod deeplink_actions;
+mod desktop_blur;
 mod diagnostics;
 mod e2ee;
 mod editor_preparing;
@@ -1662,6 +1663,7 @@ impl App {
         self.was_camera_only_recording = false;
         self.close_occluder_windows();
         crate::windows::apply_content_protection(&self.handle, false);
+        desktop_blur::hide(&self.handle);
         if let Some(camera) = CapWindowId::Camera.get(&self.handle) {
             let _ = camera.set_content_protected(false);
         }
@@ -1680,6 +1682,7 @@ impl App {
             RecordingState::Active(recording) => {
                 self.close_occluder_windows();
                 crate::windows::apply_content_protection(&self.handle, false);
+                desktop_blur::hide(&self.handle);
                 Some(recording)
             }
             state => {
@@ -1697,6 +1700,7 @@ impl App {
         let previous = std::mem::replace(&mut self.recording_state, RecordingState::None);
         self.close_occluder_windows();
         crate::windows::apply_content_protection(&self.handle, false);
+        desktop_blur::hide(&self.handle);
         match previous {
             RecordingState::Active(recording) => Some(recording),
             _ => None,
