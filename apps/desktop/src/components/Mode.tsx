@@ -168,19 +168,6 @@ const Mode = (props: ModeProps) => {
 
 	return (
 		<div class="flex relative gap-2 items-center p-1.5 rounded-full border border-gray-5 bg-gray-3 w-fit">
-			<button
-				type="button"
-				onClick={handleInfoClick}
-				disabled={props.locked}
-				class={cx(
-					"absolute -left-1.5 -top-2 p-1 rounded-full w-fit bg-gray-5 group focus:outline-none",
-					props.locked && "opacity-50",
-				)}
-				aria-label="Recording mode info"
-			>
-				<IconCapInfo class="invert transition-opacity duration-200 size-2.5 dark:invert-0 group-hover:opacity-50" />
-			</button>
-
 			<Show when={ostype() === "macos"}>
 				<EncryptionToggle
 					recording={props.encryptionLocked}
@@ -189,66 +176,81 @@ const Mode = (props: ModeProps) => {
 				<div class="w-px h-5 bg-gray-6" aria-hidden="true" />
 			</Show>
 
-			{MODE_BUTTONS.map((button) => {
-				const isSelected = () => rawOptions.mode === button.mode;
+			<div class="flex relative gap-2 items-center">
+				<button
+					type="button"
+					onClick={handleInfoClick}
+					disabled={props.locked}
+					class={cx(
+						"absolute -left-1.5 -top-3.5 z-10 p-1 rounded-full w-fit bg-gray-5 group focus:outline-none",
+						props.locked && "opacity-50",
+					)}
+					aria-label="Recording mode info"
+				>
+					<IconCapInfo class="invert transition-opacity duration-200 size-2.5 dark:invert-0 group-hover:opacity-50" />
+				</button>
 
-				return (
-					<HoverCard
-						openDelay={120}
-						closeDelay={80}
-						placement="bottom-end"
-						gutter={12}
-					>
-						<HoverCard.Trigger
-							as="button"
-							type="button"
-							onClick={() => {
-								if (props.locked) return;
-								setOptions({ mode: button.mode });
-								commands.setRecordingMode(button.mode);
-							}}
-							aria-disabled={props.locked && !isSelected()}
-							class={cx(
-								"relative flex justify-center items-center rounded-full transition-all duration-200 size-7 focus:outline-none",
-								isSelected()
-									? "ring-2 ring-offset-1 ring-offset-gray-1 bg-gray-7 hover:bg-gray-7 ring-blue-500"
-									: props.locked
-										? "bg-gray-3 opacity-40 cursor-default"
-										: "bg-gray-3 hover:bg-gray-7",
-							)}
+				{MODE_BUTTONS.map((button) => {
+					const isSelected = () => rawOptions.mode === button.mode;
+
+					return (
+						<HoverCard
+							openDelay={120}
+							closeDelay={80}
+							placement="bottom-end"
+							gutter={12}
 						>
-							<button.icon class={button.iconClass} />
-						</HoverCard.Trigger>
-						<HoverCard.Portal>
-							<HoverCard.Content class="z-50 outline-none animate-in fade-in slide-in-from-top-1 duration-100">
-								<div class={HOVER_CARD_CLASS}>
-									<div class="flex flex-col gap-0.5">
-										<span class="text-xs font-medium">{button.label}</span>
-										<span class="text-[10px] text-gray-4 leading-snug">
-											{button.description}
-										</span>
+							<HoverCard.Trigger
+								as="button"
+								type="button"
+								onClick={() => {
+									if (props.locked) return;
+									setOptions({ mode: button.mode });
+									commands.setRecordingMode(button.mode);
+								}}
+								aria-disabled={props.locked && !isSelected()}
+								class={cx(
+									"relative flex justify-center items-center rounded-full transition-all duration-200 size-7 focus:outline-none",
+									isSelected()
+										? "ring-2 ring-offset-1 ring-offset-gray-1 bg-gray-7 hover:bg-gray-7 ring-blue-500"
+										: props.locked
+											? "bg-gray-3 opacity-40 cursor-default"
+											: "bg-gray-3 hover:bg-gray-7",
+								)}
+							>
+								<button.icon class={button.iconClass} />
+							</HoverCard.Trigger>
+							<HoverCard.Portal>
+								<HoverCard.Content class="z-50 outline-none animate-in fade-in slide-in-from-top-1 duration-100">
+									<div class={HOVER_CARD_CLASS}>
+										<div class="flex flex-col gap-0.5">
+											<span class="text-xs font-medium">{button.label}</span>
+											<span class="text-[10px] text-gray-4 leading-snug">
+												{button.description}
+											</span>
+										</div>
+										<Show when={button.settingsSection}>
+											{(section) => (
+												<button
+													type="button"
+													onClick={(e) => {
+														e.stopPropagation();
+														void openQualitySettings(section());
+													}}
+													class="flex gap-1.5 items-center px-2 py-1 -mx-1 text-[11px] rounded-md transition-colors text-gray-4 hover:bg-gray-11 hover:text-gray-1"
+												>
+													<IconCapSettings class="size-3" />
+													<span>Quality settings</span>
+												</button>
+											)}
+										</Show>
 									</div>
-									<Show when={button.settingsSection}>
-										{(section) => (
-											<button
-												type="button"
-												onClick={(e) => {
-													e.stopPropagation();
-													void openQualitySettings(section());
-												}}
-												class="flex gap-1.5 items-center px-2 py-1 -mx-1 text-[11px] rounded-md transition-colors text-gray-4 hover:bg-gray-11 hover:text-gray-1"
-											>
-												<IconCapSettings class="size-3" />
-												<span>Quality settings</span>
-											</button>
-										)}
-									</Show>
-								</div>
-							</HoverCard.Content>
-						</HoverCard.Portal>
-					</HoverCard>
-				);
-			})}
+								</HoverCard.Content>
+							</HoverCard.Portal>
+						</HoverCard>
+					);
+				})}
+			</div>
 		</div>
 	);
 };
