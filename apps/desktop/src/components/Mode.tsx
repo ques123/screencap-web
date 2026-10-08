@@ -1,4 +1,5 @@
 import { HoverCard } from "@kobalte/core/hover-card";
+import { Switch as KSwitch } from "@kobalte/core/switch";
 import { type as ostype } from "@tauri-apps/plugin-os";
 import { cx } from "cva";
 import { createSignal, type JSX, Show } from "solid-js";
@@ -57,14 +58,19 @@ const MODE_BUTTONS: ModeButtonConfig[] = [
 const HOVER_CARD_CLASS =
 	"flex flex-col gap-2 px-3 py-2.5 rounded-lg border shadow-lg bg-gray-12 text-gray-1 border-gray-3 min-w-[12rem] max-w-[15rem]";
 
-const EncryptionToggle = (props: { disabled?: boolean }) => {
+const EncryptionToggle = (props: {
+	recording?: boolean;
+	screenshotMode: boolean;
+}) => {
 	const generalSettings = generalSettingsStore.createQuery();
-	const encrypted = () => generalSettings.data?.encryptRecordings === true;
+	const encrypted = () =>
+		!props.screenshotMode && generalSettings.data?.encryptRecordings === true;
+	const disabled = () =>
+		props.screenshotMode || props.recording || generalSettings.isPending;
 	const [saving, setSaving] = createSignal(false);
 
-	const toggle = async () => {
-		if (props.disabled || saving()) return;
-		const next = !encrypted();
+	const setEncrypted = async (next: boolean) => {
+		if (disabled() || saving()) return;
 		if (next && !(await confirmTurningOnEncryption())) return;
 		setSaving(true);
 		try {
@@ -84,27 +90,37 @@ const EncryptionToggle = (props: { disabled?: boolean }) => {
 			placement="bottom-end"
 			gutter={12}
 		>
-			<HoverCard.Trigger
-				as="button"
-				type="button"
-				onClick={() => void toggle()}
-				aria-label="End-to-end encryption"
-				aria-pressed={encrypted()}
-				aria-disabled={props.disabled || generalSettings.isPending}
-				class={cx(
-					"relative flex justify-center items-center rounded-full transition-all duration-200 size-7 focus:outline-none",
-					encrypted()
-						? "bg-blue-9 text-white hover:bg-blue-10"
-						: "bg-gray-3 text-gray-11 hover:bg-gray-7 hover:text-gray-12",
-					props.disabled && "opacity-40 cursor-default",
-				)}
-			>
-				<Show
-					when={encrypted()}
-					fallback={<IconLucideLockOpen class="size-3.5" />}
+			<HoverCard.Trigger as="div" class="flex items-center">
+				<KSwitch
+					checked={encrypted()}
+					onChange={(next) => void setEncrypted(next)}
+					disabled={disabled()}
+					aria-label="End-to-end encryption"
+					class="flex items-center"
 				>
-					<IconLucideLock class="size-3.5" />
-				</Show>
+					<KSwitch.Input class="peer sr-only" />
+					<KSwitch.Control
+						class={cx(
+							"flex items-center p-0.5 w-12 h-7 rounded-full transition-colors duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500",
+							encrypted() ? "bg-blue-9" : "bg-gray-6",
+							disabled() ? "opacity-40 cursor-default" : "cursor-pointer",
+						)}
+					>
+						<KSwitch.Thumb
+							class={cx(
+								"flex justify-center items-center bg-white rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.22)] transition-transform duration-200 size-6",
+								encrypted() && "translate-x-5",
+							)}
+						>
+							<Show
+								when={encrypted()}
+								fallback={<IconLucideLockOpen class="size-3 text-gray-10" />}
+							>
+								<IconLucideLock class="size-3 text-blue-10" />
+							</Show>
+						</KSwitch.Thumb>
+					</KSwitch.Control>
+				</KSwitch>
 			</HoverCard.Trigger>
 			<HoverCard.Portal>
 				<HoverCard.Content class="z-50 outline-none animate-in fade-in slide-in-from-top-1 duration-100">
@@ -114,9 +130,11 @@ const EncryptionToggle = (props: { disabled?: boolean }) => {
 								End-to-end encryption: {encrypted() ? "on" : "off"}
 							</span>
 							<span class="text-[10px] text-gray-4 leading-snug">
-								{props.disabled
-									? "Can't change during a recording."
-									: `${ENCRYPTION_SUMMARY} Applies to Instant and Studio recordings, not screenshots.`}
+								{props.screenshotMode
+									? "Screenshots can't be end-to-end encrypted yet."
+									: props.recording
+										? "Can't change during a recording."
+										: ENCRYPTION_SUMMARY}
 							</span>
 						</div>
 					</div>
@@ -162,6 +180,14 @@ const Mode = (props: ModeProps) => {
 			>
 				<IconCapInfo class="invert transition-opacity duration-200 size-2.5 dark:invert-0 group-hover:opacity-50" />
 			</button>
+
+			<Show when={ostype() === "macos"}>
+				<EncryptionToggle
+					recording={props.encryptionLocked}
+					screenshotMode={rawOptions.mode === "screenshot"}
+				/>
+				<div class="w-px h-5 bg-gray-6" aria-hidden="true" />
+			</Show>
 
 			{MODE_BUTTONS.map((button) => {
 				const isSelected = () => rawOptions.mode === button.mode;
@@ -223,11 +249,6 @@ const Mode = (props: ModeProps) => {
 					</HoverCard>
 				);
 			})}
-
-			<Show when={ostype() === "macos"}>
-				<div class="w-px h-5 bg-gray-6" aria-hidden="true" />
-				<EncryptionToggle disabled={props.encryptionLocked} />
-			</Show>
 		</div>
 	);
 };
