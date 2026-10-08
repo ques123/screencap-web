@@ -2310,7 +2310,11 @@ async fn start_recording_prepared(
                 &app,
                 false,
                 None,
-                Some(project_name.clone()),
+                Some(if e2ee_key.is_some() {
+                    crate::e2ee::neutral_title(chrono::Local::now())
+                } else {
+                    project_name.clone()
+                }),
                 None,
                 inputs.organization_id.clone(),
                 crate::upload::VideoCreateMode {

@@ -5372,7 +5372,7 @@ async fn upload_exported_video_encrypted(
         app,
         false,
         existing.as_ref().map(|(id, _)| id.clone()),
-        Some(meta.pretty_name.clone()),
+        Some(e2ee::neutral_title(chrono::Local::now())),
         Some(metadata),
         organization_id,
         upload::VideoCreateMode {

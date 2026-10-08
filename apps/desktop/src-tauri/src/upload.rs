@@ -765,6 +765,7 @@ pub async fn create_or_get_video_with_mode(
     };
 
     if let Some(name) = name {
+        let name: String = form_urlencoded::byte_serialize(name.as_bytes()).collect();
         s3_config_url.push_str(&format!("&name={name}"));
     }
 
