@@ -2253,9 +2253,9 @@ export class AgentApiContract extends HttpApi.make("cap-agent-api")
 	.add(AgentManagementHttpApi)
 	.annotateContext(
 		OpenApi.annotations({
-			title: "Cap Agent API",
+			title: "Screencap Agent API",
 			description:
-				"Stable personal-library API used by Cap CLI and MCP clients",
+				"Stable personal-library API used by Screencap CLI and MCP clients",
 		}),
 	)
 	.prefix("/api/v1") {}

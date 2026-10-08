@@ -131,6 +131,7 @@ export class ExtensionHttpApi extends HttpApiGroup.make("extension")
 	.annotateContext(
 		OpenApi.annotations({
 			title: "Chrome Extension",
-			description: "Endpoints used by the first-party Cap Chrome recorder.",
+			description:
+				"Endpoints used by the first-party Screencap Chrome recorder.",
 		}),
 	) {}

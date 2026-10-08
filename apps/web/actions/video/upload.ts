@@ -206,7 +206,7 @@ export async function createVideoAndGetUploadUrl({
 		if (!storageCheck.ok) throw new Error(storageCheck.message);
 
 		const idToUse = Video.VideoId.make(videoId || nanoId());
-		const videoTitle = `Cap ${
+		const videoTitle = `Screencap ${
 			isScreenshot ? "Screenshot" : isUpload ? "Upload" : "Recording"
 		} - ${formattedDate}`;
 

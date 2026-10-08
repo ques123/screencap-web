@@ -581,7 +581,7 @@ app.post(
 							? configuredLengthCheck.message
 							: reportedDuration === null
 								? "Recording duration is required to complete a free plan upload."
-								: "Recording exceeds the free plan duration limit. Upgrade to Cap Pro to upload longer recordings.",
+								: "Recording exceeds the free plan duration limit. Upgrade to Screencap Pro to upload longer recordings.",
 					);
 				}
 			}

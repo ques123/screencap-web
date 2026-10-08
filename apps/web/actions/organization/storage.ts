@@ -32,7 +32,7 @@ import { assertAvailableOnScreencap } from "./unavailable";
 const googleDriveProvider = "googleDrive";
 const settingsPath = "/dashboard/settings/organization/integrations";
 const proRequiredMessage =
-	"Cap Pro is required to manage organization integrations";
+	"Screencap Pro is required to manage organization integrations";
 
 type OrganizationStorageProvider = "s3" | "googleDrive";
 

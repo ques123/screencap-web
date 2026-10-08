@@ -149,7 +149,7 @@ describe("Signed BAA entitlement", () => {
 		expect(status.canPurchase).toBe(false);
 	});
 
-	it("allows purchase only while Cap Pro is still entitled", async () => {
+	it("allows purchase only while Screencap Pro is still entitled", async () => {
 		mockOwner({
 			stripeCustomerId: "cus_1",
 			stripeSubscriptionId: "sub_active",
@@ -185,11 +185,11 @@ describe("Signed BAA entitlement", () => {
 				noticesEmail: "legal@acme.com",
 				signatureDataUrl: `data:image/png;base64,${"A".repeat(200)}`,
 			}),
-		).rejects.toThrow("active Cap Pro subscription");
+		).rejects.toThrow("active Screencap Pro subscription");
 		expect(mockStripe.subscriptions.create).not.toHaveBeenCalled();
 	});
 
-	it("does not treat a leftover third-party subscription id as Cap Pro", async () => {
+	it("does not treat a leftover third-party subscription id as Screencap Pro", async () => {
 		mockOwner({
 			stripeCustomerId: "cus_1",
 			stripeSubscriptionId: "sub_canceled",
@@ -220,11 +220,11 @@ describe("Signed BAA entitlement", () => {
 				noticesEmail: "legal@acme.com",
 				signatureDataUrl: `data:image/png;base64,${"A".repeat(200)}`,
 			}),
-		).rejects.toThrow("active Cap Pro subscription");
+		).rejects.toThrow("active Screencap Pro subscription");
 		expect(mockStripe.subscriptions.create).not.toHaveBeenCalled();
 	});
 
-	it("rejects purchase when Stripe says Cap Pro is no longer entitled", async () => {
+	it("rejects purchase when Stripe says Screencap Pro is no longer entitled", async () => {
 		mockOwner({
 			stripeCustomerId: "cus_1",
 			stripeSubscriptionId: "sub_stale",
@@ -248,7 +248,7 @@ describe("Signed BAA entitlement", () => {
 				noticesEmail: "legal@acme.com",
 				signatureDataUrl: `data:image/png;base64,${"A".repeat(200)}`,
 			}),
-		).rejects.toThrow("active Cap Pro subscription");
+		).rejects.toThrow("active Screencap Pro subscription");
 		expect(mockStripe.subscriptions.create).not.toHaveBeenCalled();
 	});
 
@@ -267,7 +267,7 @@ describe("Signed BAA entitlement", () => {
 		);
 		await expect(
 			purchaseSignedBaa("org-1" as never, VALID_INPUT),
-		).rejects.toThrow("active Cap Pro subscription");
+		).rejects.toThrow("active Screencap Pro subscription");
 		expect(mockStripe.subscriptions.create).not.toHaveBeenCalled();
 		expect(mockStripe.subscriptions.cancel).not.toHaveBeenCalled();
 		expect(mockDb.update).not.toHaveBeenCalled();
@@ -452,7 +452,7 @@ describe("Signed BAA Stripe recovery", () => {
 		);
 		await expect(
 			purchaseSignedBaa("org-1" as never, VALID_INPUT),
-		).rejects.toThrow("Cap Pro ended");
+		).rejects.toThrow("Screencap Pro ended");
 		expect(mockStripe.subscriptions.cancel).toHaveBeenCalledWith(
 			recoveredSubscription.id,
 		);
@@ -734,7 +734,7 @@ describe("Paid BAA signing", () => {
 			},
 		);
 		await expect(signPaidBaa("org-1" as never, VALID_INPUT)).rejects.toThrow(
-			"active Cap Pro subscription",
+			"active Screencap Pro subscription",
 		);
 		expect(mockDb.update).not.toHaveBeenCalled();
 		expect(mockStripe.subscriptions.create).not.toHaveBeenCalled();
@@ -755,7 +755,7 @@ describe("Paid BAA signing", () => {
 			{ stripeSubscriptionId: "12345" },
 		);
 		await expect(signPaidBaa("org-1" as never, VALID_INPUT)).rejects.toThrow(
-			"active Cap Pro subscription",
+			"active Screencap Pro subscription",
 		);
 		expect(mockDb.update).not.toHaveBeenCalled();
 		expect(mockStripe.subscriptions.create).not.toHaveBeenCalled();

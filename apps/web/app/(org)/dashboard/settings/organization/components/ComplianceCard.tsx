@@ -62,7 +62,7 @@ const certifications: {
 	{
 		label: "HIPAA",
 		description:
-			"HIPAA compliance verified through Comp AI, with every vendor in Cap's production infrastructure covered by a BAA.",
+			"HIPAA compliance verified through Comp AI, with every vendor in Screencap's production infrastructure covered by a BAA.",
 		badge: (
 			<text
 				x="22"

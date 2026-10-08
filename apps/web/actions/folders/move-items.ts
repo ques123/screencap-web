@@ -81,9 +81,10 @@ function getFolderScope(
 
 function normalizeVideoIds(videoIds: Video.VideoId[]) {
 	const ids = [...new Set(videoIds)];
-	if (ids.length === 0) throw new Error("Select at least one Cap to move");
+	if (ids.length === 0)
+		throw new Error("Select at least one recording to move");
 	if (ids.length > MAX_MOVE_ITEMS) {
-		throw new Error(`You can move up to ${MAX_MOVE_ITEMS} Caps at once`);
+		throw new Error(`You can move up to ${MAX_MOVE_ITEMS} recordings at once`);
 	}
 	return ids;
 }
@@ -152,7 +153,7 @@ export async function moveVideos({
 				);
 
 			if (new Set(movableVideos.map((video) => video.id)).size !== ids.length) {
-				throw new Error("One or more Caps cannot be moved");
+				throw new Error("One or more recordings cannot be moved");
 			}
 
 			await tx
@@ -180,7 +181,7 @@ export async function moveVideos({
 				);
 
 			if (movableVideos.length !== ids.length) {
-				throw new Error("One or more Caps cannot be moved");
+				throw new Error("One or more recordings cannot be moved");
 			}
 
 			await tx
@@ -206,7 +207,7 @@ export async function moveVideos({
 			);
 
 		if (movableVideos.length !== ids.length) {
-			throw new Error("One or more Caps cannot be moved");
+			throw new Error("One or more recordings cannot be moved");
 		}
 
 		await tx
