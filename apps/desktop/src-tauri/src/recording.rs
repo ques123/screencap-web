@@ -6156,7 +6156,13 @@ async fn handle_recording_finish(
 
             AppSounds::StopRecording.play();
             use tauri_plugin_clipboard_manager::ClipboardExt;
-            let _ = app.clipboard().write_text(video_upload_info.link.clone());
+            if app
+                .clipboard()
+                .write_text(video_upload_info.link.clone())
+                .is_ok()
+            {
+                crate::notifications::NotificationType::InstantLinkCopied.send(app);
+            }
             let _ = open_external_link(
                 app.clone(),
                 recording_stopped_share_url(&video_upload_info.link),

@@ -7,6 +7,7 @@ pub enum NotificationType {
     VideoSaved,
     VideoCopiedToClipboard,
     ShareableLinkCopied,
+    InstantLinkCopied,
     UploadFailed,
     VideoSaveFailed,
     VideoCopyFailed,
@@ -27,6 +28,11 @@ impl NotificationType {
             NotificationType::ShareableLinkCopied => {
                 ("Link Copied", "Link copied to clipboard", false)
             }
+            NotificationType::InstantLinkCopied => (
+                "Link copied",
+                "Your recording's link is on your clipboard and it's finishing uploading.",
+                false,
+            ),
             NotificationType::UploadFailed => (
                 "Upload Failed",
                 "Unable to upload media. Please try again",
