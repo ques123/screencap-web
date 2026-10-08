@@ -31,6 +31,11 @@ import {
 	generalSettingsStore,
 	recordingStartSafetyStore,
 } from "~/store";
+import {
+	confirmTurningOnEncryption,
+	ENCRYPTION_COSTS,
+	ENCRYPTION_SUMMARY,
+} from "~/utils/e2ee";
 import { clientEnv } from "~/utils/env";
 import {
 	deriveGeneralSettings,
@@ -124,9 +129,6 @@ const MAX_FPS_OPTIONS = [
 	value: number;
 	label: string;
 }[];
-
-const ENCRYPTION_COSTS =
-	"No transcripts or AI titles, no preview image in chat apps, and no download from the browser. Screencap can't recover a recording if you lose this Mac and the link.";
 
 const DEFAULT_PROJECT_NAME_TEMPLATE =
 	"{target_name} ({target_kind}) {date} {time}";
@@ -313,14 +315,7 @@ function Inner(props: {
 	const ostype: OsType = type();
 
 	const handleEncryptRecordingsChange = async (value: boolean) => {
-		if (
-			value &&
-			!(await confirm(
-				`Recordings are encrypted on this Mac before upload. Only people with the full link can watch.\n\n${ENCRYPTION_COSTS}`,
-				{ title: "End-to-end encrypt recordings?", okLabel: "Turn on" },
-			))
-		)
-			return;
+		if (value && !(await confirmTurningOnEncryption())) return;
 		handleChange("encryptRecordings", value);
 	};
 	const excludedWindows = createMemo(() => settings.excludedWindows ?? []);
@@ -548,7 +543,7 @@ function Inner(props: {
 						{ostype === "macos" && (
 							<ToggleSettingItem
 								label="End-to-end encrypt recordings"
-								description={`Recordings are encrypted on this Mac before upload. Only people with the full link can watch. ${ENCRYPTION_COSTS}`}
+								description={`${ENCRYPTION_SUMMARY} ${ENCRYPTION_COSTS}`}
 								value={!!settings.encryptRecordings}
 								onChange={handleEncryptRecordingsChange}
 							/>
