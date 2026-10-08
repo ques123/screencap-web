@@ -306,7 +306,7 @@ export const EmbedVideo = forwardRef<
 							callToAction={callToAction}
 						/>
 					) : (
-						<E2eeKeyGate>
+						<E2eeKeyGate videoSrc={videoSrc}>
 							<SegmentsPlayer
 								videoId={data.id}
 								mediaPlayerClassName="w-full h-full"

@@ -511,7 +511,7 @@ export const ShareVideo = forwardRef<
 				>
 					{isActivelyRecording ? (
 						<div className="relative h-full overflow-hidden rounded-xl bg-black">
-							<E2eeKeyGate>
+							<E2eeKeyGate videoSrc={videoSrc}>
 								<SegmentsPlayer
 									videoId={data.id}
 									mediaPlayerClassName="w-full h-full max-w-full max-h-full rounded-xl"
@@ -596,7 +596,7 @@ export const ShareVideo = forwardRef<
 							callToAction={callToAction}
 						/>
 					) : (
-						<E2eeKeyGate>
+						<E2eeKeyGate videoSrc={videoSrc}>
 							<SegmentsPlayer
 								videoId={data.id}
 								mediaPlayerClassName={clsx(

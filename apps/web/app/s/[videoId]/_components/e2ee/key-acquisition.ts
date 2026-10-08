@@ -8,8 +8,9 @@ import {
 	subpathFromUrl,
 } from "@cap/e2ee";
 
+export const E2EE_LOCKED_TITLE = "This recording is end-to-end encrypted";
 export const E2EE_MISSING_KEY_MESSAGE =
-	"This recording is end-to-end encrypted. Ask the sender for the full link, which ends in #k=...";
+	"What's playing is the encrypted file, exactly as Screencap stores it. To watch the recording, open the full link from the sender. It ends in #k=...";
 export const E2EE_KEY_MISMATCH_MESSAGE =
 	"This link's key doesn't match this recording. Ask the sender for the full link.";
 export const E2EE_UNSUPPORTED_MESSAGE =
