@@ -2,7 +2,7 @@
 
 import { navigationMenuTriggerStyle } from "@cap/ui/navigation-menu";
 import { classNames } from "@cap/utils/helpers";
-import { ChevronDown, Clapperboard, Zap } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,7 +13,6 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { LoomMark } from "@/components/icons/LoomMark";
 
 interface NavDropdownItem {
 	label: string;
@@ -30,111 +29,9 @@ interface NavItem {
 }
 
 const Links: NavItem[] = [
-	{
-		label: "Product",
-		width: 600,
-		dropdown: [
-			{
-				label: "Instant Mode",
-				sub: "Quick recordings with instant shareable links",
-				href: "/features/instant-mode",
-				icon: <Zap fill="yellow" className="size-4" strokeWidth={1.5} />,
-			},
-			{
-				label: "Studio Mode",
-				sub: "Professional recordings with advanced editing",
-				href: "/features/studio-mode",
-				icon: (
-					<Clapperboard
-						fill="var(--blue-9)"
-						className="size-4"
-						strokeWidth={1.5}
-					/>
-				),
-			},
-			{
-				label: "Download App",
-				sub: "Downloads for macOS, Windows & Linux",
-				href: "/download",
-			},
-			{
-				label: "Migrate from Loom",
-				sub: "Bring your Loom library into Cap",
-				href: "/migrate-from-loom",
-				icon: <LoomMark size={16} />,
-			},
-			{
-				label: "Open Source",
-				sub: "Cap is open source and available on GitHub",
-				href: "https://github.com/CapSoftware/Cap",
-			},
-			{
-				label: "Self-host Cap",
-				sub: "Self-host Cap on your own infrastructure",
-				href: "/self-hosting",
-			},
-			{
-				label: "Join the community",
-				sub: "Join the Cap community on Discord",
-				href: "https://cap.link/discord",
-			},
-			{
-				label: "Free tools",
-				sub: "Loom downloader, converters and more",
-				href: "/tools",
-			},
-		],
-	},
-	{
-		label: "Download",
-		href: "/download",
-	},
-	{
-		label: "Agents",
-		href: "/agents",
-	},
-	{
-		label: "Testimonials",
-		href: "/testimonials",
-	},
-	{
-		label: "Help",
-		width: 480,
-		dropdown: [
-			{
-				label: "Support",
-				sub: "Get help via Discord, email, and more",
-				href: "/support",
-			},
-			{
-				label: "Documentation",
-				sub: "Documentation for using Cap",
-				href: "/docs",
-			},
-			{
-				label: "FAQs",
-				sub: "Frequently asked questions about Cap",
-				href: "/faq",
-			},
-			{
-				label: "Changelog",
-				sub: "New features, improvements, and fixes",
-				href: "/changelog",
-			},
-		],
-	},
-	{
-		label: "About",
-		href: "/about",
-	},
-	{
-		label: "Blog",
-		href: "/blog",
-	},
-	{
-		label: "Pricing",
-		href: "/pricing",
-	},
+	{ label: "Download", href: "/download" },
+	{ label: "Self-hosting", href: "/self-hosting" },
+	{ label: "Source code", href: "https://github.com/ques123/screencap-web" },
 ];
 
 const dropdownStyle = (width: number | undefined): CSSProperties => ({
