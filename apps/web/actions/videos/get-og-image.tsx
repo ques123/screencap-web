@@ -18,8 +18,8 @@ export async function generateVideoOgImage(videoId: Video.VideoId) {
 
 	const { video, ownerName } = videoData;
 
-	if (video.password || isE2eeVideo(video))
-		return renderVideoOg({ kind: "password" });
+	if (isE2eeVideo(video)) return renderVideoOg({ kind: "encrypted" });
+	if (video.password) return renderVideoOg({ kind: "password" });
 	if (video.public === false) return renderVideoOg({ kind: "locked" });
 
 	let screenshotUrl: string | undefined;
