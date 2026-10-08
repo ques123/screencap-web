@@ -12,8 +12,7 @@ const addHttps = (s?: string) => {
 };
 
 const mainOrigins = [
-	"https://cap.so",
-	"https://cap.link",
+	"https://screencap.co",
 	"http://localhost",
 	serverEnv().WEB_URL,
 	addHttps(serverEnv().VERCEL_URL_HOST),
@@ -34,7 +33,7 @@ export async function proxy(request: NextRequest) {
 		response.headers.set("X-Frame-Options", "SAMEORIGIN");
 		response.headers.set(
 			"Content-Security-Policy",
-			"frame-ancestors https://cap.so",
+			"frame-ancestors https://screencap.co",
 		);
 		return response;
 	}
@@ -82,7 +81,8 @@ export async function proxy(request: NextRequest) {
 		) {
 			// Only "/" (nginx serves the landing page there, this is the fallback) goes to the
 			// sign-in page. Any other unknown path must be a real 404 so crawlers do not index it.
-			if (path === "/") return NextResponse.redirect(new URL("/login", url.origin));
+			if (path === "/")
+				return NextResponse.redirect(new URL("/login", url.origin));
 			return NextResponse.rewrite(new URL("/_screencap-not-found", url.origin));
 		} else return NextResponse.next();
 	}

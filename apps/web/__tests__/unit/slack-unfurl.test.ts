@@ -30,8 +30,8 @@ const payload = {
 		source: "conversations_history",
 		links: [
 			{
-				domain: "cap.so",
-				url: "https://cap.so/s/abc123",
+				domain: "screencap.co",
+				url: "https://screencap.co/s/abc123",
 			},
 		],
 	},
@@ -58,14 +58,14 @@ describe("Slack video unfurls", () => {
 		expect(
 			buildSlackVideoBlock({
 				video,
-				shareUrl: "https://cap.so/s/abc123",
-				webUrl: "https://cap.so",
+				shareUrl: "https://screencap.co/s/abc123",
+				webUrl: "https://screencap.co",
 			}),
 		).toMatchObject({
 			type: "video",
-			title_url: "https://cap.so/s/abc123",
-			video_url: "https://cap.so/embed/abc123?autoplay=true&slack=true",
-			thumbnail_url: "https://cap.so/api/video/og?videoId=abc123",
+			title_url: "https://screencap.co/s/abc123",
+			video_url: "https://screencap.co/embed/abc123?autoplay=true&slack=true",
+			thumbnail_url: "https://screencap.co/api/video/og?videoId=abc123",
 			provider_name: "Screencap",
 			author_name: "Richie",
 		});
@@ -78,8 +78,8 @@ describe("Slack video unfurls", () => {
 				name: "V".repeat(250),
 				ownerName: "A".repeat(80),
 			},
-			shareUrl: "https://cap.so/s/abc123",
-			webUrl: "https://cap.so",
+			shareUrl: "https://screencap.co/s/abc123",
+			webUrl: "https://screencap.co",
 		});
 
 		expect(block.title.text).toHaveLength(199);
@@ -90,7 +90,7 @@ describe("Slack video unfurls", () => {
 		const sendUnfurl = vi.fn(async () => undefined);
 		await processSlackEvent({
 			payload,
-			webUrl: "https://cap.so",
+			webUrl: "https://screencap.co",
 			dependencies: {
 				deleteInstallation: vi.fn(async () => undefined),
 				getInstallationToken: vi.fn(async () => "xoxb-token"),
@@ -108,7 +108,7 @@ describe("Slack video unfurls", () => {
 				source: "conversations_history",
 			},
 			unfurls: {
-				"https://cap.so/s/abc123": {
+				"https://screencap.co/s/abc123": {
 					blocks: [expect.objectContaining({ type: "video" })],
 				},
 			},
@@ -130,7 +130,7 @@ describe("Slack video unfurls", () => {
 					],
 				},
 			},
-			webUrl: "https://cap.so",
+			webUrl: "https://screencap.co",
 			dependencies: {
 				deleteInstallation: vi.fn(async () => undefined),
 				getInstallationToken: vi.fn(async () => "xoxb-token"),
@@ -145,7 +145,7 @@ describe("Slack video unfurls", () => {
 					"https://cap.link/abc123": {
 						blocks: [
 							expect.objectContaining({
-								title_url: "https://cap.so/s/abc123",
+								title_url: "https://screencap.co/s/abc123",
 							}),
 						],
 					},
@@ -158,7 +158,7 @@ describe("Slack video unfurls", () => {
 		const sendUnfurl = vi.fn(async () => undefined);
 		await processSlackEvent({
 			payload,
-			webUrl: "https://cap.so",
+			webUrl: "https://screencap.co",
 			dependencies: {
 				deleteInstallation: vi.fn(async () => undefined),
 				getInstallationToken: vi.fn(async () => "xoxb-token"),
@@ -168,7 +168,7 @@ describe("Slack video unfurls", () => {
 		});
 		await processSlackEvent({
 			payload,
-			webUrl: "https://cap.so",
+			webUrl: "https://screencap.co",
 			dependencies: {
 				deleteInstallation: vi.fn(async () => undefined),
 				getInstallationToken: vi.fn(async () => null),
@@ -187,7 +187,7 @@ describe("Slack video unfurls", () => {
 				team_id: "T123",
 				event: { type: "app_uninstalled" },
 			},
-			webUrl: "https://cap.so",
+			webUrl: "https://screencap.co",
 			dependencies: {
 				deleteInstallation,
 				getInstallationToken: vi.fn(async () => null),

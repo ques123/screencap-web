@@ -45,7 +45,8 @@ export class Folders extends Effect.Service<Folders>()("Folders", {
 
 				if (!userIsPro(owner ?? null))
 					return yield* new Policy.PolicyDeniedError({
-						reason: "Upgrade to Cap Pro to create a public collection link",
+						reason:
+							"Upgrade to Screencap Pro to create a public collection link",
 					});
 			});
 

@@ -339,7 +339,7 @@ async function buildTransferState({
 				{
 					videoId: membership.videoId,
 					name: membership.name,
-					reason: "The Cap belongs to another organization",
+					reason: "The recording belongs to another organization",
 				},
 			];
 		}
@@ -348,7 +348,7 @@ async function buildTransferState({
 				{
 					videoId: membership.videoId,
 					name: membership.name,
-					reason: `The Cap upload is ${membership.uploadPhase.replaceAll("_", " ")}`,
+					reason: `The recording upload is ${membership.uploadPhase.replaceAll("_", " ")}`,
 				},
 			];
 		}
@@ -370,15 +370,17 @@ async function buildTransferState({
 	});
 	const blockedReasons = [
 		...(memberships.length > MAX_CONTENT_TRANSFER_VIDEOS
-			? [`A transfer can include up to ${MAX_CONTENT_TRANSFER_VIDEOS} Caps`]
+			? [
+					`A transfer can include up to ${MAX_CONTENT_TRANSFER_VIDEOS} recordings`,
+				]
 			: []),
 		...(duplicateVideoIds.length > 0
 			? [
-					`${duplicateVideoIds.length} Caps appear more than once in the selected folder tree`,
+					`${duplicateVideoIds.length} recordings appear more than once in the selected folder tree`,
 				]
 			: []),
 		...(blockedVideos.length > 0
-			? [`${blockedVideos.length} Caps cannot be transferred safely`]
+			? [`${blockedVideos.length} recordings cannot be transferred safely`]
 			: []),
 	];
 	const previewFolderPlan = planPersonalFolderDestinations({

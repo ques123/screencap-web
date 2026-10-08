@@ -123,10 +123,10 @@ describe("video og", () => {
 describe("rich share link", () => {
 	it("canonicalizes legacy video share links", () => {
 		expect(canonicalVideoShareUrl("https://cap.link/abc123")).toBe(
-			"https://cap.so/s/abc123",
+			"https://screencap.co/s/abc123",
 		);
 		expect(canonicalVideoShareUrl("https://cap.link/abc123?t=42")).toBe(
-			"https://cap.so/s/abc123?t=42",
+			"https://screencap.co/s/abc123?t=42",
 		);
 		expect(canonicalVideoShareUrl("https://cap.link/video/demo.mp4")).toBe(
 			"https://cap.link/video/demo.mp4",

@@ -17,9 +17,9 @@ export const homepageSchema = {
 			url: homepageSeo.url,
 			logo: {
 				"@type": "ImageObject",
-				url: "https://screencap.co/cap-logo.png",
+				url: "https://screencap.co/screencap-logo.png",
 				width: 1330,
-				height: 330,
+				height: 410,
 			},
 			sameAs: [
 				"https://github.com/CapSoftware/Cap",

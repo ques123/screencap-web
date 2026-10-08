@@ -3,7 +3,7 @@ import { organizations } from "@cap/database/schema";
 import { buildEnv, serverEnv } from "@cap/env";
 import { eq } from "drizzle-orm";
 
-const DEFAULT_HOSTNAMES = ["cap.so", "cap.link", "localhost", "127.0.0.1"];
+const DEFAULT_HOSTNAMES = ["screencap.co", "localhost", "127.0.0.1"];
 
 const normalizeHostname = (value: string | null | undefined) => {
 	const first = value?.split(",")[0]?.trim().toLowerCase();

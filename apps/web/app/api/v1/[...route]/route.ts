@@ -285,7 +285,7 @@ const commonError = (requestId: string, message: string) => ({
 });
 
 const AGENT_UPLOAD_PLAN_LIMIT_MESSAGE =
-	"Free plan uploads require a recording duration of 5 minutes or less. Upgrade to Cap Pro to upload longer recordings.";
+	"Free plan uploads require a recording duration of 5 minutes or less. Upgrade to Screencap Pro to upload longer recordings.";
 const AGENT_UPLOAD_PENDING_FILE_NAME = "agent-upload.mp4";
 const AGENT_UPLOAD_REJECTION_ERROR = "AGENT_UPLOAD_DURATION_LIMIT_EXCEEDED";
 
@@ -325,20 +325,20 @@ const passwordRequired = (requestId: string) =>
 	new Agent.AgentForbiddenError({
 		...commonError(
 			requestId,
-			"This Cap must be unlocked before it can be read",
+			"This recording must be unlocked before it can be read",
 		),
 		code: "PASSWORD_REQUIRED",
 	});
 
 const contentDisabled = (requestId: string, content: string) =>
 	new Agent.AgentForbiddenError({
-		...commonError(requestId, `${content} is disabled for this Cap`),
+		...commonError(requestId, `${content} is disabled for this recording`),
 		code: "CONTENT_DISABLED",
 	});
 
 const notFound = (requestId: string) =>
 	new Agent.AgentNotFoundError({
-		...commonError(requestId, "Cap not found"),
+		...commonError(requestId, "Recording not found"),
 		code: "NOT_FOUND",
 	});
 
@@ -384,17 +384,20 @@ const withMappedErrors = <A, E, R>(
 		Effect.catchTags({
 			DatabaseError: () =>
 				Effect.fail(
-					temporarilyUnavailable(requestId, "The Cap library is unavailable"),
+					temporarilyUnavailable(
+						requestId,
+						"The recording library is unavailable",
+					),
 				),
 			NoSuchElementException: () => Effect.fail(notFound(requestId)),
 			PolicyDenied: () => Effect.fail(forbidden(requestId)),
 			S3Error: () =>
 				Effect.fail(
-					temporarilyUnavailable(requestId, "Cap storage is unavailable"),
+					temporarilyUnavailable(requestId, "Screencap storage is unavailable"),
 				),
 			StorageError: () =>
 				Effect.fail(
-					temporarilyUnavailable(requestId, "Cap storage is unavailable"),
+					temporarilyUnavailable(requestId, "Screencap storage is unavailable"),
 				),
 			UnknownException: () =>
 				Effect.fail(
@@ -1089,7 +1092,10 @@ const unlockCap = Effect.fn("Agent.unlockCap")(function* (
 		Effect.catchTag("VerifyVideoPasswordError", () => Effect.succeed(true)),
 	);
 	if (!requiresPassword) {
-		return yield* badRequest(requestId, "This Cap does not require a password");
+		return yield* badRequest(
+			requestId,
+			"This recording does not require a password",
+		);
 	}
 
 	const database = yield* Database;
@@ -1426,7 +1432,7 @@ const testAgentS3Config = Effect.fn("Agent.testS3Config")(function* (
 		catch: () =>
 			badRequest(
 				requestId,
-				"Cap could not access the S3 bucket with this configuration",
+				"Screencap could not access the S3 bucket with this configuration",
 			),
 	});
 });
@@ -1591,7 +1597,7 @@ const requireAgentStorageManager = Effect.fn("Agent.requireStorageManager")(
 		if (!account || !userIsPro(account)) {
 			return yield* forbidden(
 				requestId,
-				"Cap Pro is required to manage storage integrations",
+				"Screencap Pro is required to manage storage integrations",
 			);
 		}
 	},
@@ -1652,7 +1658,7 @@ const updateAgentImage = Effect.fn("Agent.updateImage")(function* (input: {
 		if (organization.billing.plan !== "pro") {
 			return yield* forbidden(
 				input.requestId,
-				"Cap Pro is required for collection branding",
+				"Screencap Pro is required for collection branding",
 			);
 		}
 	}
@@ -1744,7 +1750,7 @@ const updateAgentImage = Effect.fn("Agent.updateImage")(function* (input: {
 					) {
 						return yield* forbidden(
 							input.requestId,
-							"Cap Pro is required for shareable link branding",
+							"Screencap Pro is required for shareable link branding",
 						);
 					}
 					const existing =
@@ -1902,7 +1908,7 @@ const updateAgentCollectionPublicPage = Effect.fn(
 		if (organization.billing.plan !== "pro") {
 			return yield* forbidden(
 				input.requestId,
-				"Cap Pro is required for public collection customization",
+				"Screencap Pro is required for public collection customization",
 			);
 		}
 	}
@@ -2271,7 +2277,7 @@ const queueAgentLoomImport = Effect.fn("Agent.queueLoomImport")(
 		if (!userIsPro(account)) {
 			return yield* forbidden(
 				input.requestId,
-				"Importing from Loom requires Cap Pro",
+				"Importing from Loom requires Screencap Pro",
 			);
 		}
 		const request = yield* HttpServerRequest.HttpServerRequest;
@@ -3238,7 +3244,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 						if (row.ownerId !== principal.id) {
 							return yield* forbidden(
 								requestId,
-								"Only the Cap owner can inspect sharing targets",
+								"Only the recording owner can inspect sharing targets",
 							);
 						}
 						const database = yield* Database;
@@ -3390,7 +3396,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 						if (!account || !userIsPro(account)) {
 							return yield* forbidden(
 								requestId,
-								"Cap Pro is required to manage storage integrations",
+								"Screencap Pro is required to manage storage integrations",
 							);
 						}
 						const drive = yield* getAgentOrganizationDrive(path.organizationId);
@@ -4373,7 +4379,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 						if (userIsPro(account)) {
 							return yield* badRequest(
 								requestId,
-								"The organization owner already has Cap Pro",
+								"The organization owner already has Screencap Pro",
 							);
 						}
 						const quantity =
@@ -5552,7 +5558,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 						if (!apiKey) {
 							return yield* forbidden(
 								requestId,
-								"Cap referrals are not available on this server",
+								"Screencap referrals are not available on this server",
 							);
 						}
 						const database = yield* Database;
@@ -6565,7 +6571,8 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 							videoId,
 						);
 						const fileTitle = payload.fileName.replace(/\.[^/.]+$/, "").trim();
-						const title = payload.title?.trim() || fileTitle || "Cap Upload";
+						const title =
+							payload.title?.trim() || fileTitle || "Screencap Upload";
 						if (title.length > 255) {
 							return yield* badRequest(requestId, "Upload title is too long");
 						}
@@ -6895,7 +6902,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 												Effect.fail(
 													temporarilyUnavailable(
 														requestId,
-														"Cap could not verify the uploaded recording duration. Retry the completion request.",
+														"Screencap could not verify the uploaded recording duration. Retry the completion request.",
 													),
 												),
 											),
@@ -8141,7 +8148,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 							if (organization.billing.plan !== "pro") {
 								return yield* forbidden(
 									requestId,
-									"Cap Pro is required for public collections",
+									"Screencap Pro is required for public collections",
 								);
 							}
 						}
@@ -8228,7 +8235,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 							if (organization.billing.plan !== "pro") {
 								return yield* forbidden(
 									requestId,
-									"Cap Pro is required for public collections",
+									"Screencap Pro is required for public collections",
 								);
 							}
 						}
@@ -8479,7 +8486,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 						) {
 							return yield* forbidden(
 								requestId,
-								"Cap Pro is required for these space settings",
+								"Screencap Pro is required for these space settings",
 							);
 						}
 						const spaceId = Space.SpaceId.make(nanoId());
@@ -8597,7 +8604,7 @@ const AgentManagementHandlersLive = HttpApiBuilder.group(
 						) {
 							return yield* forbidden(
 								requestId,
-								"Cap Pro is required for these space settings",
+								"Screencap Pro is required for these space settings",
 							);
 						}
 						return yield* runAgentMutation({

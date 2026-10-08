@@ -42,7 +42,7 @@ describe("requestShareHostname", () => {
 });
 
 describe("isDefaultShareHostname", () => {
-	it.each(["cap.so", "cap.link", "localhost", "127.0.0.1"])(
+	it.each(["screencap.co", "localhost", "127.0.0.1"])(
 		"treats %s as a default host",
 		(hostname) => {
 			expect(isDefaultShareHostname(hostname, "https://cap.so")).toBe(true);

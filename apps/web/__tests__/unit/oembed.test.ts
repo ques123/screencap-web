@@ -16,8 +16,8 @@ const video: PublicShareVideo = {
 
 describe("Cap oEmbed", () => {
 	it.each([
-		["https://cap.so/s/abc123", "abc123"],
-		["https://www.cap.so/s/abc123?t=3", "abc123"],
+		["https://screencap.co/s/abc123", "abc123"],
+		["https://www.screencap.co/s/abc123?t=3", "abc123"],
 		["https://cap.link/abc123", "abc123"],
 		["https://www.cap.link/abc123?foo=bar", "abc123"],
 	])("parses supported share URL %s", (url, expected) => {

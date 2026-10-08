@@ -3,11 +3,11 @@ import { buildMarketingMetadata } from "@/lib/og/url";
 import { SelfHostingPage } from "./SelfHostingPage";
 
 export const metadata: Metadata = buildMarketingMetadata({
-	title: "Self-hosting — Cap",
+	title: "Self-hosting — Screencap",
 	description:
-		"Deploy Cap on your own infrastructure with full control over your data. Ideal for enterprises and organizations with specific security requirements.",
+		"Screencap is open source under the AGPL-3.0. Read the code, build the Mac app and run it yourself.",
 	path: "/self-hosting",
-	ogTitle: "Self-host Cap on your own infrastructure",
+	ogTitle: "Self-host Screencap",
 	ogTag: "Self-hosting",
 });
 

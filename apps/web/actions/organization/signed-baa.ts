@@ -412,7 +412,7 @@ async function completeSignedBaa(
 			!ownerCanPurchaseSignedBaa(user)
 		) {
 			throw new Error(
-				"Your organization needs an active Cap Pro subscription before adding the Signed BAA add-on.",
+				"Your organization needs an active Screencap Pro subscription before adding the Signed BAA add-on.",
 			);
 		}
 
@@ -423,7 +423,7 @@ async function completeSignedBaa(
 			);
 		} catch {
 			throw new Error(
-				"Your organization needs an active Cap Pro subscription before adding the Signed BAA add-on.",
+				"Your organization needs an active Screencap Pro subscription before adding the Signed BAA add-on.",
 			);
 		}
 		if (
@@ -431,7 +431,7 @@ async function completeSignedBaa(
 			!isProSubscription(liveProSubscription)
 		) {
 			throw new Error(
-				"Your organization needs an active Cap Pro subscription before adding the Signed BAA add-on.",
+				"Your organization needs an active Screencap Pro subscription before adding the Signed BAA add-on.",
 			);
 		}
 	}
@@ -643,7 +643,7 @@ async function completeSignedBaa(
 	}
 	if (!(await ensureBaaHasPro(user, subscription, recordIdentity))) {
 		throw new Error(
-			"Cap Pro ended before the BAA could be signed. The BAA subscription has been canceled; please contact support about your payment.",
+			"Screencap Pro ended before the BAA could be signed. The BAA subscription has been canceled; please contact support about your payment.",
 		);
 	}
 
@@ -680,13 +680,13 @@ async function completeSignedBaa(
 						? [details.noticesEmail]
 						: []),
 				],
-				subject: "Your signed BAA with Cap",
+				subject: "Your signed BAA with Screencap",
 				react: SignedBaa({
 					email: user.email,
 					entityName: details.entityName,
 					effectiveDate: formatBaaDate(signedAt),
 				}),
-				fromOverride: "Cap Software <richie@send.cap.so>",
+				fromOverride: "Screencap <richie@send.cap.so>",
 				replyTo: BAA_NOTICE_EMAIL,
 				attachments: [
 					{

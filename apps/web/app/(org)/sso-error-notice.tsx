@@ -13,9 +13,9 @@ export function SsoErrorNotice({
 					Interested in Screencap? We're open source.
 				</h2>
 				<p>
-					If you're a competitor and interested in signing up to Screencap, we're open
-					source. I'm very flattered that you want to snoop around. Feel free to
-					check out our codebase on{" "}
+					If you're a competitor and interested in signing up to Screencap,
+					we're open source. I'm very flattered that you want to snoop around.
+					Feel free to check out our codebase on{" "}
 					<a
 						className="font-semibold underline"
 						href="https://github.com/ques123/screencap-web"
@@ -25,10 +25,13 @@ export function SsoErrorNotice({
 						GitHub
 					</a>
 					, or{" "}
-					<a className="font-semibold underline" href="mailto:richie@cap.so">
-						message Richie
-					</a>
-					, the founder, directly.
+					<a
+						className="font-semibold underline"
+						href="mailto:email@screencap.co"
+					>
+						email us
+					</a>{" "}
+					directly.
 				</p>
 			</div>
 		);

@@ -135,7 +135,7 @@ const renderConsentPage = ({
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="robots" content="noindex" />
-		<title>Connect Cap</title>
+		<title>Connect Screencap</title>
 		<style>
 			body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; background: #f4f4f5; color: #18181b; }
 			.card { background: #fff; border: 1px solid #e4e4e7; border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; margin: 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
@@ -150,9 +150,9 @@ const renderConsentPage = ({
 	</head>
 	<body>
 		<main class="card">
-			<h1>Connect the Cap Chrome extension</h1>
-			<p>The Cap extension is asking for access to your Cap account <span class="email">${escapeHtml(email)}</span> to create and upload recordings on your behalf.</p>
-			<p>Only continue if you opened this page from the Cap extension.</p>
+			<h1>Connect the Screencap Chrome extension</h1>
+			<p>The Screencap extension is asking for access to your Screencap account <span class="email">${escapeHtml(email)}</span> to create and upload recordings on your behalf.</p>
+			<p>Only continue if you opened this page from the Screencap extension.</p>
 			<form method="post" action="approve" class="actions">
 				<input type="hidden" name="redirectUri" value="${escapeHtml(redirectUri.toString())}" />
 				${stateField}

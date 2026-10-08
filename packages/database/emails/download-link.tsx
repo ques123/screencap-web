@@ -35,8 +35,8 @@ export function DownloadLink({ email = "" }: { email: string }) {
 							Your download links are here
 						</Heading>
 						<Text className="text-sm leading-6 text-black">
-							Thanks for your interest in Screencap! Here are the download links for
-							every platform:
+							Thanks for your interest in Screencap! Here are the download links
+							for every platform:
 						</Text>
 
 						<Section className="my-6">
@@ -45,7 +45,7 @@ export function DownloadLink({ email = "" }: { email: string }) {
 									<td style={{ paddingBottom: "12px" }}>
 										<Link
 											className="block w-full rounded-lg bg-black px-6 py-3 text-center text-[13px] font-semibold text-white no-underline"
-											href="https://cap.so/download/apple-silicon"
+											href="https://screencap.co/download/apple-silicon"
 										>
 											Download for Mac (Apple Silicon)
 										</Link>
@@ -55,7 +55,7 @@ export function DownloadLink({ email = "" }: { email: string }) {
 									<td style={{ paddingBottom: "12px" }}>
 										<Link
 											className="block w-full rounded-lg border border-solid border-gray-300 bg-white px-6 py-3 text-center text-[13px] font-semibold text-black no-underline"
-											href="https://cap.so/download/apple-intel"
+											href="https://screencap.co/download/apple-intel"
 										>
 											Download for Mac (Intel)
 										</Link>
@@ -65,7 +65,7 @@ export function DownloadLink({ email = "" }: { email: string }) {
 									<td>
 										<Link
 											className="block w-full rounded-lg border border-solid border-gray-300 bg-white px-6 py-3 text-center text-[13px] font-semibold text-black no-underline"
-											href="https://cap.so/download/windows"
+											href="https://screencap.co/download/windows"
 										>
 											Download for Windows
 										</Link>
@@ -75,8 +75,9 @@ export function DownloadLink({ email = "" }: { email: string }) {
 						</Section>
 
 						<Text className="text-sm leading-6 text-black mt-4">
-							Screencap is the open source alternative to Loom. Beautiful, shareable
-							screen recordings — lightweight, powerful, and privacy-focused.
+							Screencap is the open source alternative to Loom. Beautiful,
+							shareable screen recordings — lightweight, powerful, and
+							privacy-focused.
 						</Text>
 						<Footer email={email} marketing={true} />
 					</Container>

@@ -14,16 +14,8 @@ export const Navbar = ({ stars }: NavbarProps) => {
 		<NavbarFrame>
 			<div className="flex gap-4 justify-between items-center px-5 mx-auto h-[68px] group-data-[island=true]:h-[60px] group-data-[island=true]:px-4 lg:h-[76px] lg:px-8 lg:group-data-[island=true]:h-[64px] lg:group-data-[island=true]:px-5 xl:gap-6">
 				<div className="flex gap-2 items-center lg:gap-3 xl:gap-6">
-					<Link passHref href="/home" className="shrink-0">
-						<Logo
-							className="transition-all duration-200 ease-out"
-							squaredMark
-							viewBoxDimensions="0 0 120 40"
-							style={{
-								width: 90,
-								height: 40,
-							}}
-						/>
+					<Link passHref href="/" className="shrink-0">
+						<Logo className="h-auto w-[124px] transition-all duration-200 ease-out" />
 					</Link>
 					<div className="hidden lg:flex">
 						<DesktopNavLinks />
@@ -31,7 +23,7 @@ export const Navbar = ({ stars }: NavbarProps) => {
 				</div>
 				<div className="hidden gap-2.5 items-center lg:flex">
 					<a
-						href="https://github.com/CapSoftware/Cap"
+						href="https://github.com/ques123/screencap-web"
 						target="_blank"
 						rel="noreferrer"
 						className="group relative flex gap-2 items-center px-2.5 py-2 whitespace-nowrap rounded-[8px] text-[14.5px] font-medium text-[rgba(17,17,17,0.85)] transition-colors duration-200 hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-12 xl:px-3 xl:text-[15.5px]"
@@ -42,7 +34,7 @@ export const Navbar = ({ stars }: NavbarProps) => {
 						/>
 						<Image src="/github.svg" alt="" width={16} height={16} />
 						<span>
-							GitHub
+							Source
 							{stars ? (
 								<span className="hidden xl:inline"> ({stars})</span>
 							) : null}

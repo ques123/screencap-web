@@ -83,7 +83,7 @@ function MessageBubble({
 	}
 
 	const isAdmin = message.role === "admin";
-	const label = isAdmin ? "Cap Team" : agentName;
+	const label = isAdmin ? "Screencap Team" : agentName;
 
 	return (
 		<div className="flex items-end gap-2 pr-12">
@@ -279,7 +279,7 @@ export function ChatWindow({
 							Cap Support
 						</div>
 						<div className="text-[11px] text-gray-9">
-							{conversation.mode === "human" ? "Cap Team" : "Millie"}
+							{conversation.mode === "human" ? "Screencap Team" : "Millie"}
 						</div>
 					</div>
 					{conversation.mode === "human" && (

@@ -849,8 +849,8 @@ export const POST = async (req: Request) => {
 				await sendEmail({
 					email: dbUser.email,
 					subject: finalAttempt
-						? "Last chance to keep your Cap Pro subscription"
-						: "Your Cap Pro payment didn't go through",
+						? "Last chance to keep your Screencap Pro subscription"
+						: "Your Screencap Pro payment didn't go through",
 					react: PaymentFailed({
 						email: dbUser.email,
 						billingUrl: `${serverEnv().WEB_URL}/dashboard/settings/organization`,

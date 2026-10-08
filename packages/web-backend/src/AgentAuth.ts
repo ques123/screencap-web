@@ -12,7 +12,7 @@ const requestId = () => crypto.randomUUID();
 const authRequired = () =>
 	new Agent.AgentAuthenticationError({
 		code: "AUTH_REQUIRED",
-		message: "A valid Cap credential is required",
+		message: "A valid Screencap credential is required",
 		retryable: false,
 		retryAfterMs: null,
 		requestId: requestId(),
@@ -21,7 +21,7 @@ const authRequired = () =>
 const tokenExpired = () =>
 	new Agent.AgentAuthenticationError({
 		code: "TOKEN_EXPIRED",
-		message: "The Cap CLI credential has expired or been revoked",
+		message: "The Screencap CLI credential has expired or been revoked",
 		retryable: false,
 		retryAfterMs: null,
 		requestId: requestId(),
