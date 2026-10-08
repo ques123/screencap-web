@@ -3769,7 +3769,7 @@ pub async fn request_app_exit(app: AppHandle) {
             warn!(%error, "Quit canceled because an editor title could not be saved");
             app.dialog()
                 .message(format!(
-                    "{error}\n\nCap is still open. Your title is still in the editor."
+                    "{error}\n\nScreencap is still open. Your title is still in the editor."
                 ))
                 .title("Title not saved")
                 .kind(tauri_plugin_dialog::MessageDialogKind::Warning)

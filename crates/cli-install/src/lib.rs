@@ -91,7 +91,8 @@ fn target_path() -> Result<PathBuf, String> {
         return Ok(path);
     }
 
-    let exe = env::current_exe().map_err(|e| format!("Could not locate Cap executable: {e}"))?;
+    let exe =
+        env::current_exe().map_err(|e| format!("Could not locate Screencap executable: {e}"))?;
     // When `cap` runs through the installed shim (a symlink), macOS `current_exe()` returns the
     // symlink path; resolve it to the real binary so the sibling `cap-cli` resolves to the bundled
     // one rather than a non-existent path next to the shim (which made status() report installed:false
@@ -99,7 +100,7 @@ fn target_path() -> Result<PathBuf, String> {
     let exe = resolve_path_for_target_lookup(exe);
     let dir = exe
         .parent()
-        .ok_or_else(|| "Could not locate Cap executable directory".to_string())?;
+        .ok_or_else(|| "Could not locate Screencap executable directory".to_string())?;
 
     for candidate in cli_binary_candidates(dir) {
         if candidate.exists() {
@@ -434,7 +435,7 @@ pub fn status() -> Result<CliInstallStatus, String> {
     let installed = target_exists && shim_points_to(&shim_path, &target_path)?;
     let conflict = if shim_exists && !installed && !shim_is_cap_managed(&shim_path) {
         Some(format!(
-            "{} already exists and is not managed by Cap",
+            "{} already exists and is not managed by Screencap",
             display_path(&shim_path)
         ))
     } else if !target_exists {
@@ -503,7 +504,7 @@ pub fn install() -> Result<CliInstallStatus, String> {
         // install, or by the web installer); only refuse to clobber a genuinely foreign file.
         if !shim_points_to(&shim_path, &target_path)? && !shim_is_cap_managed(&shim_path) {
             return Err(format!(
-                "{} already exists and is not managed by Cap",
+                "{} already exists and is not managed by Screencap",
                 display_path(&shim_path)
             ));
         }
@@ -650,7 +651,7 @@ fn append_path_export(profile: &Path, install_dir: &str) -> bool {
         .create(true)
         .append(true)
         .open(profile)
-        .and_then(|mut file| writeln!(file, "\n# Added by Cap\n{line}"))
+        .and_then(|mut file| writeln!(file, "\n# Added by Screencap\n{line}"))
         .is_ok()
 }
 
