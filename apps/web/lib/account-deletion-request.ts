@@ -208,7 +208,7 @@ export const createMobileContentReport = async ({
 		`Recording owner ID: ${content.ownerId}`,
 		`Reason: ${reason}`,
 		`Reported at: ${now.toISOString()}`,
-		`Cap URL: https://cap.so/s/${content.id}`,
+		`Recording URL: https://screencap.co/s/${content.id}`,
 		"",
 		"Review the content promptly, remove it if it violates Screencap policies, respond to the reporter when appropriate, and change this request subject from [PENDING] to [COMPLETED].",
 	].join("\n");

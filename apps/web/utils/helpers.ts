@@ -9,11 +9,7 @@ export function classNames(...inputs: ClassValue[]) {
 }
 
 // Base allowed origins
-export const allowedOrigins = [
-	buildEnv.NEXT_PUBLIC_WEB_URL,
-	"https://cap.link",
-	"cap.link",
-];
+export const allowedOrigins = [buildEnv.NEXT_PUBLIC_WEB_URL];
 
 // Origins that are trusted to make credentialed (cookie-bearing) cross-origin
 // reads. Only these may receive `Access-Control-Allow-Credentials: true` with a
@@ -27,9 +23,8 @@ function isTrustedCredentialedOrigin(origin: string) {
 		return false;
 	}
 
-	if (host === "localhost" || host === "cap.so" || host === "cap.link")
-		return true;
-	if (host.endsWith(".cap.so")) return true;
+	if (host === "localhost" || host === "screencap.co") return true;
+	if (host.endsWith(".screencap.co")) return true;
 
 	try {
 		if (host === new URL(serverEnv().WEB_URL).hostname) return true;

@@ -9,6 +9,6 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
 				disallow: ["/dashboard", "/login", "/invite", "/onboarding", "/record"],
 			},
 		],
-		sitemap: "https://cap.so/sitemap.xml",
+		sitemap: "https://screencap.co/sitemap.xml",
 	};
 }

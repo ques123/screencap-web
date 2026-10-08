@@ -14,7 +14,7 @@ import { type ReactNode, useState } from "react";
 
 const URL_REGEX = /(?:https?:\/\/|www\.)[^\s<>]+/gi;
 
-const CAP_HOSTS = ["cap.so", "cap.link"];
+const CAP_HOSTS = ["screencap.co"];
 const CLOSING_BRACKETS: Record<string, string> = {
 	")": "(",
 	"]": "[",

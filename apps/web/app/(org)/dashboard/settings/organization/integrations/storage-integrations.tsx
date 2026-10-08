@@ -358,7 +358,7 @@ export function OrganizationStorageIntegrations({
 						<p className="text-[12px] text-gray-10 mb-4">
 							Connect your own bucket for full control.{" "}
 							<a
-								href="https://cap.so/docs/s3-config"
+								href="https://github.com/ques123/screencap-web#readme"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="underline text-gray-12 hover:text-gray-11"
@@ -746,8 +746,9 @@ export function OrganizationStorageIntegrations({
 						) : (
 							<div className="flex items-center justify-between gap-3">
 								<p className="text-[12px] text-gray-10">
-									Link your Google account to store uploads in a "Screencap" folder in
-									your Drive. You can change the location after connecting.
+									Link your Google account to store uploads in a "Screencap"
+									folder in your Drive. You can change the location after
+									connecting.
 								</p>
 								<Button
 									type="button"

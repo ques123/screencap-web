@@ -5,7 +5,7 @@ import {
 	socialShareUrl,
 } from "@/lib/social-share";
 
-const URL_UNDER_TEST = "https://cap.so/s/abc123";
+const URL_UNDER_TEST = "https://screencap.co/s/abc123";
 
 /**
  * These assert the exact third-party contracts. A share intent with a wrong
@@ -21,7 +21,7 @@ describe("shareTargetHref", () => {
 				title: "My Cap",
 			}),
 		).toBe(
-			"https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcap.so%2Fs%2Fabc123",
+			"https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscreencap.co%2Fs%2Fabc123",
 		);
 	});
 
@@ -29,7 +29,7 @@ describe("shareTargetHref", () => {
 		expect(
 			shareTargetHref({ target: "x", url: URL_UNDER_TEST, title: "My Cap" }),
 		).toBe(
-			"https://x.com/intent/post?url=https%3A%2F%2Fcap.so%2Fs%2Fabc123&text=My%20Cap",
+			"https://x.com/intent/post?url=https%3A%2F%2Fscreencap.co%2Fs%2Fabc123&text=My%20Cap",
 		);
 	});
 
@@ -41,7 +41,7 @@ describe("shareTargetHref", () => {
 				title: "My Cap",
 			}),
 		).toBe(
-			"https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fcap.so%2Fs%2Fabc123",
+			"https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscreencap.co%2Fs%2Fabc123",
 		);
 	});
 
@@ -72,28 +72,31 @@ describe("shareTargetHref", () => {
 describe("shareUrlWithTimestamp", () => {
 	it("adds `t` in seconds", () => {
 		expect(shareUrlWithTimestamp(URL_UNDER_TEST, 83)).toBe(
-			"https://cap.so/s/abc123?t=83",
+			"https://screencap.co/s/abc123?t=83",
 		);
 	});
 
 	it("floors fractional positions", () => {
 		expect(shareUrlWithTimestamp(URL_UNDER_TEST, 83.94)).toBe(
-			"https://cap.so/s/abc123?t=83",
+			"https://screencap.co/s/abc123?t=83",
 		);
 	});
 
 	it("keeps existing query params and replaces an existing `t`", () => {
 		expect(
-			shareUrlWithTimestamp("https://cap.so/s/abc123?t=5&autoplay=true", 42),
-		).toBe("https://cap.so/s/abc123?t=42&autoplay=true");
+			shareUrlWithTimestamp(
+				"https://screencap.co/s/abc123?t=5&autoplay=true",
+				42,
+			),
+		).toBe("https://screencap.co/s/abc123?t=42&autoplay=true");
 	});
 
 	it("clamps negative and non-finite positions to zero", () => {
 		expect(shareUrlWithTimestamp(URL_UNDER_TEST, -12)).toBe(
-			"https://cap.so/s/abc123?t=0",
+			"https://screencap.co/s/abc123?t=0",
 		);
 		expect(shareUrlWithTimestamp(URL_UNDER_TEST, Number.NaN)).toBe(
-			"https://cap.so/s/abc123?t=0",
+			"https://screencap.co/s/abc123?t=0",
 		);
 	});
 });
@@ -105,14 +108,14 @@ describe("socialShareUrl", () => {
 
 	it("rewrites cap.link short links to their crawlable canonical form", () => {
 		expect(socialShareUrl({ url: "https://cap.link/abc123" })).toBe(
-			"https://cap.so/s/abc123",
+			"https://screencap.co/s/abc123",
 		);
 	});
 
 	it("applies the timestamp after canonicalising", () => {
 		expect(
 			socialShareUrl({ url: "https://cap.link/abc123", timestamp: 7 }),
-		).toBe("https://cap.so/s/abc123?t=7");
+		).toBe("https://screencap.co/s/abc123?t=7");
 	});
 
 	it("preserves custom domains", () => {

@@ -1,4 +1,4 @@
-// Rich "Copy link" for Cap videos — writes text/html alongside the plain URL
+// Rich "Copy link" for Screencap videos — writes text/html alongside the plain URL
 // so pasting into Gmail/Outlook produces a branded, clickable thumbnail (the
 // way Loom share links behave), while Slack/plain fields still get the URL.
 
@@ -14,7 +14,7 @@ export const canonicalVideoShareUrl = (url: string) => {
 		/^https?:\/\/(?:www\.)?cap\.link\/([^/?#]+)([?#].*)?$/,
 	);
 	if (!match) return url;
-	return `https://cap.so/s/${match[1]}${match[2] ?? ""}`;
+	return `https://screencap.co/s/${match[1]}${match[2] ?? ""}`;
 };
 
 export type RichVideoLink = {

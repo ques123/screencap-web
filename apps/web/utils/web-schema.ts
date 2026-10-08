@@ -6,7 +6,7 @@ export const createOrganizationSchema = () => ({
 	url: "https://cap.so",
 	logo: {
 		"@type": "ImageObject",
-		url: "https://cap.so/cap-logo.png",
+		url: "https://screencap.co/screencap-logo.png",
 		width: 512,
 		height: 512,
 	},

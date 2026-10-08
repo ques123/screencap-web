@@ -202,7 +202,7 @@ describe.each(["login", "signup"] as const)(
 			expect(markup).toContain("Continue with SSO");
 		});
 
-		it("tells blocked sign-ups that Cap is open source", async () => {
+		it("tells blocked sign-ups that Screencap is open source", async () => {
 			mocks.searchParams.set("error", "SignupBlocked");
 
 			const markup = await renderForm();
@@ -210,7 +210,7 @@ describe.each(["login", "signup"] as const)(
 			expect(markup).toContain('role="alert"');
 			expect(markup).toContain("open source");
 			expect(markup).toContain("https://github.com/ques123/screencap-web");
-			expect(markup).toContain("mailto:richie@cap.so");
+			expect(markup).toContain("mailto:email@screencap.co");
 			expect(markup).not.toContain("SSO profile details are missing");
 		});
 
