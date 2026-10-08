@@ -1,13 +1,19 @@
 import { HoverCard } from "@kobalte/core/hover-card";
+import { type as ostype } from "@tauri-apps/plugin-os";
 import { cx } from "cva";
-import { type JSX, Show } from "solid-js";
-
+import { createSignal, type JSX, Show } from "solid-js";
+import toast from "solid-toast";
 import { useRecordingOptions } from "~/routes/(window-chrome)/OptionsContext";
+import { generalSettingsStore } from "~/store";
+import { confirmTurningOnEncryption, ENCRYPTION_SUMMARY } from "~/utils/e2ee";
 import { commands, events, type RecordingMode } from "~/utils/tauri";
+import IconLucideLock from "~icons/lucide/lock";
+import IconLucideLockOpen from "~icons/lucide/lock-open";
 
 interface ModeProps {
 	onInfoClick?: () => void;
 	locked?: boolean;
+	encryptionLocked?: boolean;
 }
 
 type ModeButtonConfig = {
@@ -47,6 +53,78 @@ const MODE_BUTTONS: ModeButtonConfig[] = [
 		iconClass: "size-[0.9rem] invert dark:invert-0",
 	},
 ];
+
+const HOVER_CARD_CLASS =
+	"flex flex-col gap-2 px-3 py-2.5 rounded-lg border shadow-lg bg-gray-12 text-gray-1 border-gray-3 min-w-[12rem] max-w-[15rem]";
+
+const EncryptionToggle = (props: { disabled?: boolean }) => {
+	const generalSettings = generalSettingsStore.createQuery();
+	const encrypted = () => generalSettings.data?.encryptRecordings === true;
+	const [saving, setSaving] = createSignal(false);
+
+	const toggle = async () => {
+		if (props.disabled || saving()) return;
+		const next = !encrypted();
+		if (next && !(await confirmTurningOnEncryption())) return;
+		setSaving(true);
+		try {
+			await generalSettingsStore.set({ encryptRecordings: next });
+		} catch (error) {
+			console.error("Failed to update encryption setting", error);
+			toast.error("Could not change end-to-end encryption");
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	return (
+		<HoverCard
+			openDelay={120}
+			closeDelay={80}
+			placement="bottom-end"
+			gutter={12}
+		>
+			<HoverCard.Trigger
+				as="button"
+				type="button"
+				onClick={() => void toggle()}
+				aria-label="End-to-end encryption"
+				aria-pressed={encrypted()}
+				aria-disabled={props.disabled || generalSettings.isPending}
+				class={cx(
+					"relative flex justify-center items-center rounded-full transition-all duration-200 size-7 focus:outline-none",
+					encrypted()
+						? "bg-blue-9 text-white hover:bg-blue-10"
+						: "bg-gray-3 text-gray-11 hover:bg-gray-7 hover:text-gray-12",
+					props.disabled && "opacity-40 cursor-default",
+				)}
+			>
+				<Show
+					when={encrypted()}
+					fallback={<IconLucideLockOpen class="size-3.5" />}
+				>
+					<IconLucideLock class="size-3.5" />
+				</Show>
+			</HoverCard.Trigger>
+			<HoverCard.Portal>
+				<HoverCard.Content class="z-50 outline-none animate-in fade-in slide-in-from-top-1 duration-100">
+					<div class={HOVER_CARD_CLASS}>
+						<div class="flex flex-col gap-0.5">
+							<span class="text-xs font-medium">
+								End-to-end encryption: {encrypted() ? "on" : "off"}
+							</span>
+							<span class="text-[10px] text-gray-4 leading-snug">
+								{props.disabled
+									? "Can't change during a recording."
+									: `${ENCRYPTION_SUMMARY} Applies to Instant and Studio recordings, not screenshots.`}
+							</span>
+						</div>
+					</div>
+				</HoverCard.Content>
+			</HoverCard.Portal>
+		</HoverCard>
+	);
+};
 
 const Mode = (props: ModeProps) => {
 	const { rawOptions, setOptions } = useRecordingOptions();
@@ -117,7 +195,7 @@ const Mode = (props: ModeProps) => {
 						</HoverCard.Trigger>
 						<HoverCard.Portal>
 							<HoverCard.Content class="z-50 outline-none animate-in fade-in slide-in-from-top-1 duration-100">
-								<div class="flex flex-col gap-2 px-3 py-2.5 rounded-lg border shadow-lg bg-gray-12 text-gray-1 border-gray-3 min-w-[12rem] max-w-[15rem]">
+								<div class={HOVER_CARD_CLASS}>
 									<div class="flex flex-col gap-0.5">
 										<span class="text-xs font-medium">{button.label}</span>
 										<span class="text-[10px] text-gray-4 leading-snug">
@@ -145,6 +223,11 @@ const Mode = (props: ModeProps) => {
 					</HoverCard>
 				);
 			})}
+
+			<Show when={ostype() === "macos"}>
+				<div class="w-px h-5 bg-gray-6" aria-hidden="true" />
+				<EncryptionToggle disabled={props.encryptionLocked} />
+			</Show>
 		</div>
 	);
 };

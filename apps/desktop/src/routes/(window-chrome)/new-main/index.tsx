@@ -19,7 +19,6 @@ import {
 	PhysicalPosition,
 } from "@tauri-apps/api/window";
 import * as dialog from "@tauri-apps/plugin-dialog";
-import { type as ostype } from "@tauri-apps/plugin-os";
 import * as shell from "@tauri-apps/plugin-shell";
 import { cx } from "cva";
 import {
@@ -51,7 +50,6 @@ import {
 	createStableDevicesQuery,
 	type MicrophoneWithDetails,
 } from "~/utils/devices";
-import { confirmTurningOnEncryption } from "~/utils/e2ee";
 import { clientEnv } from "~/utils/env";
 import { hideCurrentWindow } from "~/utils/hide-window";
 import {
@@ -103,8 +101,6 @@ import IconLucideBug from "~icons/lucide/bug";
 import IconLucideCircleHelp from "~icons/lucide/circle-help";
 import IconLucideImage from "~icons/lucide/image";
 import IconLucideImport from "~icons/lucide/import";
-import IconLucideLock from "~icons/lucide/lock";
-import IconLucideLockOpen from "~icons/lucide/lock-open";
 import IconLucideScanText from "~icons/lucide/scan-text";
 import IconLucideSearch from "~icons/lucide/search";
 import IconLucideSettings from "~icons/lucide/settings";
@@ -1774,58 +1770,6 @@ function MainWindowHelpButton() {
 	);
 }
 
-function EncryptionToggleButton(props: { disabled: boolean }) {
-	const generalSettings = generalSettingsStore.createQuery();
-	const encrypted = () => generalSettings.data?.encryptRecordings === true;
-	const [saving, setSaving] = createSignal(false);
-
-	const toggle = async () => {
-		const next = !encrypted();
-		if (next && !(await confirmTurningOnEncryption())) return;
-		setSaving(true);
-		try {
-			await generalSettingsStore.set({ encryptRecordings: next });
-		} catch (error) {
-			console.error("Failed to update encryption setting", error);
-			toast.error("Could not change end-to-end encryption");
-		} finally {
-			setSaving(false);
-		}
-	};
-
-	return (
-		<Tooltip
-			content={
-				<span>
-					{props.disabled
-						? "Encryption can't change during a recording"
-						: encrypted()
-							? "End-to-end encryption is on. Click to turn off."
-							: "End-to-end encryption is off. Click to turn on."}
-				</span>
-			}
-		>
-			<button
-				type="button"
-				onClick={() => void toggle()}
-				disabled={props.disabled || saving() || generalSettings.isPending}
-				aria-label="End-to-end encryption"
-				aria-pressed={encrypted()}
-				class="flex justify-center items-center size-5 focus:outline-hidden disabled:opacity-50"
-			>
-				<Show
-					when={encrypted()}
-					fallback={
-						<IconLucideLockOpen class="transition-colors text-gray-11 size-4 hover:text-gray-12" />
-					}
-				>
-					<IconLucideLock class="transition-colors text-blue-10 size-4 hover:text-blue-11" />
-				</Show>
-			</button>
-		</Tooltip>
-	);
-}
-
 function Page() {
 	const queryClient = useQueryClient();
 	const { rawOptions, setOptions, getCameraRevision } = useRecordingOptions();
@@ -3106,9 +3050,6 @@ function Page() {
 					<MainWindowHelpButton />
 					<div class="flex-1 min-h-9 min-w-0" data-tauri-drag-region />
 					<div class="flex gap-1 items-center shrink-0" data-tauri-drag-region>
-						<Show when={ostype() === "macos"}>
-							<EncryptionToggleButton disabled={isRecording()} />
-						</Show>
 						<Tooltip content={<span>Settings</span>}>
 							<button
 								type="button"
@@ -3242,6 +3183,7 @@ function Page() {
 					</Show>
 					<Mode
 						locked={!!editorRecordingFlow()}
+						encryptionLocked={isRecording()}
 						onInfoClick={() => {
 							if (editorRecordingFlow()) return;
 							setModeInfoMenuOpen(true);
