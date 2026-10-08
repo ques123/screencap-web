@@ -548,6 +548,16 @@ function Inner(props: {
 								onChange={handleEncryptRecordingsChange}
 							/>
 						)}
+						{ostype === "macos" && (
+							<ToggleSettingItem
+								label="Highlight clicks in Instant recordings"
+								description="Show a brief ring wherever you click. Instant recordings are not edited afterwards, so this is drawn on screen while recording."
+								value={!!settings.highlightClicksInInstant}
+								onChange={(value) =>
+									handleChange("highlightClicksInInstant", value)
+								}
+							/>
+						)}
 						<ToggleSettingItem
 							label="Studio Sound on new recordings"
 							description="Clean up microphone audio automatically. You can still turn it off for any recording in the editor."

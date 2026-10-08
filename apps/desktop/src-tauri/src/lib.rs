@@ -13,6 +13,7 @@ mod camera_native;
 mod captions;
 mod clean_capture;
 mod cli;
+mod click_highlight;
 mod clip_thumbnails;
 mod crash_sentinel;
 mod deeplink_actions;
@@ -1645,6 +1646,14 @@ impl App {
     }
 
     pub fn set_current_recording(&mut self, actor: InProgressRecording) {
+        if actor.mode() == RecordingMode::Instant
+            && GeneralSettingsStore::get(&self.handle)
+                .ok()
+                .flatten()
+                .is_some_and(|settings| settings.highlight_clicks_in_instant)
+        {
+            click_highlight::start(&self.handle, actor.capture_target());
+        }
         self.recording_state = RecordingState::Active(actor);
         CurrentRecordingChanged.emit(&self.handle).ok();
     }
@@ -1660,6 +1669,7 @@ impl App {
 
         self.recording_state = RecordingState::None;
         self.was_camera_only_recording = false;
+        click_highlight::stop();
         self.close_occluder_windows();
         crate::windows::apply_content_protection(&self.handle, false);
         if let Some(camera) = CapWindowId::Camera.get(&self.handle) {
@@ -1678,6 +1688,7 @@ impl App {
         let previous = std::mem::replace(&mut self.recording_state, RecordingState::None);
         match previous {
             RecordingState::Active(recording) => {
+                click_highlight::stop();
                 self.close_occluder_windows();
                 crate::windows::apply_content_protection(&self.handle, false);
                 Some(recording)
@@ -1695,6 +1706,7 @@ impl App {
             return None;
         }
         let previous = std::mem::replace(&mut self.recording_state, RecordingState::None);
+        click_highlight::stop();
         self.close_occluder_windows();
         crate::windows::apply_content_protection(&self.handle, false);
         match previous {
