@@ -72,7 +72,9 @@ fn recovery_error_message(path: &Path, error: RecoveryError) -> String {
 }
 
 fn parse_recording_date(pretty_name: &str) -> Option<NaiveDate> {
-    let date_part = pretty_name.strip_prefix("Cap ")?;
+    let date_part = pretty_name
+        .strip_prefix("Screencap ")
+        .or_else(|| pretty_name.strip_prefix("Cap "))?;
     let date_str = date_part.split(" at ").next()?;
     NaiveDate::parse_from_str(date_str, "%Y-%m-%d").ok()
 }
@@ -239,4 +241,21 @@ pub async fn discard_incomplete_recording(project_path: String) -> Result<(), St
     info!("Discarded incomplete recording: {}", project_path);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_recording_date;
+    use chrono::NaiveDate;
+
+    #[test]
+    fn parses_screencap_and_legacy_cap_names() {
+        let expected = NaiveDate::from_ymd_opt(2026, 10, 8);
+        assert_eq!(
+            parse_recording_date("Screencap 2026-10-08 at 13.48.02"),
+            expected
+        );
+        assert_eq!(parse_recording_date("Cap 2026-10-08 at 13.48.02"), expected);
+        assert_eq!(parse_recording_date("Display 2026-10-08"), None);
+    }
 }
