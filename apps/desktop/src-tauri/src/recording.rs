@@ -6234,7 +6234,8 @@ async fn handle_recording_finish(
                 .write_text(video_upload_info.link.clone())
                 .is_ok()
             {
-                crate::notifications::NotificationType::InstantLinkCopied.send(app);
+                crate::notifications::NotificationType::InstantLinkCopied
+                    .send_after_capture_ends(app);
             }
             let _ = open_external_link(
                 app.clone(),

@@ -93,6 +93,17 @@ impl NotificationType {
     pub fn send(self, app: &tauri::AppHandle) {
         send_notification(app, self);
     }
+
+    // macOS mutes notifications while the display is being shared or recorded, and its Do Not
+    // Disturb state still reports the screen as shared for a moment after capture stops, so a
+    // notification sent straight after stopping a recording arrives silently.
+    pub fn send_after_capture_ends(self, app: &tauri::AppHandle) {
+        let app = app.clone();
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_millis(1200)).await;
+            send_notification(&app, self);
+        });
+    }
 }
 
 pub fn send_notification(app: &tauri::AppHandle, notification_type: NotificationType) {
