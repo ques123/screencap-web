@@ -88,7 +88,7 @@ export const buildShareVideoMetadata = ({
 		webUrl,
 		canonicalWebUrl,
 	});
-	const title = `${name} | Screencap Recording`;
+	const title = `${name} | Screencap`;
 	const description = "Watch this video on Screencap";
 
 	if (e2ee) {

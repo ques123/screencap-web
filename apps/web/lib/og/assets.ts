@@ -4,7 +4,9 @@ import path from "node:path";
 // Baked by scripts/og-sky/render.py: the painted hero sky, the Instant-mode
 // mesh used for product frames, and the desktop wallpaper. Satori can't draw
 // clouds or grain, so they ship as JPEGs and are inlined as data URIs.
+// peaks-sea.jpg is the snow-peaks-over-clouds art behind the share cards.
 const FILES = {
+	peaks: "peaks-sea.jpg",
 	skySplit: "sky-split.jpg",
 	skyCenter: "sky-center.jpg",
 	mesh: "mesh-instant.jpg",

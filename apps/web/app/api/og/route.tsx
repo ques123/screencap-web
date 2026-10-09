@@ -6,19 +6,18 @@ import { loadOgFonts } from "@/lib/og/fonts";
 import { verifyOgSignature } from "@/lib/og/signature";
 import {
 	Body,
-	CapWordmark,
 	DesktopArt,
 	Headline,
 	OG_HEIGHT,
 	OG_WIDTH,
 	OgCanvas,
 	PricingArt,
+	StickerLogo,
 	titleFontSize,
 } from "@/lib/og/template";
 
 const DEFAULT_TITLE = "Screen recordings, one link away";
-const DEFAULT_DESCRIPTION =
-	"Record your screen and share it with a link.";
+const DEFAULT_DESCRIPTION = "Record your screen and share it with a link.";
 
 // Strip control characters and collapse whitespace so arbitrary query input
 // can't distort the layout.
@@ -95,7 +94,7 @@ export async function GET(req: NextRequest) {
 					justifyContent: "space-between",
 				}}
 			>
-				<CapWordmark />
+				<StickerLogo height={64} />
 				<div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
 					<Headline size={titleFontSize(title)} lines={4}>
 						{title}

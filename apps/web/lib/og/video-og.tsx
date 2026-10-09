@@ -1,15 +1,16 @@
 import { ImageResponse } from "next/og";
+import type { ReactNode } from "react";
 import { loadOgAssets } from "@/lib/og/assets";
-import { loadOgFonts, OG_MONO } from "@/lib/og/fonts";
+import { loadOgFonts, OG_DISPLAY, OG_MONO } from "@/lib/og/fonts";
 import {
 	Body,
-	CapWordmark,
 	Headline,
-	MeshFrame,
 	OG_HEIGHT,
 	OG_INK,
+	OG_SUN,
 	OG_WIDTH,
 	OgCanvas,
+	StickerLogo,
 } from "@/lib/og/template";
 import {
 	coverRect,
@@ -57,18 +58,18 @@ const PlayButton = ({ size }: { size: number }) => (
 			width: size,
 			height: size,
 			borderRadius: 9999,
-			background: "rgba(255,255,255,0.92)",
+			background: OG_SUN,
+			border: `${Math.round(size * 0.055)}px solid ${OG_INK}`,
 			alignItems: "center",
 			justifyContent: "center",
-			boxShadow:
-				"0 18px 40px -8px rgba(17,24,39,0.45), 0 0 0 8px rgba(255,255,255,0.28)",
+			boxShadow: `${Math.round(size * 0.06)}px ${Math.round(size * 0.06)}px 0 ${OG_INK}`,
 		}}
 	>
 		<svg
 			role="img"
 			aria-label="Play"
-			width={Math.round(size * 0.36)}
-			height={Math.round(size * 0.36)}
+			width={Math.round(size * 0.38)}
+			height={Math.round(size * 0.38)}
 			viewBox="0 0 24 24"
 			style={{ marginLeft: Math.round(size * 0.05) }}
 		>
@@ -80,46 +81,100 @@ const PlayButton = ({ size }: { size: number }) => (
 	</div>
 );
 
-const LockIcon = ({ size }: { size: number }) => (
+const IconSvg = ({
+	label,
+	size,
+	children,
+}: {
+	label: string;
+	size: number;
+	children: ReactNode;
+}) => (
 	<svg
 		role="img"
-		aria-label="Locked"
+		aria-label={label}
 		width={size}
 		height={size}
 		viewBox="0 0 24 24"
 		fill="none"
 		stroke={OG_INK}
-		strokeWidth="1.7"
+		strokeWidth="2"
 		strokeLinecap="round"
 		strokeLinejoin="round"
 	>
-		<rect width="16" height="11" x="4" y="10.5" rx="2.5" />
-		<path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
-		<path d="M12 15v2" />
+		{children}
 	</svg>
 );
 
-const SearchIcon = ({ size }: { size: number }) => (
-	<svg
-		role="img"
-		aria-label="Not found"
-		width={size}
-		height={size}
-		viewBox="0 0 24 24"
-		fill="none"
-		stroke={OG_INK}
-		strokeWidth="1.7"
-		strokeLinecap="round"
-		strokeLinejoin="round"
+type StatusIcon = "lock" | "key" | "search";
+
+const StatusGlyph = ({ icon, size }: { icon: StatusIcon; size: number }) => {
+	if (icon === "search")
+		return (
+			<IconSvg label="Not found" size={size}>
+				<circle cx="11" cy="11" r="7" />
+				<path d="m20 20-3.5-3.5" />
+			</IconSvg>
+		);
+	if (icon === "key")
+		return (
+			<IconSvg label="Password" size={size}>
+				<circle cx="8" cy="15" r="4" />
+				<path d="m11 12 9-9" />
+				<path d="m16 7 3 3" />
+				<path d="m14 9 2 2" />
+			</IconSvg>
+		);
+	return (
+		<IconSvg label="Locked" size={size}>
+			<rect width="16" height="11" x="4" y="10.5" rx="2.5" />
+			<path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
+			<path d="M12 15v2" />
+		</IconSvg>
+	);
+};
+
+const hardShadow = (px: number) => `${px}px ${px}px 0 ${OG_INK}`;
+
+const StickerLabel = ({
+	icon,
+	children,
+}: {
+	icon: StatusIcon;
+	children: string;
+}) => (
+	<div
+		style={{
+			display: "flex",
+			alignItems: "center",
+			alignSelf: "flex-start",
+			gap: 12,
+			padding: "10px 24px 10px 18px",
+			borderRadius: 20,
+			background: OG_SUN,
+			border: `4px solid ${OG_INK}`,
+			boxShadow: hardShadow(6),
+			transform: "rotate(-2deg)",
+		}}
 	>
-		<circle cx="11" cy="11" r="7" />
-		<path d="m20 20-3.5-3.5" />
-	</svg>
+		<StatusGlyph icon={icon} size={32} />
+		<span
+			style={{
+				display: "block",
+				fontFamily: OG_DISPLAY,
+				fontWeight: 800,
+				fontSize: 30,
+				color: OG_INK,
+			}}
+		>
+			{children}
+		</span>
+	</div>
 );
 
-const THUMB_W = 600;
+const THUMB_W = 620;
 const THUMB_H = Math.round((THUMB_W * 9) / 16);
-const FRAME_PAD = 12;
+const FRAME_BORDER = 6;
 
 const ThumbnailImage = ({ thumbnail }: { thumbnail: OgThumbnail }) => {
 	const rect = coverRect(thumbnail, { width: THUMB_W, height: THUMB_H });
@@ -141,87 +196,81 @@ const ThumbnailImage = ({ thumbnail }: { thumbnail: OgThumbnail }) => {
 };
 
 const Thumbnail = ({
-	mesh,
 	thumbnail,
 	duration,
 }: {
-	mesh: string;
 	thumbnail?: OgThumbnail;
 	duration?: number;
 }) => (
-	<MeshFrame
-		mesh={mesh}
-		width={THUMB_W + FRAME_PAD * 2}
-		height={THUMB_H + FRAME_PAD * 2}
-		padding={FRAME_PAD}
+	<div
+		style={{
+			display: "flex",
+			position: "relative",
+			width: THUMB_W + FRAME_BORDER * 2,
+			height: THUMB_H + FRAME_BORDER * 2,
+			borderRadius: 30,
+			border: `${FRAME_BORDER}px solid ${OG_INK}`,
+			boxShadow: hardShadow(14),
+			overflow: "hidden",
+			background: thumbnail ? "#0B0F17" : "#FFFFFF",
+			alignItems: "center",
+			justifyContent: "center",
+			transform: "rotate(2deg)",
+		}}
 	>
-		<div
-			style={{
-				display: "flex",
-				position: "relative",
-				width: THUMB_W,
-				height: THUMB_H,
-				borderRadius: 16,
-				overflow: "hidden",
-				alignItems: "center",
-				justifyContent: "center",
-				background: thumbnail ? "#0B0F17" : "rgba(255,255,255,0.35)",
-				boxShadow: "0 0 0 1px rgba(17,24,39,0.06)",
-			}}
-		>
-			{thumbnail && <ThumbnailImage thumbnail={thumbnail} />}
-			{thumbnail && (
-				<div
-					style={{
-						display: "flex",
-						position: "absolute",
-						top: 0,
-						left: 0,
-						width: "100%",
-						height: "100%",
-						background:
-							"linear-gradient(180deg, rgba(17,24,39,0.06) 0%, rgba(17,24,39,0.18) 55%, rgba(17,24,39,0.42) 100%)",
-					}}
-				/>
-			)}
-			<PlayButton size={96} />
-			{duration != null && duration > 0 && (
-				<div
-					style={{
-						display: "flex",
-						position: "absolute",
-						right: 16,
-						bottom: 16,
-						padding: "6px 12px",
-						borderRadius: 999,
-						background: "rgba(17,17,17,0.72)",
-						fontFamily: OG_MONO,
-						fontSize: 18,
-						letterSpacing: 0.6,
-						color: "white",
-					}}
-				>
-					{formatDuration(duration)}
-				</div>
-			)}
-		</div>
-	</MeshFrame>
+		{thumbnail && <ThumbnailImage thumbnail={thumbnail} />}
+		{thumbnail && (
+			<div
+				style={{
+					display: "flex",
+					position: "absolute",
+					top: 0,
+					left: 0,
+					width: "100%",
+					height: "100%",
+					background:
+						"linear-gradient(180deg, rgba(11,36,64,0) 0%, rgba(11,36,64,0.12) 60%, rgba(11,36,64,0.4) 100%)",
+				}}
+			/>
+		)}
+		<PlayButton size={110} />
+		{duration != null && duration > 0 && (
+			<div
+				style={{
+					display: "flex",
+					position: "absolute",
+					right: 16,
+					bottom: 16,
+					padding: "6px 14px",
+					borderRadius: 999,
+					background: "rgba(11,36,64,0.82)",
+					fontFamily: OG_MONO,
+					fontSize: 20,
+					letterSpacing: 0.6,
+					color: "white",
+				}}
+			>
+				{formatDuration(duration)}
+			</div>
+		)}
+	</div>
 );
 
 const InitialAvatar = ({ name }: { name: string }) => (
 	<div
 		style={{
 			display: "flex",
-			width: 44,
-			height: 44,
+			width: 48,
+			height: 48,
 			borderRadius: 9999,
-			background: "#111111",
-			color: "white",
-			fontSize: 20,
-			fontWeight: 500,
+			background: OG_SUN,
+			border: `3px solid ${OG_INK}`,
+			color: OG_INK,
+			fontFamily: OG_DISPLAY,
+			fontSize: 22,
+			fontWeight: 800,
 			alignItems: "center",
 			justifyContent: "center",
-			boxShadow: "0 0 0 3px rgba(255,255,255,0.7)",
 		}}
 	>
 		{name.trim().charAt(0).toUpperCase()}
@@ -229,133 +278,155 @@ const InitialAvatar = ({ name }: { name: string }) => (
 );
 
 const videoTitleSize = (title: string) => {
-	if (title.length <= 24) return 60;
-	if (title.length <= 48) return 50;
+	if (title.length <= 20) return 60;
+	if (title.length <= 40) return 50;
 	return 42;
 };
+
+type Assets = Awaited<ReturnType<typeof loadOgAssets>>;
 
 const videoLayout = (
 	video: VideoOgData,
 	thumbnail: OgThumbnail | undefined,
-	assets: Awaited<ReturnType<typeof loadOgAssets>>,
-) => {
-	return (
-		<OgCanvas background={assets.skySplit}>
-			<div
-				style={{
-					display: "flex",
-					position: "absolute",
-					right: 52,
-					top: Math.round((OG_HEIGHT - THUMB_H - FRAME_PAD * 2) / 2) + 20,
-				}}
-			>
-				<Thumbnail
-					mesh={assets.mesh}
-					thumbnail={thumbnail}
-					duration={video.duration}
-				/>
-			</div>
-			<div
-				style={{
-					display: "flex",
-					position: "absolute",
-					top: 0,
-					left: 0,
-					width: 500,
-					height: "100%",
-					padding: "58px 0 54px 64px",
-					flexDirection: "column",
-					justifyContent: "space-between",
-				}}
-			>
-				<CapWordmark />
-				<div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-					<Headline size={videoTitleSize(video.title)} lines={4}>
-						{video.title}
-					</Headline>
-					{video.ownerName && (
-						<div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-							<InitialAvatar name={video.ownerName} />
-							<span
-								style={{
-									display: "block",
-									fontSize: 22,
-									fontWeight: 500,
-									color: "rgba(17,17,17,0.72)",
-									lineClamp: 1,
-								}}
-							>
-								{video.ownerName}
-							</span>
-						</div>
-					)}
-				</div>
-				<div style={{ display: "flex", height: 52 }} />
-			</div>
-		</OgCanvas>
-	);
-};
-
-const statusLayout = (
-	{
-		heading,
-		subline,
-		icon,
-	}: {
-		heading: string;
-		subline: string;
-		icon: "lock" | "search";
-	},
-	assets: Awaited<ReturnType<typeof loadOgAssets>>,
+	assets: Assets,
 ) => (
-	<OgCanvas background={assets.skyCenter}>
+	<OgCanvas background={assets.peaks}>
+		<div
+			style={{
+				display: "flex",
+				position: "absolute",
+				right: 50,
+				top: Math.round((OG_HEIGHT - THUMB_H) / 2) + 8,
+			}}
+		>
+			<Thumbnail thumbnail={thumbnail} duration={video.duration} />
+		</div>
 		<div
 			style={{
 				display: "flex",
 				position: "absolute",
 				top: 0,
 				left: 0,
-				width: "100%",
+				width: 470,
 				height: "100%",
-				padding: "58px 120px 54px",
+				padding: "48px 0 56px 58px",
 				flexDirection: "column",
-				alignItems: "center",
 				justifyContent: "space-between",
 			}}
 		>
-			<CapWordmark />
-			<div
-				style={{
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-					gap: 26,
-					textAlign: "center",
-				}}
-			>
-				<div
-					style={{
-						display: "flex",
-						width: 104,
-						height: 104,
-						borderRadius: 30,
-						alignItems: "center",
-						justifyContent: "center",
-						background:
-							"linear-gradient(180deg, rgba(255,255,255,0.86) 0%, rgba(236,243,252,0.7) 100%)",
-						border: "1px solid rgba(255,255,255,0.9)",
-						boxShadow:
-							"0 24px 48px -16px rgba(40,72,130,0.35), inset 0 -2px 4px rgba(61,119,194,0.12)",
-					}}
-				>
-					{icon === "lock" ? <LockIcon size={48} /> : <SearchIcon size={46} />}
-				</div>
-				<Headline size={64} lines={2}>
-					{heading}
-				</Headline>
-				<Body size={26}>{subline}</Body>
+			<div style={{ display: "flex" }}>
+				<StickerLogo height={70} />
 			</div>
-			<div style={{ display: "flex", height: 52 }} />
+			<div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+				<Headline size={videoTitleSize(video.title)} lines={4}>
+					{video.title}
+				</Headline>
+				{video.ownerName && (
+					<div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+						<InitialAvatar name={video.ownerName} />
+						<span
+							style={{
+								display: "block",
+								fontSize: 26,
+								fontWeight: 600,
+								color: OG_INK,
+								lineClamp: 1,
+							}}
+						>
+							{video.ownerName}
+						</span>
+					</div>
+				)}
+			</div>
+			<div style={{ display: "flex", height: 40 }} />
+		</div>
+	</OgCanvas>
+);
+
+type StatusCard = {
+	label: string;
+	heading: string;
+	subline: string;
+	icon: StatusIcon;
+};
+
+const STATUS_CARDS: Record<
+	Exclude<VideoOgVariant["kind"], "video">,
+	StatusCard
+> = {
+	locked: {
+		label: "Private",
+		heading: "This recording is private",
+		subline: "Ask the owner for access, or sign in to watch it on Screencap.",
+		icon: "lock",
+	},
+	password: {
+		label: "Password protected",
+		heading: "This recording needs a password",
+		subline: "Enter the password on Screencap to watch this recording.",
+		icon: "key",
+	},
+	encrypted: {
+		label: "End-to-end encrypted",
+		heading: "This recording is encrypted",
+		subline: "Open the full link to watch this recording.",
+		icon: "lock",
+	},
+	"not-found": {
+		label: "Not found",
+		heading: "This recording doesn't exist",
+		subline: "The recording you're looking for has moved or was deleted.",
+		icon: "search",
+	},
+};
+
+const statusLayout = (card: StatusCard, assets: Assets) => (
+	<OgCanvas background={assets.peaks}>
+		<div
+			style={{
+				display: "flex",
+				position: "absolute",
+				right: 96,
+				top: 118,
+				width: 270,
+				height: 270,
+				borderRadius: 64,
+				background: "#FFFFFF",
+				border: `7px solid ${OG_INK}`,
+				boxShadow: hardShadow(14),
+				alignItems: "center",
+				justifyContent: "center",
+				transform: "rotate(4deg)",
+			}}
+		>
+			<StatusGlyph icon={card.icon} size={150} />
+		</div>
+		<div
+			style={{
+				display: "flex",
+				position: "absolute",
+				top: 0,
+				left: 0,
+				width: 700,
+				height: "100%",
+				padding: "48px 0 56px 58px",
+				flexDirection: "column",
+				justifyContent: "space-between",
+			}}
+		>
+			<div style={{ display: "flex" }}>
+				<StickerLogo height={70} />
+			</div>
+			<div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+				<StickerLabel icon={card.icon}>{card.label}</StickerLabel>
+				<Headline size={70} lines={3}>
+					{card.heading}
+				</Headline>
+				<Body size={29} lines={2}>
+					{card.subline}
+				</Body>
+			</div>
+			<div style={{ display: "flex", height: 56 }} />
 		</div>
 	</OgCanvas>
 );
@@ -368,50 +439,10 @@ export async function renderVideoOg(variant: VideoOgVariant) {
 		loadOgAssets(),
 		screenshotUrl ? loadOgThumbnail(screenshotUrl) : undefined,
 	]);
-	const element = (() => {
-		switch (variant.kind) {
-			case "video":
-				return videoLayout(variant.video, thumbnail, assets);
-			case "locked":
-				return statusLayout(
-					{
-						heading: "This recording is private",
-						subline:
-							"Ask the owner for access, or sign in to watch it on Screencap.",
-						icon: "lock",
-					},
-					assets,
-				);
-			case "password":
-				return statusLayout(
-					{
-						heading: "This recording is password protected",
-						subline: "Enter the password on Screencap to watch this recording.",
-						icon: "lock",
-					},
-					assets,
-				);
-			case "encrypted":
-				return statusLayout(
-					{
-						heading: "This recording is end-to-end encrypted",
-						subline: "Open the full link to watch this recording.",
-						icon: "lock",
-					},
-					assets,
-				);
-			case "not-found":
-				return statusLayout(
-					{
-						heading: "This recording doesn't exist",
-						subline:
-							"The recording you're looking for has moved or was deleted.",
-						icon: "search",
-					},
-					assets,
-				);
-		}
-	})();
+	const element =
+		variant.kind === "video"
+			? videoLayout(variant.video, thumbnail, assets)
+			: statusLayout(STATUS_CARDS[variant.kind], assets);
 
 	return new ImageResponse(element, {
 		width: OG_WIDTH,

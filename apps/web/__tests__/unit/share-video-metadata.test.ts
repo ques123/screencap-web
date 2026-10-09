@@ -74,7 +74,7 @@ describe("share video metadata", () => {
 		});
 		expect(metadata.alternates?.types?.["application/json+oembed"]).toEqual([
 			{
-				title: "Product demo | Screencap Recording",
+				title: "Product demo | Screencap",
 				url: expect.any(String),
 			},
 		]);
