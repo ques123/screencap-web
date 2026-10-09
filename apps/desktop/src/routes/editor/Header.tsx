@@ -117,7 +117,9 @@ export function Header(props: {
 						readOnly={titleReadOnly() || props.disabled === true}
 						setReadOnly={setTitleReadOnly}
 					/>
-					<span class="shrink-0 text-[13px] text-ed-text-3">.cap</span>
+					<span class="shrink-0 text-[13px] text-ed-text-3">
+						{editorInstance.path.endsWith(".cap") ? ".cap" : ".scap"}
+					</span>
 				</div>
 
 				<div

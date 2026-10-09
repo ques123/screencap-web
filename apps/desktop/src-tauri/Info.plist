@@ -7,6 +7,22 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
+				<string>scap</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>icon.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Screencap Project</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+			<key>LSTypeIsPackage</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
 				<string>cap</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>

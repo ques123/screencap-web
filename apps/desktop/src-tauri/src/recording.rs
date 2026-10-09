@@ -2119,7 +2119,8 @@ async fn start_recording_prepared(
     );
 
     let filename = project_name.replace(":", ".");
-    let filename = format!("{}.cap", sanitize_filename::sanitize(&filename));
+    let filename =
+        cap_utils::project_ext::project_file_name(&sanitize_filename::sanitize(&filename));
 
     let recordings_base_dir = GeneralSettingsStore::recordings_dir(&app);
 
@@ -5541,7 +5542,8 @@ pub async fn take_screenshot(
     let image_data = image.into_bytes();
 
     let filename = project_name.replace(":", ".");
-    let filename = format!("{}.cap", sanitize_filename::sanitize(&filename));
+    let filename =
+        cap_utils::project_ext::project_file_name(&sanitize_filename::sanitize(&filename));
 
     let screenshots_base_dir = app.path().app_data_dir().unwrap().join("screenshots");
 

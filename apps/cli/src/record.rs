@@ -1171,7 +1171,7 @@ fn resolve_path(params: &RecordParams, recording_id: &str) -> Result<PathBuf, St
         Some(path) => Ok(path.clone()),
         None => current_dir()
             .map_err(|e| format!("Could not determine current directory: {e}"))
-            .map(|dir| dir.join(format!("{recording_id}.cap"))),
+            .map(|dir| cap_utils::project_ext::project_path_in(&dir, recording_id)),
     }
 }
 

@@ -431,11 +431,7 @@ fn forwarded_gpui_argument(argument: &str) -> Option<String> {
         Ok(url) if url.scheme() == "file" => url.to_file_path().ok()?,
         _ => PathBuf::from(argument),
     };
-    if !path
-        .extension()
-        .and_then(std::ffi::OsStr::to_str)
-        .is_some_and(|extension| extension.eq_ignore_ascii_case("cap"))
-    {
+    if !cap_utils::project_ext::is_project_path(&path) {
         return None;
     }
 

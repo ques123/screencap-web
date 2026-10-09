@@ -15,7 +15,7 @@ export const getExistingRecordingPickerOptions = (
 
 	return {
 		defaultPath,
-		filters: [{ name: "Screencap Recording", extensions: ["cap"] }],
+		filters: [{ name: "Screencap Recording", extensions: ["scap", "cap"] }],
 		multiple: false,
 	};
 };

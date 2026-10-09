@@ -46,7 +46,9 @@ fn collect_rows(dir: &Path) -> Result<Vec<RecordingRow>, String> {
         .map_err(|e| format!("Failed to read recordings directory: {e}"))?
         .filter_map(|entry| {
             let path = entry.ok()?.path();
-            if !path.is_dir() || !path.file_name()?.to_str()?.ends_with(".cap") {
+            if !path.is_dir()
+                || !cap_utils::project_ext::is_project_file_name(path.file_name()?.to_str()?)
+            {
                 return None;
             }
             let meta = RecordingMeta::load_for_project(&path).ok()?;

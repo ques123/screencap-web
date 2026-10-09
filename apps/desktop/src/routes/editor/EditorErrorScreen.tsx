@@ -284,7 +284,7 @@ export function EditorErrorScreen(props: {
 								>
 									<p class="text-xs text-gray-10 italic">
 										Tip: Right-click and select "Show Enclosing Folder" to see
-										the .cap bundle contents.
+										the project bundle contents.
 									</p>
 								</Show>
 							</div>

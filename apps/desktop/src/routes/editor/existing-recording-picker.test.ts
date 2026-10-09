@@ -20,7 +20,7 @@ describe("existing recording picker", () => {
 				getExistingRecordingPickerOptions(platform, "/Cap/recordings"),
 			).toEqual({
 				defaultPath: "/Cap/recordings",
-				filters: [{ name: "Screencap Recording", extensions: ["cap"] }],
+				filters: [{ name: "Screencap Recording", extensions: ["scap", "cap"] }],
 				multiple: false,
 			});
 		},
