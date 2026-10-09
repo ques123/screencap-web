@@ -5507,7 +5507,7 @@ async fn upload_exported_video_encrypted(
 
 fn screenshot_project_path_from_path(path: &std::path::Path) -> Option<PathBuf> {
     path.ancestors()
-        .find(|ancestor| ancestor.extension().and_then(|s| s.to_str()) == Some("cap"))
+        .find(|ancestor| cap_utils::project_ext::is_project_path(ancestor))
         .map(std::path::Path::to_path_buf)
 }
 
@@ -5715,10 +5715,7 @@ async fn save_file_dialog_inner(
 ) -> Result<Option<String>, String> {
     info!(file_name, file_type, "Save file dialog requested");
 
-    let file_name = file_name
-        .strip_suffix(".cap")
-        .unwrap_or(&file_name)
-        .to_string();
+    let file_name = cap_utils::project_ext::strip_project_extension_or_self(&file_name).to_string();
 
     let (name, extension) = match file_type.as_str() {
         "recording" | "mp4" => ("MP4 Video", "mp4"),
@@ -6072,7 +6069,7 @@ fn list_screenshots_inner(
         .filter_map(|entry| {
             let entry = entry.ok()?;
             let path = entry.path();
-            if path.is_dir() && path.extension().and_then(|s| s.to_str()) == Some("cap") {
+            if path.is_dir() && cap_utils::project_ext::is_project_path(&path) {
                 let png_path = std::fs::read_dir(&path)
                     .ok()?
                     .filter_map(|e| e.ok())
@@ -8163,7 +8160,7 @@ fn handle_single_instance(app: &AppHandle, args: Vec<String>) {
 
     let Some(cap_file) = args
         .iter()
-        .find(|arg| arg.ends_with(".cap"))
+        .find(|arg| cap_utils::project_ext::is_project_file_name(arg))
         .map(PathBuf::from)
     else {
         let app = app.clone();
@@ -8888,7 +8885,7 @@ async fn resume_uploads(app: AppHandle, mark_crashed: bool) -> Result<(), String
                     return paths;
                 }
                 let path = entry.path();
-                if path.extension().and_then(|value| value.to_str()) == Some("cap")
+                if cap_utils::project_ext::is_project_path(&path)
                     && (mark_crashed || upload::recovery_age::eligible(&path, SystemTime::now()))
                 {
                     paths.push(path);

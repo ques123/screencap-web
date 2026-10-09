@@ -256,10 +256,10 @@ async fn migrate_project_filename_async(
 ) -> Result<PathBuf, String> {
     let sanitized = sanitize_filename::sanitize(meta.pretty_name.replace(":", "."));
 
-    let filename = if sanitized.ends_with(".cap") {
+    let filename = if cap_utils::project_ext::is_project_file_name(&sanitized) {
         sanitized
     } else {
-        format!("{sanitized}.cap")
+        cap_utils::project_ext::project_file_name(&sanitized)
     };
 
     let parent_dir = project_path

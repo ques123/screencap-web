@@ -246,7 +246,7 @@ fn load_single_item(
     }
 
     let meta = RecordingMeta::load_for_project(path).ok()?;
-    let is_screenshot = path.extension().and_then(|s| s.to_str()) == Some("cap")
+    let is_screenshot = cap_utils::project_ext::is_project_path(&path)
         && path.parent().map(|p| p == screenshots_dir).unwrap_or(false);
 
     let (thumbnail_path, item_type) = if is_screenshot {
@@ -306,7 +306,7 @@ fn load_all_previous_items(app: &AppHandle, load_thumbnails: bool) -> Vec<Cached
     {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.extension().and_then(|s| s.to_str()) == Some("cap") {
+            if cap_utils::project_ext::is_project_path(&path) {
                 paths.push(path);
             }
         }
@@ -659,7 +659,7 @@ fn handle_previous_item_click(app: &AppHandle, path_str: &str) {
     let path = PathBuf::from(path_str);
 
     let screenshots_dir = screenshots_path(app);
-    let is_screenshot = path.extension().and_then(|s| s.to_str()) == Some("cap")
+    let is_screenshot = cap_utils::project_ext::is_project_path(&path)
         && path.parent().map(|p| p == screenshots_dir).unwrap_or(false);
 
     if is_screenshot {

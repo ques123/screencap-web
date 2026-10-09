@@ -23,6 +23,7 @@ pub mod log_upload;
 #[cfg(target_os = "macos")]
 pub mod macos_qos;
 pub mod operation_diagnostics;
+pub mod project_ext;
 
 /// Wrapper around tokio::spawn that inherits the current tracing subscriber and span.
 pub fn spawn_actor<F>(future: F) -> tokio::task::JoinHandle<F::Output>

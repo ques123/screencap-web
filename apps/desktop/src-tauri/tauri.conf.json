@@ -113,6 +113,12 @@
 		},
 		"fileAssociations": [
 			{
+				"ext": ["scap"],
+				"name": "Screencap Project",
+				"mimeType": "application/x-scap-project",
+				"role": "Editor"
+			},
+			{
 				"ext": ["cap"],
 				"name": "Screencap Project",
 				"mimeType": "application/x-cap-project",
