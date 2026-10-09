@@ -8648,7 +8648,9 @@ pub(crate) mod linux_instant {
                 copy_link: |link| {
                     app.clipboard()
                         .write_text(link)
-                        .map_err(|error| error.to_string())
+                        .map_err(|error| error.to_string())?;
+                    crate::notifications::NotificationType::InstantLinkCopied.send(app);
+                    Ok(())
                 },
                 sound: || AppSounds::StopRecording.play(),
             },
