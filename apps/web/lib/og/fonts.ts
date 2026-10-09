@@ -4,13 +4,15 @@ import path from "node:path";
 export type OgFont = {
 	name: string;
 	data: ArrayBuffer;
-	weight: 300 | 400 | 500;
+	weight: 300 | 400 | 500 | 600 | 800;
 	style: "normal";
 };
 
 export const OG_SANS = "Instrument Sans";
 export const OG_SERIF = "Source Serif";
 export const OG_MONO = "DM Mono";
+export const OG_DISPLAY = "Bricolage Grotesque";
+export const OG_BODY = "Geist";
 
 let fontsPromise: Promise<OgFont[]> | null = null;
 
@@ -40,6 +42,9 @@ export const loadOgFonts = () => {
 		loadFont(OG_SERIF, "SourceSerif4-Light.ttf", 300),
 		loadFont(OG_MONO, "DMMono-Regular.ttf", 400),
 		loadFont(OG_MONO, "DMMono-Medium.ttf", 500),
+		loadFont(OG_DISPLAY, "Bricolage-ExtraBold.ttf", 800),
+		loadFont(OG_BODY, "Geist-Regular.ttf", 400),
+		loadFont(OG_BODY, "Geist-SemiBold.ttf", 600),
 	]).catch((error) => {
 		fontsPromise = null;
 		throw error;

@@ -6,6 +6,7 @@
 	"exports": {
 		".": "./src/index.tsx",
 		"./logo": "./src/components/icons/Logo.tsx",
+		"./brand": "./src/components/icons/screencap-brand.ts",
 		"./button": "./src/components/Button.tsx",
 		"./navigation-menu": "./src/components/NavigationMenu.tsx",
 		"./tailwind": "./tailwind.config.js",
