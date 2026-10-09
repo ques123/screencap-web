@@ -6236,7 +6236,8 @@ async fn handle_recording_finish(
                 .write_text(video_upload_info.link.clone())
                 .is_ok()
             {
-                crate::notifications::NotificationType::InstantLinkCopied.send(app);
+                crate::notifications::NotificationType::InstantLinkCopied
+                    .send_after_capture_ends(app);
             }
             let _ = open_external_link(
                 app.clone(),
@@ -8650,7 +8651,9 @@ pub(crate) mod linux_instant {
                 copy_link: |link| {
                     app.clipboard()
                         .write_text(link)
-                        .map_err(|error| error.to_string())
+                        .map_err(|error| error.to_string())?;
+                    crate::notifications::NotificationType::InstantLinkCopied.send(app);
+                    Ok(())
                 },
                 sound: || AppSounds::StopRecording.play(),
             },
