@@ -154,9 +154,9 @@ export const ScreencapToolTemplate = ({
 					>
 						<div>
 							<SectionHeading>{section.title}</SectionHeading>
-							<p className="m-0 text-[17px] leading-relaxed text-[#1B3A5C]">
+							<div className="text-[17px] leading-relaxed text-[#1B3A5C] [&_li]:mb-2 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mt-0 [&_p]:mb-4 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-[#0B2440] [&_pre]:p-4 [&_pre]:text-[14px] [&_pre]:text-white [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-6">
 								{renderHTML(section.body)}
-							</p>
+							</div>
 						</div>
 						{section.image && <SlotImage image={section.image} />}
 					</section>
