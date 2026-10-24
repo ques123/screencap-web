@@ -606,7 +606,8 @@ function App() {
 				<RecorderHeader
 					isBusy={busy || recordingActive}
 					isPro={isPro}
-					showPlan={Boolean(auth)}
+					// Screencap has no plans, so no Free/Pro badge.
+					showPlan={false}
 					minimal={signedOut}
 					onClose={closePanel}
 					onUpgradeClick={handleUpgradeClick}
