@@ -1,8 +1,10 @@
 "use client";
 
+import { buildEnv } from "@cap/env";
 import { Button } from "@cap/ui";
 import Link from "next/link";
 import { type ReactNode, useEffect } from "react";
+import { ScreencapToolTemplate } from "@/components/tools/ScreencapToolTemplate";
 import type { ToolPageContent } from "@/components/tools/types";
 
 const renderHTML = (content: string) => {
@@ -70,6 +72,24 @@ const _LeftBlueHue = () => {
 };
 
 export const ToolsPageTemplate = ({
+	content,
+	toolComponent,
+}: {
+	content: ToolPageContent;
+	toolComponent: ReactNode;
+}) => {
+	if (buildEnv.NEXT_PUBLIC_IS_CAP !== "true") {
+		return (
+			<ScreencapToolTemplate content={content} toolComponent={toolComponent} />
+		);
+	}
+
+	return (
+		<CapToolsPageTemplate content={content} toolComponent={toolComponent} />
+	);
+};
+
+const CapToolsPageTemplate = ({
 	content,
 	toolComponent,
 }: {

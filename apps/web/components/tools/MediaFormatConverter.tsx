@@ -1,12 +1,15 @@
 "use client";
 
 import { buildEnv } from "@cap/env";
-import { Button } from "@cap/ui";
 import * as MediaParser from "@remotion/media-parser";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/app/utils/analytics";
+import {
+	TOOL_NEXT_STEP_LINES,
+	ToolNextStepPrompt,
+} from "@/components/tools/ToolNextStepPrompt";
 
 export const SUPPORTED_FORMATS = {
 	video: ["mp4", "webm", "mov", "avi", "mkv"],
@@ -807,7 +810,7 @@ export const MediaFormatConverter = ({
 
 	return (
 		<div className="w-full">
-			<h2 className="text-2xl font-semibold text-center mb-6">
+			<h2 className="sc-display mb-6 text-center text-[28px] leading-[1.05] tracking-[-0.03em]">
 				{config.title(currentSourceFormat, currentTargetFormat)}
 			</h2>
 
@@ -815,7 +818,7 @@ export const MediaFormatConverter = ({
 				<div className="w-full mb-6">
 					<div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-2">
 						<div className="w-full sm:w-auto flex flex-col sm:flex-row items-center">
-							<span className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 sm:mr-2 text-gray-700 font-medium">
+							<span className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 sm:mr-2 font-semibold text-[#0B2440]">
 								From:
 							</span>
 							<div className="flex flex-wrap justify-center gap-2 w-full">
@@ -824,10 +827,10 @@ export const MediaFormatConverter = ({
 										key={format}
 										type="button"
 										onClick={() => handleSourceFormatChange(format)}
-										className={`px-3 py-1.5 rounded-md text-sm font-medium text-center min-w-[60px] ${
+										className={`min-w-[60px] rounded-full border-2 border-[#0B2440] px-3 py-1.5 text-center text-sm font-bold ${
 											currentSourceFormat === format
-												? "bg-blue-600 text-white"
-												: "bg-gray-200 text-gray-800 hover:bg-gray-300"
+												? "bg-[#0B2440] text-white"
+												: "bg-white text-[#0B2440] hover:bg-[#DCEBFA]"
 										}`}
 										aria-label={`Convert from ${format.toUpperCase()} format`}
 									>
@@ -843,7 +846,7 @@ export const MediaFormatConverter = ({
 						</div>
 
 						<div className="w-full sm:w-auto flex flex-col sm:flex-row items-center">
-							<span className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 sm:mr-2 text-gray-700 font-medium">
+							<span className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 sm:mr-2 font-semibold text-[#0B2440]">
 								To:
 							</span>
 							<div className="flex flex-wrap justify-center gap-2 w-full">
@@ -852,10 +855,10 @@ export const MediaFormatConverter = ({
 										key={format}
 										type="button"
 										onClick={() => handleTargetFormatChange(format)}
-										className={`px-3 py-1.5 rounded-md text-sm font-medium text-center min-w-[60px] ${
+										className={`min-w-[60px] rounded-full border-2 border-[#0B2440] px-3 py-1.5 text-center text-sm font-bold ${
 											currentTargetFormat === format
-												? "bg-blue-600 text-white"
-												: "bg-gray-200 text-gray-800 hover:bg-gray-300"
+												? "bg-[#0B2440] text-white"
+												: "bg-white text-[#0B2440] hover:bg-[#DCEBFA]"
 										}`}
 										aria-label={`Convert to ${format.toUpperCase()} format`}
 									>
@@ -869,11 +872,13 @@ export const MediaFormatConverter = ({
 			)}
 
 			{currentTargetFormat === "gif" && (
-				<div className="mb-6 border border-gray-200 rounded-lg p-4">
-					<h3 className="text-lg font-medium mb-3">GIF Settings</h3>
+				<div className="mb-6 rounded-[18px] border-2 border-[#D3E3F3] p-4 sm:p-5">
+					<h3 className="sc-display mb-3 text-xl tracking-normal">
+						GIF Settings
+					</h3>
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-1">
+							<label className="mb-1 block text-sm font-semibold text-[#0B2440]">
 								Quality (Lower is better)
 							</label>
 							<div className="flex items-center">
@@ -885,16 +890,16 @@ export const MediaFormatConverter = ({
 									onChange={(e) => setGifQuality(parseInt(e.target.value, 10))}
 									className="w-full"
 								/>
-								<span className="ml-2 text-sm w-8 text-gray-600">
+								<span className="ml-3 w-8 text-sm font-semibold text-[#0B2440]">
 									{gifQuality}
 								</span>
 							</div>
-							<p className="text-xs text-gray-500 mt-1">
+							<p className="mt-1 text-xs text-[#45627F]">
 								Lower values produce higher quality GIFs but larger file sizes
 							</p>
 						</div>
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-1">
+							<label className="mb-1 block text-sm font-semibold text-[#0B2440]">
 								Frames Per Second
 							</label>
 							<div className="flex items-center">
@@ -906,14 +911,16 @@ export const MediaFormatConverter = ({
 									onChange={(e) => setGifFps(parseInt(e.target.value, 10))}
 									className="w-full"
 								/>
-								<span className="ml-2 text-sm w-8 text-gray-600">{gifFps}</span>
+								<span className="ml-3 w-8 text-sm font-semibold text-[#0B2440]">
+									{gifFps}
+								</span>
 							</div>
-							<p className="text-xs text-gray-500 mt-1">
+							<p className="mt-1 text-xs text-[#45627F]">
 								Higher values create smoother animations but larger files
 							</p>
 						</div>
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-1">
+							<label className="mb-1 block text-sm font-semibold text-[#0B2440]">
 								Max Width (px)
 							</label>
 							<div className="flex items-center">
@@ -926,25 +933,25 @@ export const MediaFormatConverter = ({
 									onChange={(e) => setGifMaxWidth(parseInt(e.target.value, 10))}
 									className="w-full"
 								/>
-								<span className="ml-2 text-sm w-10 text-gray-600">
+								<span className="ml-3 w-10 text-sm font-semibold text-[#0B2440]">
 									{gifMaxWidth}
 								</span>
 							</div>
-							<p className="text-xs text-gray-500 mt-1">
+							<p className="mt-1 text-xs text-[#45627F]">
 								Larger sizes give higher resolution but increase file size
 							</p>
 						</div>
 						<div>
-							<label className="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
+							<label className="flex cursor-pointer items-center text-sm font-semibold text-[#0B2440]">
 								<input
 									type="checkbox"
 									checked={gifDithering}
 									onChange={(e) => setGifDithering(e.target.checked)}
-									className="rounded mr-2"
+									className="mr-2 h-4 w-4"
 								/>
 								Enable Dithering
 							</label>
-							<p className="text-xs text-gray-500 mt-1">
+							<p className="mt-1 text-xs text-[#45627F]">
 								Dithering can improve color appearance but may introduce noise
 							</p>
 						</div>
@@ -953,10 +960,10 @@ export const MediaFormatConverter = ({
 			)}
 
 			<div
-				className={`border-2 border-dashed rounded-lg p-8 mb-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+				className={`mb-6 flex cursor-pointer flex-col items-center justify-center rounded-[18px] border-[3px] border-dashed p-6 transition-colors sm:p-8 ${
 					isDragging
-						? "border-blue-500 bg-blue-50"
-						: "border-gray-300 hover:border-blue-400"
+						? "border-[#1E66B8] bg-[#DCEBFA]"
+						: "border-[#0B2440]/40 bg-[#EAF3FC] hover:border-[#1E66B8]"
 				}`}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
@@ -976,7 +983,7 @@ export const MediaFormatConverter = ({
 					{!file ? (
 						<>
 							<svg
-								className="mx-auto h-12 w-12 text-gray-400 mb-3"
+								className="mx-auto mb-3 h-12 w-12 text-[#1E66B8]"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -988,17 +995,17 @@ export const MediaFormatConverter = ({
 									d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
 								/>
 							</svg>
-							<p className="text-lg font-medium text-gray-700">
+							<p className="sc-display text-xl tracking-normal [overflow-wrap:anywhere]">
 								Drag and drop your {currentSourceFormat.toUpperCase()} file here
 							</p>
-							<p className="text-sm text-gray-500 mt-1">
+							<p className="mt-1 text-sm text-[#45627F]">
 								or click to browse (max 500MB)
 							</p>
 						</>
 					) : (
 						<>
 							<svg
-								className="mx-auto h-12 w-12 text-green-500 mb-3"
+								className="mx-auto mb-3 h-12 w-12 text-[#1E66B8]"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -1010,8 +1017,10 @@ export const MediaFormatConverter = ({
 									d="M5 13l4 4L19 7"
 								/>
 							</svg>
-							<p className="text-lg font-medium text-gray-700">{file.name}</p>
-							<p className="text-sm text-gray-500 mt-1">
+							<p className="sc-display text-xl tracking-normal [overflow-wrap:anywhere]">
+								{file.name}
+							</p>
+							<p className="mt-1 text-sm text-[#45627F]">
 								{(file.size / (1024 * 1024)).toFixed(2)} MB
 							</p>
 						</>
@@ -1020,19 +1029,19 @@ export const MediaFormatConverter = ({
 			</div>
 
 			{error && (
-				<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+				<div className="mb-6 rounded-[14px] border-[3px] border-[#FF4A2E] bg-[#FFF1EE] p-4 font-medium text-[#B3200A]">
 					{error}
 				</div>
 			)}
 
 			{isConverting && (
 				<div className="mb-6">
-					<p className="text-center text-gray-700 mb-2">
+					<p className="mb-2 text-center font-semibold text-[#0B2440]">
 						Converting... {progress}%
 					</p>
-					<div className="w-full bg-gray-200 rounded-full h-2">
+					<div className="h-3 w-full overflow-hidden rounded-full border-2 border-[#0B2440] bg-white">
 						<div
-							className="bg-blue-600 h-2 rounded-full transition-all"
+							className="h-full bg-[#1E66B8] transition-all"
 							style={{ width: `${progress}%` }}
 						></div>
 					</div>
@@ -1040,15 +1049,15 @@ export const MediaFormatConverter = ({
 			)}
 
 			{outputUrl && (
-				<div className="mb-6 p-5 bg-green-50 border border-green-200 rounded-lg">
-					<p className="text-green-700 font-medium mb-3">
+				<div className="mb-6 rounded-[18px] border-[3px] border-[#0B2440] bg-[#EAF3FC] p-4 sm:p-5">
+					<p className="sc-display mb-3 text-xl tracking-normal">
 						Conversion complete!
 					</p>
 					{config.outputType.startsWith("video/") && (
 						<video
 							src={outputUrl}
 							controls
-							className="w-full rounded-lg mb-4 bg-black"
+							className="mb-4 w-full rounded-[14px] bg-black"
 							style={{ maxHeight: "300px" }}
 						></video>
 					)}
@@ -1067,49 +1076,57 @@ export const MediaFormatConverter = ({
 							style={{ maxHeight: "300px" }}
 						/>
 					)}
-					<div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-						<Button
-							variant="primary"
+					<div className="flex flex-col gap-4 sm:flex-row">
+						<button
+							type="button"
 							onClick={handleDownload}
-							className="w-full"
+							className="sc-btn sc-btn-accent w-full text-white"
 						>
 							Download {currentTargetFormat.toUpperCase()}
-						</Button>
+						</button>
 					</div>
+					<ToolNextStepPrompt
+						tool={`${currentSourceFormat}-to-${currentTargetFormat}`}
+						line={
+							TOOL_NEXT_STEP_LINES[
+								`${currentSourceFormat}-to-${currentTargetFormat}`
+							]
+						}
+					/>
 				</div>
 			)}
 
-			<div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+			<div className="flex flex-col gap-4 sm:flex-row">
 				{file && !isConverting && !outputUrl && (
-					<Button
-						variant="primary"
+					<button
+						type="button"
 						onClick={convertFile}
 						disabled={!mediaEngineLoaded || isConverting}
-						className="w-full"
+						className="sc-btn sc-btn-accent w-full text-white"
 					>
 						Convert to {currentTargetFormat.toUpperCase()}
-					</Button>
+					</button>
 				)}
 
 				{(file || outputUrl) && (
-					<Button
-						variant="white"
+					<button
+						type="button"
 						onClick={resetConverter}
 						disabled={isConverting}
-						className="w-full"
+						className="sc-btn sc-btn-light w-full text-[#0B2440]"
 					>
 						{outputUrl ? "Convert Another File" : "Reset"}
-					</Button>
+					</button>
 				)}
 			</div>
 
-			<div className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500 text-center">
+			<div className="mt-8 border-t border-[#D3E3F3] pt-6 text-center text-sm text-[#45627F]">
 				<p>
 					This converter works entirely in your browser. Your files are never
 					uploaded to any server.
 				</p>
 				{isSafari && (
-					<div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-700">
+					<div className="mt-3 p-3 rounded-[14px] border-2 border-[#FFD84D] bg-[#FFF9DB] text-[#6B5200]">
 						<p>
 							<strong>Safari Compatibility Notice:</strong> Safari has limited
 							support for some media conversion features. For best results,
@@ -1120,7 +1137,7 @@ export const MediaFormatConverter = ({
 				{isFirefox &&
 					currentSourceFormat === "webm" &&
 					currentTargetFormat === "mp4" && (
-						<div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-700">
+						<div className="mt-3 p-3 rounded-[14px] border-2 border-[#FFD84D] bg-[#FFF9DB] text-[#6B5200]">
 							<p>
 								<strong>Firefox Compatibility Notice:</strong> Firefox doesn't
 								fully support converting WebM to MP4. The file will be encoded
@@ -1129,7 +1146,7 @@ export const MediaFormatConverter = ({
 						</div>
 					)}
 				{currentTargetFormat === "gif" && (
-					<div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-blue-700">
+					<div className="mt-3 p-3 rounded-[14px] border-2 border-[#D3E3F3] bg-[#EAF3FC] text-[#0F2A4A]">
 						<p>
 							<strong>GIF Conversion:</strong> Converting to GIF format may take
 							some time and result in larger file sizes. For high-quality

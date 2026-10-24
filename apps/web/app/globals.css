@@ -1087,7 +1087,9 @@ footer a {
 		linear-gradient(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.58)),
 		url("/sky/peaks-sea.webp");
 	background-size: auto, cover;
-	background-position: center, center 70%;
+	background-position:
+		center,
+		center 70%;
 	background-repeat: no-repeat;
 }
 .sc-sky::before,
@@ -1121,8 +1123,12 @@ footer a {
 	animation: sc-sky-drift 200s linear infinite reverse;
 }
 @keyframes sc-sky-drift {
-	from { transform: translate3d(0, 0, 0); }
-	to { transform: translate3d(-50%, 0, 0); }
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(-50%, 0, 0);
+	}
 }
 .dark .sc-sky {
 	background-color: #0b1a2c;
@@ -1213,4 +1219,49 @@ footer a {
 	.sc-btn {
 		transition: none;
 	}
+}
+
+.sc-btn-accent {
+	background: #1e66b8;
+	color: #fff;
+	box-shadow: 0 6px 0 #0b2440;
+}
+.sc-btn-accent:hover {
+	background: #1e66b8;
+	color: #fff;
+}
+.sc-btn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: 0 6px 0 #0b2440;
+}
+.sc-card {
+	background: #fff;
+	border-radius: 22px;
+	box-shadow: 0 10px 40px rgba(11, 36, 64, 0.07);
+}
+.sc-sticker {
+	display: inline-block;
+	background: #fff;
+	color: #0b2440;
+	border-radius: 18px;
+	padding: 8px 16px;
+	font-family:
+		"Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+	font-weight: 700;
+	line-height: 1.2;
+	box-shadow:
+		0 6px 0 rgba(11, 36, 64, 0.16),
+		0 18px 40px rgba(11, 36, 64, 0.22);
+}
+.sc-tool a.sc-link {
+	color: #1e66b8;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	font-weight: 600;
+}
+.sc-tool input[type="range"],
+.sc-tool input[type="checkbox"] {
+	accent-color: #1e66b8;
 }
