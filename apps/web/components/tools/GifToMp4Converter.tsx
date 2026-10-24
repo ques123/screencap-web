@@ -56,7 +56,7 @@ export const GifToMp4Converter = () => {
 	};
 
 	const selectFile = (selected: File | null) => {
-		if (!selected) return;
+		if (!selected || isConverting) return;
 		clearOutput();
 		setError(null);
 		const isGif =

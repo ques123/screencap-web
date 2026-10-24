@@ -2,6 +2,7 @@ import { Card, CardDescription, CardTitle } from "@cap/ui";
 import Link from "next/link";
 import {
 	parseToolRange,
+	requireAdmin,
 	TOOL_RANGES,
 	type ToolDay,
 	type ToolsReport,
@@ -407,6 +408,7 @@ function BarList({
 export default async function AdminToolsPage(props: {
 	searchParams: Promise<{ range?: string | string[] }>;
 }) {
+	await requireAdmin();
 	const sp = await props.searchParams;
 	const range = parseToolRange(strParam(sp.range));
 	const report = await toolsReport(range);

@@ -224,6 +224,13 @@ export async function purgeToolEvents(opts?: {
 			.where(old);
 		return { wouldDelete: row?.n ?? 0 };
 	}
-	const [res] = await db().delete(t).where(old);
-	return { deleted: (res as { affectedRows?: number }).affectedRows ?? 0 };
+	const BATCH = 5000;
+	let deleted = 0;
+	for (let i = 0; i < 1000; i++) {
+		const [res] = await db().delete(t).where(old).limit(BATCH);
+		const n = (res as { affectedRows?: number }).affectedRows ?? 0;
+		deleted += n;
+		if (n < BATCH) break;
+	}
+	return { deleted };
 }

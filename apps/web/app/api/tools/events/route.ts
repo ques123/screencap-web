@@ -22,6 +22,43 @@ function clientIp(request: NextRequest): string {
 	);
 }
 
+async function readCapped(
+	request: NextRequest,
+	max: number,
+): Promise<string | null> {
+	if (!request.body) return "";
+	const reader = request.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let total = 0;
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		total += value.byteLength;
+		if (total > max) {
+			await reader.cancel().catch(() => {});
+			return null;
+		}
+		chunks.push(value);
+	}
+	const bytes = new Uint8Array(total);
+	let offset = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+	return new TextDecoder().decode(bytes);
+}
+
+const seenViews = new Set<string>();
+
+function firstView(visitId: string, tool: string): boolean {
+	const key = `${visitId}:${tool}`;
+	if (seenViews.has(key)) return false;
+	if (seenViews.size >= 20_000) seenViews.clear();
+	seenViews.add(key);
+	return true;
+}
+
 export async function POST(request: NextRequest) {
 	const ua = request.headers.get("user-agent");
 	if (isBotUserAgent(ua)) return noContent();
@@ -29,8 +66,8 @@ export async function POST(request: NextRequest) {
 
 	const declared = Number(request.headers.get("content-length") ?? 0);
 	if (declared > MAX_BODY_BYTES) return new Response(null, { status: 413 });
-	const text = await request.text();
-	if (text.length > MAX_BODY_BYTES) return new Response(null, { status: 413 });
+	const text = await readCapped(request, MAX_BODY_BYTES);
+	if (text === null) return new Response(null, { status: 413 });
 
 	let parsed: unknown;
 	try {
@@ -40,6 +77,12 @@ export async function POST(request: NextRequest) {
 	}
 	const event = parseToolEvent(parsed, request.headers.get("referer"));
 	if (!event) return new Response(null, { status: 400 });
+	if (
+		event.step === "view" &&
+		event.visitId &&
+		!firstView(event.visitId, event.tool)
+	)
+		return noContent();
 
 	const agent = userAgent(request);
 	const country = request.headers.get("cf-ipcountry");

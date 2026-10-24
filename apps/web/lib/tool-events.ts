@@ -152,16 +152,22 @@ export function parseToolEvent(
 		durationBucket: durationBucket(b.durationSeconds),
 		outputBucket: sizeBucket(b.outputSizeBytes),
 		errorClass: cleanErrorClass(b.errorClass),
-		referrerHost: hostOf(b.referrer) ?? hostOf(refererHeader),
+		referrerHost:
+			typeof b.referrer === "string"
+				? hostOf(b.referrer)
+				: hostOf(refererHeader),
 		utmSource: utm,
 	};
 }
 
 export function createRateLimiter(limit: number, windowMs: number) {
 	const hits = new Map<string, { count: number; resetAt: number }>();
+	let lastSweep = 0;
 	return (key: string, now = Date.now()): boolean => {
-		if (hits.size > 5000) {
+		if (hits.size > 5000 && now - lastSweep >= 1000) {
+			lastSweep = now;
 			for (const [k, v] of hits) if (v.resetAt <= now) hits.delete(k);
+			if (hits.size > 50_000) hits.clear();
 		}
 		const e = hits.get(key);
 		if (!e || e.resetAt <= now) {

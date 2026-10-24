@@ -1,4 +1,4 @@
-import type { ParsedFrame, ParsedGif } from "gifuct-js";
+import type { decompressFrame, ParsedGif } from "gifuct-js";
 import {
 	avcCodecCandidates,
 	calculateBitrate,
@@ -37,9 +37,10 @@ const openImageDecoderReader = async (
 	buffer: ArrayBuffer,
 ): Promise<GifReader | null> => {
 	if (typeof ImageDecoder === "undefined") return null;
+	let decoder: ImageDecoder | null = null;
 	try {
 		if (!(await ImageDecoder.isTypeSupported("image/gif"))) return null;
-		const decoder = new ImageDecoder({ data: buffer, type: "image/gif" });
+		decoder = new ImageDecoder({ data: buffer, type: "image/gif" });
 		await decoder.tracks.ready;
 		await decoder.completed;
 		const track = decoder.tracks.selectedTrack;
@@ -52,13 +53,14 @@ const openImageDecoderReader = async (
 		const height = first.image.displayHeight;
 		first.image.close();
 		const frameCount = track.frameCount;
+		const active = decoder;
 		return {
 			width,
 			height,
 			frameCount,
 			async forEachFrame(callback) {
 				for (let index = 0; index < frameCount; index++) {
-					const { image } = await decoder.decode({ frameIndex: index });
+					const { image } = await active.decode({ frameIndex: index });
 					try {
 						await callback(image, (image.duration ?? 0) / 1000);
 					} finally {
@@ -66,26 +68,31 @@ const openImageDecoderReader = async (
 					}
 				}
 			},
-			close: () => decoder.close(),
+			close: () => active.close(),
 		};
 	} catch {
+		decoder?.close();
 		return null;
 	}
 };
 
+type GifuctFrame = Parameters<typeof decompressFrame>[0];
+
 const openGifuctReader = async (buffer: ArrayBuffer): Promise<GifReader> => {
-	const { parseGIF, decompressFrames } = await import("gifuct-js");
+	const { parseGIF, decompressFrame } = await import("gifuct-js");
 	let parsed: ParsedGif;
-	let frames: ParsedFrame[];
+	let frames: GifuctFrame[];
 	try {
 		parsed = parseGIF(buffer);
-		frames = decompressFrames(parsed, true);
+		frames = parsed.frames.filter((f): f is GifuctFrame => "image" in f);
+		if (frames[0]) decompressFrame(frames[0], parsed.gct, false);
 	} catch {
 		throw new Error(INVALID_GIF_MESSAGE);
 	}
 	const width = parsed.lsd.width;
 	const height = parsed.lsd.height;
 	if (!frames.length || !width || !height) throw new Error(INVALID_GIF_MESSAGE);
+	const gct = parsed.gct;
 
 	const canvas = document.createElement("canvas");
 	canvas.width = width;
@@ -106,7 +113,10 @@ const openGifuctReader = async (buffer: ArrayBuffer): Promise<GifReader> => {
 				dims: { left: number; top: number; width: number; height: number };
 				snapshot: ImageData | null;
 			} | null = null;
-			for (const frame of frames) {
+			for (const rawFrame of frames) {
+				// Decode one frame at a time: decompressFrames() holds every frame's pixels
+				// and RGBA patch at once, which runs to gigabytes on long GIFs.
+				const frame = decompressFrame(rawFrame, gct, true);
 				if (previous) {
 					if (previous.disposal === 2) {
 						const { left, top, width: w, height: h } = previous.dims;
@@ -197,32 +207,37 @@ export const convertGifToMp4 = async (
 		});
 		output.addVideoTrack(source);
 		await output.start();
+		let finalized = false;
+		try {
+			const clock = createTimelineClock();
+			const totalFrames = reader.frameCount * options.repeat;
+			let encoded = 0;
 
-		const clock = createTimelineClock();
-		const totalFrames = reader.frameCount * options.repeat;
-		let encoded = 0;
+			for (let pass = 0; pass < options.repeat; pass++) {
+				await reader.forEachFrame(async (frameSource, delayMs) => {
+					context.fillStyle = options.background;
+					context.fillRect(0, 0, size.width, size.height);
+					context.drawImage(frameSource, 0, 0, size.width, size.height);
+					const { timestamp, duration } = clock.advance(
+						normalizeDelayMs(delayMs),
+					);
+					await source.add(timestamp, duration);
+					encoded += 1;
+					options.onProgress(
+						Math.min(99, Math.round((encoded / totalFrames) * 100)),
+					);
+				});
+			}
 
-		for (let pass = 0; pass < options.repeat; pass++) {
-			await reader.forEachFrame(async (frameSource, delayMs) => {
-				context.fillStyle = options.background;
-				context.fillRect(0, 0, size.width, size.height);
-				context.drawImage(frameSource, 0, 0, size.width, size.height);
-				const { timestamp, duration } = clock.advance(
-					normalizeDelayMs(delayMs),
-				);
-				await source.add(timestamp, duration);
-				encoded += 1;
-				options.onProgress(
-					Math.min(99, Math.round((encoded / totalFrames) * 100)),
-				);
-			});
+			source.close();
+			await output.finalize();
+			finalized = true;
+			if (!target.buffer) throw new Error(H264_UNSUPPORTED_MESSAGE);
+			options.onProgress(100);
+			return new Blob([target.buffer], { type: "video/mp4" });
+		} finally {
+			if (!finalized) await output.cancel().catch(() => {});
 		}
-
-		source.close();
-		await output.finalize();
-		if (!target.buffer) throw new Error(H264_UNSUPPORTED_MESSAGE);
-		options.onProgress(100);
-		return new Blob([target.buffer], { type: "video/mp4" });
 	} finally {
 		reader.close();
 	}
