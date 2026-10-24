@@ -87,6 +87,7 @@ vi.mock("@/lib/desktop-segments-recovery", () => ({
 	completeDesktopSegmentsManifestAndQueue: vi.fn(),
 }));
 vi.mock("@/lib/Notification", () => ({ createNotification: vi.fn() }));
+vi.mock("@/lib/screencap-admin/access", () => ({ isAdminEmail: () => false }));
 vi.mock("@/lib/public-share-video", () => ({ getPublicShareVideo: vi.fn() }));
 vi.mock("@/lib/share-playback", () => ({
 	getSharePlaybackUrl: mocks.playbackUrl,

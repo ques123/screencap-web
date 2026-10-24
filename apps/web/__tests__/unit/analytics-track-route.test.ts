@@ -6,7 +6,7 @@ const state = vi.hoisted(() => ({
 	insertValues: vi.fn(),
 	insertFails: false,
 	appendEvents: vi.fn(),
-	currentUser: null as null | { id: string },
+	currentUser: null as null | { id: string; email?: string },
 }));
 
 vi.mock("@cap/database", () => ({
@@ -98,6 +98,10 @@ vi.mock("@/lib/Notification", () => ({
 }));
 
 vi.mock("@/lib/anonymous-names", () => ({ getAnonymousName: () => "Anon" }));
+
+vi.mock("@/lib/screencap-admin/access", () => ({
+	isAdminEmail: (email?: string | null) => email === "admin@screencap.co",
+}));
 
 import { POST } from "@/app/api/analytics/track/route";
 
@@ -231,6 +235,13 @@ describe("analytics track route", () => {
 		state.currentUser = { id: "owner1" };
 		await POST(makeRequest());
 		expect(state.insertValues).not.toHaveBeenCalled();
+	});
+
+	it("skips admin views", async () => {
+		state.currentUser = { id: "admin1", email: "admin@screencap.co" };
+		await POST(makeRequest());
+		expect(state.insertValues).not.toHaveBeenCalled();
+		expect(state.appendEvents).not.toHaveBeenCalled();
 	});
 
 	it("records the viewer user id for signed-in non-owners", async () => {

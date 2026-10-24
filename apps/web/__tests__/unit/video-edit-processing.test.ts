@@ -105,6 +105,7 @@ vi.mock("@/lib/ai/provider", () => ({}));
 vi.mock("@/lib/ai/byok", () => ({}));
 vi.mock("@/lib/desktop-segments-recovery", () => ({}));
 vi.mock("@/lib/Notification", () => ({}));
+vi.mock("@/lib/screencap-admin/access", () => ({ isAdminEmail: () => false }));
 vi.mock("@/lib/public-share-video", () => ({}));
 vi.mock("@/lib/shareable-link-quota", () => ({}));
 vi.mock("@/lib/transcribe", () => ({}));

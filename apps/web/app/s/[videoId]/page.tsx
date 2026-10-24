@@ -54,6 +54,7 @@ import {
 } from "@/lib/permissions/roles";
 import { resolveDefaultPlaybackSpeed } from "@/lib/playback-speed";
 import { getPublicShareVideo } from "@/lib/public-share-video";
+import { isAdminEmail } from "@/lib/screencap-admin/access";
 import * as EffectRuntime from "@/lib/server";
 import { runPromise } from "@/lib/server";
 import { getSharePageBranding } from "@/lib/share-branding";
@@ -502,7 +503,10 @@ async function AuthorizedContent({
 		Date.now() - video.updatedAt.getTime() >= VIEW_NOTIFICATION_DELAY_MS;
 
 	const viewNotificationPromise =
-		user && user.id !== video.owner.id && canRegisterView
+		user &&
+		user.id !== video.owner.id &&
+		!isAdminEmail(user.email) &&
+		canRegisterView
 			? createNotification({
 					type: "view",
 					videoId: video.id,

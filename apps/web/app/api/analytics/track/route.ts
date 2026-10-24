@@ -12,6 +12,7 @@ import {
 	createAnonymousViewNotification,
 	sendFirstViewEmail,
 } from "@/lib/Notification";
+import { isAdminEmail } from "@/lib/screencap-admin/access";
 import { runPromise } from "@/lib/server";
 import { isBotUserAgent } from "@/lib/view-bots";
 
@@ -108,6 +109,15 @@ export async function POST(request: NextRequest) {
 					return currentUser.id;
 				},
 			});
+
+			// Admins review recordings from the admin panel: no view, no
+			// notification, no first-view email for the owner.
+			if (
+				Option.isSome(maybeUser) &&
+				isAdminEmail((maybeUser.value as { email: string }).email)
+			) {
+				return;
+			}
 
 			const ANON_NOTIF_CUTOFF = new Date("2026-03-04T00:00:00Z");
 
