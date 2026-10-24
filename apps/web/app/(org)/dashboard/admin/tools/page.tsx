@@ -202,7 +202,8 @@ function ToolChart({
 		views: byDay.get(d)?.views ?? 0,
 		conversions: byDay.get(d)?.conversions ?? 0,
 	}));
-	const max = Math.max(1, ...series.flatMap((s) => [s.views, s.conversions]));
+	const peak = Math.max(1, ...series.flatMap((s) => [s.views, s.conversions]));
+	const max = peak % 2 === 0 ? peak : peak + 1;
 	const x = (i: number) =>
 		PAD.l +
 		(days.length === 1 ? 0 : (i / (days.length - 1)) * (W - PAD.l - PAD.r));
@@ -238,7 +239,7 @@ function ToolChart({
 							fontSize={10}
 							fill="currentColor"
 						>
-							{formatNumber(Math.round(max * f))}
+							{formatNumber(max * f)}
 						</text>
 					</g>
 				))}
@@ -248,7 +249,13 @@ function ToolChart({
 							key={s.day}
 							x={x(i)}
 							y={H - 6}
-							textAnchor="middle"
+							textAnchor={
+								x(i) > W - PAD.r - 24
+									? "end"
+									: x(i) < PAD.l + 24
+										? "start"
+										: "middle"
+							}
 							fontSize={10}
 							fill="currentColor"
 						>
