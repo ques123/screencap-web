@@ -1,12 +1,37 @@
 "use client";
 
-import { Button } from "@cap/ui";
 import { useEffect, useId, useRef, useState } from "react";
+import {
+	TOOL_NEXT_STEP_LINES,
+	ToolNextStepPrompt,
+} from "@/components/tools/ToolNextStepPrompt";
+import { toolEvent, useToolView } from "@/components/tools/toolEvents";
 import { REPEAT_OPTIONS, RESOLUTION_OPTIONS } from "@/lib/gif-to-mp4-helpers";
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
+const classifyError = (err: unknown) => {
+	const message = err instanceof Error ? err.message : "";
+	if (/can't make MP4|not supported|unsupported/i.test(message))
+		return "unsupported_browser";
+	if (/cancel|abort/i.test(message)) return "cancelled";
+	if (/could not be read|decod/i.test(message)) return "decode_failed";
+	if (/encod/i.test(message)) return "encode_failed";
+	return "other";
+};
+
+const getVideoDuration = (url: string) =>
+	new Promise<number | undefined>((resolve) => {
+		const video = document.createElement("video");
+		video.preload = "metadata";
+		video.onloadedmetadata = () =>
+			resolve(Number.isFinite(video.duration) ? video.duration : undefined);
+		video.onerror = () => resolve(undefined);
+		video.src = url;
+	});
+
 export const GifToMp4Converter = () => {
+	useToolView("gif-to-mp4");
 	const [file, setFile] = useState<File | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
 	const [isConverting, setIsConverting] = useState(false);
@@ -40,14 +65,23 @@ export const GifToMp4Converter = () => {
 		if (!isGif) {
 			setFile(null);
 			setError("Please choose a GIF file.");
+			toolEvent("gif-to-mp4", "convert_failed", {
+				errorClass: "invalid_file_type",
+				fileSizeBytes: selected.size,
+			});
 			return;
 		}
 		if (selected.size > MAX_FILE_SIZE) {
 			setFile(null);
 			setError("This file is larger than 100 MB. Choose a smaller GIF.");
+			toolEvent("gif-to-mp4", "convert_failed", {
+				errorClass: "file_too_large",
+				fileSizeBytes: selected.size,
+			});
 			return;
 		}
 		setFile(selected);
+		toolEvent("gif-to-mp4", "file_selected", { fileSizeBytes: selected.size });
 	};
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,6 +110,7 @@ export const GifToMp4Converter = () => {
 		setIsConverting(true);
 		setError(null);
 		setProgress(0);
+		toolEvent("gif-to-mp4", "convert_started", { fileSizeBytes: file.size });
 		try {
 			const { convertGifToMp4 } = await import("@/lib/gif-to-mp4");
 			const blob = await convertGifToMp4(file, {
@@ -84,8 +119,18 @@ export const GifToMp4Converter = () => {
 				background,
 				onProgress: setProgress,
 			});
-			setOutputUrl(URL.createObjectURL(blob));
+			const url = URL.createObjectURL(blob);
+			setOutputUrl(url);
+			toolEvent("gif-to-mp4", "convert_ok", {
+				fileSizeBytes: file.size,
+				outputSizeBytes: blob.size,
+				durationSeconds: await getVideoDuration(url),
+			});
 		} catch (err) {
+			toolEvent("gif-to-mp4", "convert_failed", {
+				errorClass: classifyError(err),
+				fileSizeBytes: file.size,
+			});
 			setError(
 				err instanceof Error && err.message
 					? err.message
@@ -104,6 +149,7 @@ export const GifToMp4Converter = () => {
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
+		toolEvent("gif-to-mp4", "downloaded", { fileSizeBytes: file.size });
 	};
 
 	const resetConverter = () => {
@@ -114,18 +160,20 @@ export const GifToMp4Converter = () => {
 
 	return (
 		<div className="w-full">
-			<h2 className="text-2xl font-semibold text-center mb-6">
+			<h2 className="sc-display mb-6 text-center text-[28px] leading-[1.05] tracking-[-0.03em]">
 				GIF to MP4 Converter
 			</h2>
 
 			{file && !outputUrl && (
-				<div className="mb-6 border border-gray-200 rounded-lg p-4">
-					<h3 className="text-lg font-medium mb-3">MP4 Settings</h3>
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+				<div className="mb-6 rounded-[18px] border-2 border-[#D3E3F3] p-4 sm:p-5">
+					<h3 className="sc-display mb-3 text-xl tracking-normal">
+						MP4 Settings
+					</h3>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 						<div>
 							<label
 								htmlFor={`${baseId}-max-width`}
-								className="block text-sm font-medium text-gray-700 mb-1"
+								className="mb-1 block text-sm font-semibold text-[#0B2440]"
 							>
 								Max Width (px)
 							</label>
@@ -134,7 +182,7 @@ export const GifToMp4Converter = () => {
 								value={maxWidth}
 								onChange={(e) => setMaxWidth(parseInt(e.target.value, 10))}
 								disabled={isConverting}
-								className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+								className="w-full rounded-[10px] border-2 border-[#0B2440] bg-white px-2 py-1.5 text-sm font-semibold text-[#0B2440]"
 							>
 								{RESOLUTION_OPTIONS.map((option) => (
 									<option key={option.value} value={option.value}>
@@ -142,14 +190,14 @@ export const GifToMp4Converter = () => {
 									</option>
 								))}
 							</select>
-							<p className="text-xs text-gray-500 mt-1">
+							<p className="mt-1 text-xs text-[#45627F]">
 								Only scales down, never up
 							</p>
 						</div>
 						<div>
 							<label
 								htmlFor={`${baseId}-repeat`}
-								className="block text-sm font-medium text-gray-700 mb-1"
+								className="mb-1 block text-sm font-semibold text-[#0B2440]"
 							>
 								Repeat
 							</label>
@@ -158,7 +206,7 @@ export const GifToMp4Converter = () => {
 								value={repeat}
 								onChange={(e) => setRepeat(parseInt(e.target.value, 10))}
 								disabled={isConverting}
-								className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+								className="w-full rounded-[10px] border-2 border-[#0B2440] bg-white px-2 py-1.5 text-sm font-semibold text-[#0B2440]"
 							>
 								{REPEAT_OPTIONS.map((count) => (
 									<option key={count} value={count}>
@@ -166,14 +214,14 @@ export const GifToMp4Converter = () => {
 									</option>
 								))}
 							</select>
-							<p className="text-xs text-gray-500 mt-1">
+							<p className="mt-1 text-xs text-[#45627F]">
 								MP4 does not loop, so the animation is repeated in the file
 							</p>
 						</div>
 						<div>
 							<label
 								htmlFor={`${baseId}-background`}
-								className="block text-sm font-medium text-gray-700 mb-1"
+								className="mb-1 block text-sm font-semibold text-[#0B2440]"
 							>
 								Background Color
 							</label>
@@ -183,9 +231,9 @@ export const GifToMp4Converter = () => {
 								value={background}
 								onChange={(e) => setBackground(e.target.value)}
 								disabled={isConverting}
-								className="h-9 w-16 rounded-md border border-gray-300 bg-white p-1"
+								className="h-9 w-16 rounded-[10px] border-2 border-[#0B2440] bg-white p-1"
 							/>
-							<p className="text-xs text-gray-500 mt-1">
+							<p className="mt-1 text-xs text-[#45627F]">
 								Fills transparent areas, since MP4 has no transparency
 							</p>
 						</div>
@@ -194,10 +242,10 @@ export const GifToMp4Converter = () => {
 			)}
 
 			<label
-				className={`border-2 border-dashed rounded-lg p-8 mb-6 flex flex-col items-center justify-center cursor-pointer transition-colors focus-within:border-blue-500 ${
+				className={`mb-6 flex cursor-pointer flex-col items-center justify-center rounded-[18px] border-[3px] border-dashed p-6 transition-colors focus-within:border-[#1E66B8] sm:p-8 ${
 					isDragging
-						? "border-blue-500 bg-blue-50"
-						: "border-gray-300 hover:border-blue-400"
+						? "border-[#1E66B8] bg-[#DCEBFA]"
+						: "border-[#0B2440]/40 bg-[#EAF3FC] hover:border-[#1E66B8]"
 				}`}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
@@ -217,7 +265,7 @@ export const GifToMp4Converter = () => {
 					{!file ? (
 						<>
 							<svg
-								className="mx-auto h-12 w-12 text-gray-400 mb-3"
+								className="mx-auto mb-3 h-12 w-12 text-[#1E66B8]"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -230,13 +278,13 @@ export const GifToMp4Converter = () => {
 									d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
 								/>
 							</svg>
-							<p className="text-lg font-medium text-gray-700">
+							<p className="sc-display text-xl tracking-normal [overflow-wrap:anywhere]">
 								Drag and drop your GIF file here
 							</p>
-							<p className="text-sm text-gray-500 mt-1">
+							<p className="mt-1 text-sm text-[#45627F]">
 								or click to browse (max 100MB)
 							</p>
-							<p className="text-sm text-gray-500 mt-3">
+							<p className="mt-3 text-sm text-[#45627F]">
 								Your file never leaves your device. It's converted in your
 								browser.
 							</p>
@@ -244,7 +292,7 @@ export const GifToMp4Converter = () => {
 					) : (
 						<>
 							<svg
-								className="mx-auto h-12 w-12 text-green-500 mb-3"
+								className="mx-auto mb-3 h-12 w-12 text-[#1E66B8]"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -257,8 +305,10 @@ export const GifToMp4Converter = () => {
 									d="M5 13l4 4L19 7"
 								/>
 							</svg>
-							<p className="text-lg font-medium text-gray-700">{file.name}</p>
-							<p className="text-sm text-gray-500 mt-1">
+							<p className="sc-display text-xl tracking-normal [overflow-wrap:anywhere]">
+								{file.name}
+							</p>
+							<p className="mt-1 text-sm text-[#45627F]">
 								{(file.size / (1024 * 1024)).toFixed(2)} MB
 							</p>
 						</>
@@ -269,7 +319,7 @@ export const GifToMp4Converter = () => {
 			{error && (
 				<div
 					role="alert"
-					className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600"
+					className="mb-6 rounded-[14px] border-[3px] border-[#FF4A2E] bg-[#FFF1EE] p-4 font-medium text-[#B3200A]"
 				>
 					{error}
 				</div>
@@ -277,12 +327,12 @@ export const GifToMp4Converter = () => {
 
 			{isConverting && (
 				<div className="mb-6">
-					<p className="text-center text-gray-700 mb-2">
+					<p className="mb-2 text-center font-semibold text-[#0B2440]">
 						Converting... {progress}%
 					</p>
-					<div className="w-full bg-gray-200 rounded-full h-2">
+					<div className="h-3 w-full overflow-hidden rounded-full border-2 border-[#0B2440] bg-white">
 						<div
-							className="bg-blue-600 h-2 rounded-full transition-all"
+							className="h-full bg-[#1E66B8] transition-all"
 							style={{ width: `${progress}%` }}
 						></div>
 					</div>
@@ -290,8 +340,8 @@ export const GifToMp4Converter = () => {
 			)}
 
 			{outputUrl && (
-				<div className="mb-6 p-5 bg-green-50 border border-green-200 rounded-lg">
-					<p className="text-green-700 font-medium mb-3">
+				<div className="mb-6 rounded-[18px] border-[3px] border-[#0B2440] bg-[#EAF3FC] p-4 sm:p-5">
+					<p className="sc-display mb-3 text-xl tracking-normal">
 						Conversion complete!
 					</p>
 					<video
@@ -300,41 +350,52 @@ export const GifToMp4Converter = () => {
 						loop
 						muted
 						playsInline
-						className="w-full rounded-lg mb-4 bg-black"
+						className="mb-4 w-full rounded-[14px] bg-black"
 						style={{ maxHeight: "300px" }}
 					></video>
-					<div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-						<Button
-							variant="primary"
+					<div className="flex flex-col gap-4 sm:flex-row">
+						<button
+							type="button"
 							onClick={handleDownload}
-							className="w-full"
+							className="sc-btn sc-btn-accent w-full text-white"
 						>
 							Download MP4
-						</Button>
+						</button>
 					</div>
+					<ToolNextStepPrompt
+						tool="gif-to-mp4"
+						onShow={() => toolEvent("gif-to-mp4", "prompt_shown")}
+						onSignupClick={() => toolEvent("gif-to-mp4", "cta_signup")}
+						onDownloadClick={() => toolEvent("gif-to-mp4", "cta_download")}
+						line={TOOL_NEXT_STEP_LINES["gif-to-mp4"]}
+					/>
 				</div>
 			)}
 
-			<div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+			<div className="flex flex-col gap-4 sm:flex-row">
 				{file && !isConverting && !outputUrl && (
-					<Button variant="primary" onClick={convertFile} className="w-full">
+					<button
+						type="button"
+						onClick={convertFile}
+						className="sc-btn sc-btn-accent w-full text-white"
+					>
 						Convert to MP4
-					</Button>
+					</button>
 				)}
 
 				{(file || outputUrl) && (
-					<Button
-						variant="white"
+					<button
+						type="button"
 						onClick={resetConverter}
 						disabled={isConverting}
-						className="w-full"
+						className="sc-btn sc-btn-light w-full text-[#0B2440]"
 					>
 						{outputUrl ? "Convert Another File" : "Reset"}
-					</Button>
+					</button>
 				)}
 			</div>
 
-			<div className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500 text-center">
+			<div className="mt-8 border-t border-[#D3E3F3] pt-6 text-center text-sm text-[#45627F]">
 				<p>
 					This converter works entirely in your browser. Your files are never
 					uploaded to any server.
