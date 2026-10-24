@@ -83,6 +83,12 @@ export function ScreencapHeader() {
 						Pricing
 					</a>
 					<a
+						href="/tools"
+						className="hidden px-3.5 py-3 text-base font-bold leading-[1.2] text-[#0B2440] no-underline hover:text-[#1E66B8] sm:inline-block"
+					>
+						Free tools
+					</a>
+					<a
 						href="/login"
 						className="px-2.5 py-2.5 text-[15px] font-bold leading-[1.2] text-[#0B2440] no-underline hover:text-[#1E66B8] sm:px-3.5 sm:py-3 sm:text-base"
 					>
