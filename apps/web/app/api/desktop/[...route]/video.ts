@@ -9,6 +9,10 @@ import {
 	videos,
 	videoUploads,
 } from "@cap/database/schema";
+import {
+	desktopVersion,
+	noteVideoClient,
+} from "@cap/database/screencap-clients";
 import type { VideoMetadata } from "@cap/database/types";
 import { getNewVideoPublic } from "@cap/database/video-sharing-default";
 import { serverEnv } from "@cap/env";
@@ -377,6 +381,19 @@ app.get(
 						: {}),
 					...(metadata ? { metadata } : {}),
 				});
+
+			await noteVideoClient({
+				videoId: idToUse,
+				client: "desktop",
+				version: desktopVersion({ get: (name) => c.req.header(name) }),
+				detail: isScreenshot
+					? "Screenshot"
+					: recordingMode === "desktopSegments"
+						? "Instant"
+						: recordingMode === "desktopMP4"
+							? "Studio"
+							: recordingMode,
+			});
 
 			const clientSupportsUploadProgress = isFromDesktopSemver(
 				c.req,

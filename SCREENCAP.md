@@ -18,6 +18,12 @@ and the Mac app.
   stays a 404. On Screencap builds `app/(site)/layout.tsx` wraps them in a header and footer matching
   the static site (`ScreencapHeader`/`ScreencapFooter`, fonts in `app/(site)/fonts`), and the
   converter hides its format pickers so it never links to a disabled route.
+- Web: the admin panel shows which apps each user has (`screencap_user_clients`: Mac app version
+  from the `X-Cap-Desktop-Version` header on authenticated API calls, plus signed-in extension/mobile
+  keys) and what made each recording (`screencap_video_clients`: Mac app version + Instant/Studio,
+  web recorder or upload with browser and OS). Written by `@cap/database/screencap-clients`
+  (migration `0055_screencap_clients`); recordings older than that are guessed from `videos.source`
+  and marked "(guessed)". Read side: `lib/screencap-admin/clients.ts`.
 - Web: admin Tools tab (`/dashboard/admin/tools`, `lib/screencap-admin/tools.ts`) shows whether the
   free tools are used, work and bring sign-ups: views, funnel, daily chart, failures by browser and
   error, referrers, countries, file sizes. Events come from `toolEvent()` in

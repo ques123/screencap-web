@@ -6,6 +6,7 @@ import {
 	formatDuration,
 	formatNumber,
 	pageParam,
+	RecordedWithText,
 	strParam,
 } from "../_components/format";
 import { Pager, SearchBar } from "../_components/Pager";
@@ -69,6 +70,9 @@ export default async function AdminRecordingsPage({
 									{formatDuration(r.durationSeconds)} · {formatNumber(r.views)}{" "}
 									view{r.views === 1 ? "" : "s"} ·{" "}
 									<DateText value={r.createdAt} />
+								</p>
+								<p className="text-xs text-gray-10">
+									<RecordedWithText value={r.recordedWith} />
 								</p>
 							</div>
 							<RecordingActions

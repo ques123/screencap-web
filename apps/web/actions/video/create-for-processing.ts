@@ -4,6 +4,10 @@ import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
 import { nanoId } from "@cap/database/helpers";
 import { videos, videoUploads } from "@cap/database/schema";
+import {
+	describeUserAgent,
+	noteVideoClient,
+} from "@cap/database/screencap-clients";
 import { getNewVideoPublic } from "@cap/database/video-sharing-default";
 import { userIsPro } from "@cap/utils";
 import { Storage as StorageService } from "@cap/web-backend";
@@ -15,6 +19,7 @@ import {
 } from "@cap/web-domain";
 import { Option } from "effect";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { requireOrganizationAccess } from "@/actions/organization/authorization";
 import {
 	checkCanCreateRecording,
@@ -111,6 +116,12 @@ export async function createVideoForServerProcessing({
 			public: await getNewVideoPublic(orgId),
 			...(folderId ? { folderId } : {}),
 		});
+
+	await noteVideoClient({
+		videoId,
+		client: "web-upload",
+		detail: describeUserAgent((await headers()).get("user-agent")),
+	});
 
 	await db().insert(videoUploads).values({
 		videoId,

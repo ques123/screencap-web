@@ -9,6 +9,7 @@ import {
 	importedVideos,
 	screencapRemovedVideos,
 	screencapReports,
+	screencapVideoClients,
 	users,
 	videoProcessingJobs,
 	videos,
@@ -30,6 +31,7 @@ import {
 } from "drizzle-orm";
 import { isE2eeVideo } from "@/lib/e2ee";
 import { logAdminAction, telegramAlert } from "./audit";
+import { recordedWithSelect, toRecordedWith } from "./clients";
 import { sendRemovalNotice } from "./notices";
 import { purgeToolEvents } from "./tools";
 import type {
@@ -120,9 +122,14 @@ export async function listRecordings(opts: {
 					sql<number>`EXISTS (SELECT 1 FROM ${screencapReports} WHERE ${screencapReports.videoId} = ${videos.id} AND ${screencapReports.decryptionKey} IS NOT NULL)`.mapWith(
 						Number,
 					),
+				...recordedWithSelect,
 			})
 			.from(videos)
 			.leftJoin(users, eq(users.id, videos.ownerId))
+			.leftJoin(
+				screencapVideoClients,
+				eq(screencapVideoClients.videoId, videos.id),
+			)
 			.where(where)
 			.orderBy(desc(videos.createdAt))
 			.limit(limit)
@@ -134,13 +141,31 @@ export async function listRecordings(opts: {
 			.where(where),
 	]);
 	return {
-		rows: rows.map((r) => ({
-			...r,
-			id: String(r.id),
-			ownerId: String(r.ownerId),
-			e2ee: isE2eeVideo(r),
-			hasReporterKey: Boolean(r.hasReporterKey),
-		})),
+		rows: rows.map(
+			({
+				rwClient,
+				rwVersion,
+				rwDetail,
+				rwSourceType,
+				rwScreenshot,
+				rwLoom,
+				...r
+			}) => ({
+				...r,
+				id: String(r.id),
+				ownerId: String(r.ownerId),
+				e2ee: isE2eeVideo(r),
+				hasReporterKey: Boolean(r.hasReporterKey),
+				recordedWith: toRecordedWith({
+					rwClient,
+					rwVersion,
+					rwDetail,
+					rwSourceType,
+					rwScreenshot,
+					rwLoom,
+				}),
+			}),
+		),
 		total: tot?.n ?? 0,
 	};
 }

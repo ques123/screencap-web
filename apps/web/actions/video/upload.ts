@@ -4,6 +4,10 @@ import { db } from "@cap/database";
 import { getCurrentUser } from "@cap/database/auth/session";
 import { nanoId } from "@cap/database/helpers";
 import { videos, videoUploads } from "@cap/database/schema";
+import {
+	describeUserAgent,
+	noteVideoClient,
+} from "@cap/database/screencap-clients";
 import { getNewVideoPublic } from "@cap/database/video-sharing-default";
 import { userIsPro } from "@cap/utils";
 import { Storage as StorageService } from "@cap/web-backend";
@@ -16,6 +20,7 @@ import {
 import { eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { requireOrganizationAccess } from "@/actions/organization/authorization";
 import {
 	checkCanCreateRecording,
@@ -243,6 +248,13 @@ export async function createVideoAndGetUploadUrl({
 		};
 
 		await db().insert(videos).values(videoData);
+		await noteVideoClient({
+			videoId: idToUse,
+			client: "web-upload",
+			detail: isScreenshot
+				? "Image"
+				: describeUserAgent((await headers()).get("user-agent")),
+		});
 
 		if (supportsUploadProgress)
 			await db().insert(videoUploads).values({

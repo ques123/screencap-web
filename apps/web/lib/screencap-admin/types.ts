@@ -42,6 +42,25 @@ export type AdminUserRow = {
 	lastActiveAt: Date | null;
 	blocked: boolean;
 	proRevoked: boolean;
+	apps: string[];
+};
+
+export type RecordedWith = {
+	label: string;
+	version: string | null;
+	detail: string | null;
+	inferred: boolean;
+};
+
+export type AdminUserClients = {
+	installed: {
+		label: string;
+		version: string | null;
+		firstSeenAt: Date | null;
+		lastSeenAt: Date | null;
+		inferred: boolean;
+	}[];
+	recordedWith: { label: string; count: number }[];
 };
 
 export type AdminRecordingRow = {
@@ -56,6 +75,7 @@ export type AdminRecordingRow = {
 	openReports: number;
 	e2ee: boolean;
 	hasReporterKey: boolean;
+	recordedWith: RecordedWith;
 };
 
 export type AdminUserDetail = AdminUserRow & {
@@ -65,6 +85,7 @@ export type AdminUserDetail = AdminUserRow & {
 	recordingMinutesOverride: number | null;
 	note: string | null;
 	recentRecordings: AdminRecordingRow[];
+	clients: AdminUserClients;
 	/** Limits that apply to this user right now, in the units the overrides use. */
 	limits: {
 		storageHours: number | null;

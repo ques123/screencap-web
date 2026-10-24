@@ -65,6 +65,7 @@
 		"./auth/sso-state": "./auth/sso-state.ts",
 		"./schema": "./schema.ts",
 		"./screencap-settings": "./screencap-settings.ts",
+		"./screencap-clients": "./screencap-clients.ts",
 		"./video-sharing-default": "./video-sharing-default.ts",
 		"./loops/*": "./loops/*.ts",
 		"./crypto": "./crypto.ts",

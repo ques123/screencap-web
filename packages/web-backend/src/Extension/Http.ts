@@ -355,11 +355,16 @@ export const ExtensionHttpLive = HttpApiBuilder.group(
 						};
 					}).pipe(handleDomainError),
 				)
-				.handle("createInstantRecording", ({ payload }) =>
-					videos.createInstantRecording(payload).pipe(
-						Effect.catchTag("PolicyDenied", (error) => Effect.fail(error)),
-						handleDomainError,
-					),
+				.handle("createInstantRecording", ({ payload, request }) =>
+					videos
+						.createInstantRecording(payload, {
+							client: "extension",
+							userAgent: request.headers["user-agent"],
+						})
+						.pipe(
+							Effect.catchTag("PolicyDenied", (error) => Effect.fail(error)),
+							handleDomainError,
+						),
 				)
 				.handle("updateInstantRecordingProgress", ({ payload }) =>
 					videos.updateUploadProgress(payload).pipe(

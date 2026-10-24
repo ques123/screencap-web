@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { RecordedWith } from "@/lib/screencap-admin/types";
 
 export function formatDuration(seconds: number | null | undefined): string {
 	const s = Math.max(0, Math.round(seconds ?? 0));
@@ -82,6 +83,24 @@ export function Chip({
 			className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-md whitespace-nowrap ${chipTones[tone]}`}
 		>
 			{children}
+		</span>
+	);
+}
+
+export function RecordedWithText({ value }: { value: RecordedWith }) {
+	return (
+		<span
+			title={
+				value.inferred
+					? "Guessed from the upload type: made before Screencap recorded the app"
+					: undefined
+			}
+		>
+			Recorded with{" "}
+			<span className="text-gray-11">
+				{[value.label, value.version, value.detail].filter(Boolean).join(" · ")}
+			</span>
+			{value.inferred && " (guessed)"}
 		</span>
 	);
 }

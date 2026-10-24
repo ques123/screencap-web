@@ -9,6 +9,7 @@ import {
 	EmptyState,
 	formatDuration,
 	formatNumber,
+	RecordedWithText,
 } from "../../_components/format";
 import { RecordingActions } from "../../_components/RecordingActions";
 import { UserControls } from "./UserControls";
@@ -73,6 +74,56 @@ export default async function AdminUserPage({
 				)}
 			</Card>
 
+			<Card className="space-y-4">
+				<CardTitle>Apps</CardTitle>
+				{u.clients.installed.length === 0 ? (
+					<p className="text-sm text-gray-10">
+						No Screencap app has signed in to this account.
+					</p>
+				) : (
+					<ul className="space-y-2 text-sm">
+						{u.clients.installed.map((c) => (
+							<li
+								key={`${c.label}-${c.version ?? ""}`}
+								className="flex flex-wrap gap-x-3 gap-y-1 items-baseline"
+							>
+								<span className="font-medium text-gray-12">
+									{c.label}
+									{c.version ? ` ${c.version}` : ""}
+								</span>
+								{c.inferred && (
+									<span className="text-xs text-gray-10">
+										version unknown (signed in before versions were recorded)
+									</span>
+								)}
+								{c.lastSeenAt && (
+									<span className="text-xs text-gray-10">
+										last used <DateText value={c.lastSeenAt} />
+									</span>
+								)}
+								{c.firstSeenAt && (
+									<span className="text-xs text-gray-10">
+										first seen <DateText value={c.firstSeenAt} />
+									</span>
+								)}
+							</li>
+						))}
+					</ul>
+				)}
+				{u.clients.recordedWith.length > 0 && (
+					<div className="space-y-1">
+						<p className="text-xs text-gray-10">Recordings made with</p>
+						<div className="flex flex-wrap gap-1.5">
+							{u.clients.recordedWith.map((r) => (
+								<Chip key={r.label}>
+									{r.label}: {formatNumber(r.count)}
+								</Chip>
+							))}
+						</div>
+					</div>
+				)}
+			</Card>
+
 			<UserControls
 				userId={u.id}
 				email={u.email}
@@ -114,6 +165,9 @@ export default async function AdminUserPage({
 										{formatDuration(r.durationSeconds)} ·{" "}
 										{formatNumber(r.views)} views ·{" "}
 										<DateText value={r.createdAt} />
+									</p>
+									<p className="text-xs text-gray-10">
+										<RecordedWithText value={r.recordedWith} />
 									</p>
 								</div>
 								<RecordingActions

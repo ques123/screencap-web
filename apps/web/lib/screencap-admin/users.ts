@@ -11,6 +11,7 @@ import {
 import { and, desc, eq, isNull, like, or, sql } from "drizzle-orm";
 import { isAdminEmail } from "./access";
 import { logAdminAction, telegramAlert } from "./audit";
+import { appsForUsers, getUserClients } from "./clients";
 import { sendRemovalNotice } from "./notices";
 import { listRecordings, removeRecordingInternal } from "./recordings";
 import { getSettings } from "./settings";
@@ -80,7 +81,7 @@ type UserSelectRow = {
 	lastActiveAt: Date | string | null;
 };
 
-function toRow(r: UserSelectRow): AdminUserRow {
+function toRow(r: UserSelectRow, apps: string[] = []): AdminUserRow {
 	return {
 		id: String(r.id),
 		email: r.email,
@@ -91,6 +92,7 @@ function toRow(r: UserSelectRow): AdminUserRow {
 		lastActiveAt: r.lastActiveAt ? new Date(r.lastActiveAt) : null,
 		blocked: r.blockedAt !== null,
 		proRevoked: r.stripeSubscriptionStatus === REVOKED,
+		apps,
 	};
 }
 
@@ -123,8 +125,11 @@ export async function listUsers(opts: {
 			.from(users)
 			.where(where),
 	]);
+	const apps = await appsForUsers(rows.map((r) => String(r.id)));
 	return {
-		rows: rows.map((r) => toRow(r as unknown as UserSelectRow)),
+		rows: rows.map((r) =>
+			toRow(r as unknown as UserSelectRow, apps.get(String(r.id))),
+		),
 		total: tot?.n ?? 0,
 	};
 }
@@ -144,20 +149,27 @@ export async function getUserDetail(
 		.from(screencapUserAdmin)
 		.where(eq(screencapUserAdmin.userId, userId as UserId))
 		.limit(1);
-	const [recent, settings] = await Promise.all([
+	const [recent, settings, clients] = await Promise.all([
 		listRecordings({ ownerId: userId, limit: 50 }),
 		getSettings(),
+		getUserClients(userId),
 	]);
 	const storageOverride = admin?.storageHoursOverride ?? null;
 	const recordingOverride = admin?.recordingMinutesOverride ?? null;
 	return {
-		...toRow(row as unknown as UserSelectRow),
+		...toRow(
+			row as unknown as UserSelectRow,
+			clients.installed.map((c) =>
+				[c.label, c.version].filter(Boolean).join(" "),
+			),
+		),
 		blockedAt: admin?.blockedAt ?? null,
 		blockReason: admin?.blockReason ?? null,
 		storageHoursOverride: storageOverride,
 		recordingMinutesOverride: recordingOverride,
 		note: admin?.note ?? null,
 		recentRecordings: recent.rows,
+		clients,
 		limits: {
 			storageHours: storageOverride ?? settings.maxStorageHours,
 			recordingMinutes: recordingOverride ?? settings.maxRecordingMinutes,

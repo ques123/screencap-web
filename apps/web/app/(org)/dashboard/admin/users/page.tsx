@@ -63,6 +63,11 @@ export default async function AdminUsersPage({
 									)}
 									{u.blocked && <Chip tone="red">Blocked</Chip>}
 									{u.proRevoked && <Chip tone="amber">Pro revoked</Chip>}
+									{u.apps.map((app) => (
+										<Chip key={app} tone="green">
+											{app}
+										</Chip>
+									))}
 								</div>
 							</div>
 							<span className="text-gray-11">

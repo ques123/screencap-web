@@ -8,6 +8,10 @@ import {
 	developerApps,
 	users,
 } from "@cap/database/schema";
+import {
+	desktopVersion,
+	noteUserClient,
+} from "@cap/database/screencap-clients";
 import { buildEnv } from "@cap/env";
 import { and, eq, isNull } from "drizzle-orm";
 import type { Context } from "hono";
@@ -68,10 +72,25 @@ function debouncedLastUsedUpdate(keyHash: string) {
 		.catch((err) => console.error("Failed to update lastUsedAt:", err));
 }
 
+function noteRequestClient(
+	c: Context,
+	userId: string,
+	keySource: string | undefined,
+) {
+	const version = desktopVersion({ get: (name) => c.req.header(name) });
+	if (version) {
+		void noteUserClient({ userId, client: "desktop", version });
+		return;
+	}
+	if (keySource === "extension" || keySource === "mobile")
+		void noteUserClient({ userId, client: keySource });
+}
+
 async function getAuth(c: Context) {
 	const authHeader = c.req.header("authorization")?.split(" ")[1];
 
 	let user: Awaited<ReturnType<typeof getCurrentUser>> | undefined;
+	let keySource: string | undefined;
 
 	if (authHeader?.length === 36) {
 		const res = await db()
@@ -81,11 +100,13 @@ async function getAuth(c: Context) {
 			.where(eq(authApiKeys.id, authHeader));
 		user = res[0]?.users;
 		if (user && isBlockedAccountEmail(user.email)) user = undefined;
+		keySource = res[0]?.auth_api_keys?.source;
 	} else {
 		user = await getCurrentUser();
 	}
 
 	if (!user) return;
+	noteRequestClient(c, user.id, keySource);
 	return { user };
 }
 

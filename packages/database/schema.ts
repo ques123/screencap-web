@@ -1023,6 +1023,39 @@ export const screencapToolEvents = mysqlTable(
 	],
 );
 
+export type ScreencapClient =
+	| "desktop"
+	| "web-recorder"
+	| "web-upload"
+	| "loom-import"
+	| "mobile"
+	| "extension"
+	| "api";
+
+export const screencapUserClients = mysqlTable(
+	"screencap_user_clients",
+	{
+		userId: nanoId("user_id").notNull().$type<User.UserId>(),
+		client: varchar("client", { length: 24 })
+			.notNull()
+			.$type<ScreencapClient>(),
+		version: varchar("version", { length: 32 }).notNull().default(""),
+		firstSeenAt: timestamp("first_seen_at").notNull().defaultNow(),
+		lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+	},
+	(table) => [
+		primaryKey({ columns: [table.userId, table.client, table.version] }),
+	],
+);
+
+export const screencapVideoClients = mysqlTable("screencap_video_clients", {
+	videoId: nanoId("video_id").notNull().primaryKey().$type<Video.VideoId>(),
+	client: varchar("client", { length: 24 }).notNull().$type<ScreencapClient>(),
+	version: varchar("version", { length: 32 }),
+	detail: varchar("detail", { length: 64 }),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const storageIntegrations = mysqlTable(
 	"storage_integrations",
 	{

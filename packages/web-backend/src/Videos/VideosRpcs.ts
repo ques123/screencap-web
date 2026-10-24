@@ -40,15 +40,20 @@ export const VideosRpcsLive = Video.VideoRpcs.toLayer(
 					),
 				),
 
-			VideoInstantCreate: (input) =>
-				videos.createInstantRecording(input).pipe(
-					Effect.catchTag("DatabaseError", () =>
-						Effect.fail(new InternalError({ type: "database" })),
+			VideoInstantCreate: (input, { headers }) =>
+				videos
+					.createInstantRecording(input, {
+						client: "web-recorder",
+						userAgent: headers["user-agent"],
+					})
+					.pipe(
+						Effect.catchTag("DatabaseError", () =>
+							Effect.fail(new InternalError({ type: "database" })),
+						),
+						Effect.catchTag("StorageError", () =>
+							Effect.fail(new InternalError({ type: "unknown" })),
+						),
 					),
-					Effect.catchTag("StorageError", () =>
-						Effect.fail(new InternalError({ type: "unknown" })),
-					),
-				),
 
 			VideoUploadProgressUpdate: (input) =>
 				videos

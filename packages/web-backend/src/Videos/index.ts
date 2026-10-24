@@ -1,5 +1,11 @@
 import { nanoId } from "@cap/database/helpers";
 import * as Db from "@cap/database/schema";
+import {
+	copyVideoClient,
+	describeUserAgent,
+	noteVideoClient,
+	type ScreencapClient,
+} from "@cap/database/screencap-clients";
 import { getNewVideoPublic } from "@cap/database/video-sharing-default";
 import { buildEnv, NODE_ENV, serverEnv } from "@cap/env";
 import { dub } from "@cap/utils";
@@ -467,6 +473,7 @@ export class Videos extends Effect.Service<Videos>()("Videos", {
 						},
 						{ id: newVideoId },
 					);
+					yield* Effect.promise(() => copyVideoClient(videoId, newVideoId));
 					return { videoId: newVideoId };
 				}).pipe(
 					Effect.onError(() =>
@@ -613,7 +620,10 @@ export class Videos extends Effect.Service<Videos>()("Videos", {
 			}),
 
 			createInstantRecording: Effect.fn("Videos.createInstantRecording")(
-				function* (input: InstantRecordingCreateInput) {
+				function* (
+					input: InstantRecordingCreateInput,
+					origin?: { client: ScreencapClient; userAgent?: string | null },
+				) {
 					const user = yield* CurrentUser;
 
 					if (user.activeOrganizationId !== input.orgId)
@@ -664,6 +674,13 @@ export class Videos extends Effect.Service<Videos>()("Videos", {
 						transcriptionStatus: Option.none<RepoTranscriptionStatusValue>(),
 					};
 					const videoId = yield* repo.create(createData);
+					yield* Effect.promise(() =>
+						noteVideoClient({
+							videoId,
+							client: origin?.client ?? "web-recorder",
+							detail: describeUserAgent(origin?.userAgent),
+						}),
+					);
 
 					if (input.supportsUploadProgress ?? true)
 						yield* db.use((db) =>
