@@ -7,6 +7,7 @@ import type {
 	ToolPageContent,
 	ToolRelatedLink,
 } from "@/components/tools/types";
+import { isToolSlug } from "@/lib/tool-events";
 
 const DEFAULT_PRIVACY = "Your file never leaves your device";
 
@@ -207,7 +208,7 @@ export const ScreencapToolTemplate = ({
 					</p>
 					<div className="flex flex-col items-stretch justify-center gap-5 sm:flex-row sm:items-center">
 						<a
-							href="/signup"
+							href={isToolSlug(slug) ? `/signup?from=tool-${slug}` : "/signup"}
 							data-umami-event="signup-click"
 							data-umami-event-where={where}
 							className="sc-btn sc-btn-accent !border-white !shadow-[0_6px_0_#05121F] text-white no-underline"

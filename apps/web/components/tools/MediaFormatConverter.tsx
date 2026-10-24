@@ -5,11 +5,12 @@ import * as MediaParser from "@remotion/media-parser";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { trackEvent } from "@/app/utils/analytics";
 import {
 	TOOL_NEXT_STEP_LINES,
 	ToolNextStepPrompt,
 } from "@/components/tools/ToolNextStepPrompt";
+import { toolEvent, trackLegacyToolEvent } from "@/components/tools/toolEvents";
+import { isToolSlug } from "@/lib/tool-events";
 
 export const SUPPORTED_FORMATS = {
 	video: ["mp4", "webm", "mov", "avi", "mkv"],
@@ -178,6 +179,13 @@ export const MediaFormatConverter = ({
 	const [gifDithering, setGifDithering] = useState(false);
 
 	const conversionPath = `${currentSourceFormat}-to-${currentTargetFormat}`;
+	const toolSlug = isToolSlug(conversionPath) ? conversionPath : null;
+	const trackEvent = (name: string, props?: Record<string, unknown>) =>
+		trackLegacyToolEvent(conversionPath, name, props);
+
+	useEffect(() => {
+		if (toolSlug) toolEvent(toolSlug, "view");
+	}, [toolSlug]);
 	const config = CONVERSION_CONFIGS[conversionPath];
 
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1087,6 +1095,11 @@ export const MediaFormatConverter = ({
 					</div>
 					<ToolNextStepPrompt
 						tool={`${currentSourceFormat}-to-${currentTargetFormat}`}
+						onShow={() => toolSlug && toolEvent(toolSlug, "prompt_shown")}
+						onSignupClick={() => toolSlug && toolEvent(toolSlug, "cta_signup")}
+						onDownloadClick={() =>
+							toolSlug && toolEvent(toolSlug, "cta_download")
+						}
 						line={
 							TOOL_NEXT_STEP_LINES[
 								`${currentSourceFormat}-to-${currentTargetFormat}`

@@ -1,11 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { trackEvent } from "@/app/utils/analytics";
 import {
 	TOOL_NEXT_STEP_LINES,
 	ToolNextStepPrompt,
 } from "@/components/tools/ToolNextStepPrompt";
+import {
+	toolEvent,
+	trackLegacyToolEvent,
+	useToolView,
+} from "@/components/tools/toolEvents";
+
+const trackEvent = (name: string, props?: Record<string, unknown>) =>
+	trackLegacyToolEvent("video-speed-controller", name, props);
 
 const SPEED_OPTIONS = [
 	{ value: 0.25, label: "0.25x (Very Slow)" },
@@ -20,6 +27,7 @@ const SPEED_OPTIONS = [
 const SUPPORTED_VIDEO_FORMATS = ["mp4", "webm", "mov", "avi", "mkv"];
 
 export const SpeedController = () => {
+	useToolView("video-speed-controller");
 	const [file, setFile] = useState<File | null>(null);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [progress, setProgress] = useState(0);
@@ -636,6 +644,13 @@ export const SpeedController = () => {
 					</div>
 					<ToolNextStepPrompt
 						tool="video-speed-controller"
+						onShow={() => toolEvent("video-speed-controller", "prompt_shown")}
+						onSignupClick={() =>
+							toolEvent("video-speed-controller", "cta_signup")
+						}
+						onDownloadClick={() =>
+							toolEvent("video-speed-controller", "cta_download")
+						}
 						line={TOOL_NEXT_STEP_LINES["video-speed-controller"]}
 					/>
 				</div>
