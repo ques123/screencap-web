@@ -1,9 +1,16 @@
 import { useId } from "react";
 
+const TOOL_LINKS = [
+	{ title: "MP4 to GIF", href: "/tools/convert/mp4-to-gif" },
+	{ title: "GIF to MP4", href: "/tools/convert/gif-to-mp4" },
+	{ title: "MOV to MP4", href: "/tools/convert/mov-to-mp4" },
+	{ title: "Speed up or slow down a video", href: "/tools/speed-up-video" },
+];
+
 export function ScreencapHeader() {
 	const shadowId = useId();
 	return (
-		<header className="relative px-[clamp(20px,5vw,48px)] pt-6 sc-display tracking-normal">
+		<header className="relative z-30 px-[clamp(20px,5vw,48px)] pt-6 sc-display tracking-normal">
 			<nav
 				aria-label="Main"
 				className="mx-auto flex max-w-[1240px] flex-nowrap items-center justify-between gap-2 rounded-[28px] bg-white/80 py-1.5 pr-1.5 pl-3.5 backdrop-blur-sm sm:flex-wrap sm:gap-3 sm:rounded-full sm:py-2 sm:pr-2 sm:pl-5"
@@ -82,12 +89,52 @@ export function ScreencapHeader() {
 					>
 						Pricing
 					</a>
-					<a
-						href="/tools"
-						className="hidden px-3.5 py-3 text-base font-bold leading-[1.2] text-[#0B2440] no-underline hover:text-[#1E66B8] sm:inline-block"
-					>
-						Free tools
-					</a>
+					<div className="group relative hidden sm:block">
+						<a
+							href="/tools"
+							aria-haspopup="true"
+							className="inline-flex items-center gap-1.5 px-3.5 py-3 text-base font-bold leading-[1.2] text-[#0B2440] no-underline hover:text-[#1E66B8]"
+						>
+							Tools
+							<svg
+								viewBox="0 0 12 12"
+								width="10"
+								height="10"
+								aria-hidden="true"
+							>
+								<path
+									d="M2 4l4 4 4-4"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						</a>
+						<div
+							role="menu"
+							className="invisible absolute top-full left-1/2 z-50 min-w-[250px] -translate-x-1/2 rounded-[18px] border border-[#D3E3F3] bg-white p-2 opacity-0 shadow-[0_14px_34px_rgba(11,36,64,0.16)] transition-opacity duration-100 before:absolute before:inset-x-0 before:-top-3 before:h-3 before:content-[''] group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+						>
+							{TOOL_LINKS.map((tool) => (
+								<a
+									key={tool.href}
+									role="menuitem"
+									href={tool.href}
+									className="block whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[15px] font-bold leading-[1.2] text-[#0B2440] no-underline hover:bg-[#DCEBFA] hover:text-[#1E66B8] focus-visible:bg-[#DCEBFA]"
+								>
+									{tool.title}
+								</a>
+							))}
+							<a
+								role="menuitem"
+								href="/tools"
+								className="mt-1 block border-t border-[#D3E3F3] px-3.5 py-2.5 text-sm font-bold text-[#45627F] no-underline hover:text-[#1E66B8]"
+							>
+								All free tools
+							</a>
+						</div>
+					</div>
 					<a
 						href="/login"
 						className="px-2.5 py-2.5 text-[15px] font-bold leading-[1.2] text-[#0B2440] no-underline hover:text-[#1E66B8] sm:px-3.5 sm:py-3 sm:text-base"
