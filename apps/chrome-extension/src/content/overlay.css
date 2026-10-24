@@ -80,7 +80,7 @@
 	padding: 4px;
 	border: 2.5px solid #0b2440;
 	border-radius: 14px;
-	background: #ffffff;
+	background: linear-gradient(180deg, #ffffff 0%, #f4f9fe 55%, #e3effb 100%);
 	box-shadow: 0 3px 0 #0b2440;
 	color: #45627f;
 	opacity: 0;
@@ -482,7 +482,7 @@
 	padding: 10px 12px;
 	border: 2.5px solid #0b2440;
 	border-radius: 20px;
-	background: #ffffff;
+	background: linear-gradient(180deg, #ffffff 0%, #f4f9fe 55%, #e3effb 100%);
 	box-shadow: 0 5px 0 #0b2440, 0 22px 44px rgba(11, 36, 64, 0.22);
 	color: #0b2440;
 	cursor: grab;

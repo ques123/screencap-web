@@ -44,6 +44,9 @@
 	font-weight: 700;
 	font-size: 15px;
 	color: var(--navy);
+	padding: 4px 12px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.88);
 	opacity: 0;
 	transform: rotate(-4deg);
 	animation: fade-in 0.5s ease 1.3s forwards;

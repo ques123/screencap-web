@@ -593,8 +593,7 @@ function App() {
 		<main className="flex w-full justify-center">
 			<div
 				className={clsx(
-					"relative flex justify-center flex-col w-full p-[1rem] pt-[3.25rem] gap-[0.75rem] text-[0.875rem] font-[400] text-[--text-primary] min-h-[440px]",
-					signedOut ? "bg-[--paper]" : "bg-gray-2",
+					"cap-sky relative flex justify-center flex-col w-full p-[1rem] pt-[3.25rem] gap-[0.75rem] text-[0.875rem] font-[400] text-[--text-primary] min-h-[440px]",
 				)}
 			>
 				{auth && (

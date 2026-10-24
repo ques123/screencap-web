@@ -1,0 +1,155 @@
+/* Screencap "Open Sky": snow-capped peaks over a sea of clouds, with slowly drifting cloud layers.
+   Mirrors apps/desktop/src/styles/sky.css (popup) and the website hero / .page-hero (pages).
+   Images live in public/sky. Drifts animate transform only and stop for reduced motion.
+   The extension has no dark mode, so there is no dark variant. */
+
+@keyframes cap-sky-drift {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(-50%, 0, 0);
+	}
+}
+
+/* ---- Popup panel: the Mac app's main window ---- */
+.cap-sky {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+	background-color: #dcebfa;
+	background-image:
+		linear-gradient(rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.38)),
+		url("/sky/peaks-sea-800.webp");
+	background-size: auto, cover;
+	background-position: center, center 72%;
+	background-repeat: no-repeat;
+}
+
+.cap-sky::before,
+.cap-sky::after {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	left: 0;
+	pointer-events: none;
+	background-repeat: repeat-x;
+	will-change: transform;
+}
+
+.cap-sky::before {
+	top: 2%;
+	height: 45%;
+	width: 280%;
+	background-image: url("/sky/sky-drift-top.webp");
+	background-size: 50% auto;
+	background-position: 0 0;
+	opacity: 0.75;
+	animation: cap-sky-drift 280s linear infinite;
+}
+
+.cap-sky::after {
+	bottom: -4%;
+	height: 50%;
+	width: 340%;
+	background-image: url("/sky/sky-drift-bottom.webp");
+	background-size: 50% auto;
+	background-position: 0 100%;
+	opacity: 0.85;
+	animation: cap-sky-drift 180s linear infinite reverse;
+}
+
+/* ---- Extension pages ---- */
+/* sky-hero: the website's .page-hero band (peaks fading into sky blue) with a drifting cloud strip on its edge.
+   sky-full: the homepage hero, a full-viewport peaks photo with the strip along the bottom. */
+body.sky-hero,
+body.sky-full {
+	position: relative;
+	overflow-x: clip;
+	--band-h: 420px;
+}
+
+body.sky-hero::before,
+body.sky-hero::after,
+body.sky-full::before,
+body.sky-full::after {
+	content: "";
+	pointer-events: none;
+	z-index: -1;
+}
+
+body.sky-hero::before {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: var(--band-h);
+	background-color: #bfddf5;
+	background-image:
+		linear-gradient(
+			180deg,
+			rgba(234, 243, 252, 0.35) 0%,
+			rgba(234, 243, 252, 0) 30%,
+			rgba(234, 243, 252, 0.5) 80%,
+			var(--bg) 100%
+		),
+		url("/sky/peaks-sea-1600.webp");
+	background-position: center, center 78%;
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+
+body.sky-hero::after {
+	position: absolute;
+	left: 0;
+	top: calc(var(--band-h) - 31vw);
+	width: 200%;
+	height: 34vw;
+	background: url("/sky/sky-drift-bottom.webp") 0 100% / 50% auto repeat-x;
+	animation: cap-sky-drift 150s linear infinite;
+	will-change: transform;
+}
+
+body.sky-full {
+	background-color: #6fa8e6;
+}
+
+body.sky-full::before {
+	position: fixed;
+	inset: 0;
+	background: #6fa8e6 url("/sky/peaks-sea-1600.webp") 50% 64% / cover no-repeat;
+}
+
+body.sky-full::after {
+	position: fixed;
+	left: 0;
+	bottom: -2vw;
+	width: 200%;
+	height: 34vw;
+	background: url("/sky/sky-drift-bottom.webp") 0 100% / 50% auto repeat-x;
+	animation: cap-sky-drift 150s linear infinite;
+	will-change: transform;
+}
+
+/* Text sitting straight on the photo gets the website's white lede pill. */
+body.sky-hero .lede,
+body.sky-full .lede {
+	padding: 10px 18px;
+	border-radius: 14px;
+	background: rgba(255, 255, 255, 0.85);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cap-sky::before,
+	.cap-sky::after,
+	body.sky-hero::after,
+	body.sky-full::after {
+		animation: none;
+	}
+}
+
+/* The drift strips are wider than the page; keep them from creating a horizontal scrollbar. */
+html:has(body.sky-hero),
+html:has(body.sky-full) {
+	overflow-x: hidden;
+}
