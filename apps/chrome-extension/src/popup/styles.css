@@ -557,3 +557,10 @@ body {
 		animation: none;
 	}
 }
+
+/* The standalone recorder window is taller than the panel: let the sky fill all of it.
+   (Not the in-page popup iframe, which is sized to its content.) */
+.popup-window main,
+.popup-window .cap-sky {
+	min-height: 100vh;
+}
