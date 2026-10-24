@@ -36,7 +36,7 @@ const toolCategories: ToolCategory[] = [
 	{
 		title: "Speed up or slow down a video",
 		description:
-			"Change a video's speed from 0.25x to 3x. Sound is kept where the browser records it.",
+			"Make a video play faster or slower, from 0.25x to 3x, at its original resolution.",
 		href: "/tools/speed-up-video",
 		icon: "M15.75 5.25a3 3 0 013 3m-3-3a3 3 0 00-3 3m3-3v1.5m0 9.75a3 3 0 01-3-3m3 3a3 3 0 003-3m-3 3v-1.5m-6-1.5h.008v.008H7.5v-.008zm1.5-9h.375c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-.375m1.5-4.5A1.125 1.125 0 0110.375 7.5h-1.5A1.125 1.125 0 017.75 8.625M10.5 12a.375.375 0 11-.75 0 .375.375 0 01.75 0z",
 	},
@@ -161,6 +161,7 @@ function ScreencapToolsHub() {
 							</p>
 						</div>
 						<div className="w-full max-w-[420px] shrink-0 md:w-[38%]">
+							{/* biome-ignore lint/performance/noImgElement: static hero image served from /assets */}
 							<img
 								src="/assets/img/tools-hub-hero-1520.webp"
 								alt="four tool stickers on a floating tray"
@@ -204,18 +205,18 @@ function ScreencapToolsHub() {
 					))}
 				</div>
 				<p className="mx-auto mt-10 mb-0 max-w-[62ch] text-center text-[17px] leading-relaxed text-[#1B3A5C]">
-					Screencap is a free screen recorder for Mac and the browser. These
-					tools are small free helpers for the videos you make with it, and for
-					any other video you need to convert or adjust.
+					We built these small helpers alongside Screencap, our free screen
+					recorder. Use them on the videos you record with it, or on any clip
+					you need to convert, shrink or retime.
 				</p>
 				<section className="mt-14 rounded-[28px] bg-[#0B2440] p-6 text-center sm:mt-20 sm:p-12">
 					<h2 className="sc-display m-0 mb-3 text-[clamp(28px,4vw,44px)] leading-[0.98] !text-white">
 						Record your screen, share a link
 					</h2>
 					<p className="mx-auto mt-0 mb-8 max-w-[56ch] text-[17px] leading-relaxed text-[#DCEBFA]">
-						Screencap is a free screen recorder for Mac and the browser. Record,
-						get a share link instantly, and on the Mac app turn on end-to-end
-						encryption so only people with the link can watch.
+						Screencap is a free screen recorder for the Mac, and for Chrome or
+						Edge on Windows and Linux. Record your screen, then share a link
+						that plays in any browser.
 					</p>
 					<div className="flex flex-col items-stretch justify-center gap-5 sm:flex-row sm:items-center">
 						<a

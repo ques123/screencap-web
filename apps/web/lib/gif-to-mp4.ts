@@ -8,7 +8,7 @@ import {
 } from "@/lib/gif-to-mp4-helpers";
 
 export const H264_UNSUPPORTED_MESSAGE =
-	"Your browser can't make MP4 files. Try Chrome, Edge or Safari.";
+	"Your browser can't make MP4 files. Try Chrome or Edge on a computer.";
 
 export const INVALID_GIF_MESSAGE =
 	"This file could not be read as a GIF. Check that it is a valid GIF image.";

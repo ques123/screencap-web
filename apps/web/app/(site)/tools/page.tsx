@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { createBreadcrumbSchema } from "@/utils/web-schema";
 import { PageContent } from "./PageContent";
 
 const pageUrl = "https://screencap.co/tools";
@@ -30,10 +29,46 @@ export const metadata: Metadata = {
 	alternates: { canonical: pageUrl },
 };
 
-const breadcrumbSchema = createBreadcrumbSchema([
-	{ name: "Home", url: "https://screencap.co" },
-	{ name: "Tools", url: "https://screencap.co/tools" },
-]);
+const org = {
+	"@type": "Organization",
+	"@id": "https://screencap.co/#org",
+	name: "Screencap",
+	url: "https://screencap.co/",
+};
+
+const structuredData = {
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "BreadcrumbList",
+			itemListElement: [
+				{
+					"@type": "ListItem",
+					position: 1,
+					name: "Home",
+					item: "https://screencap.co/",
+				},
+				{
+					"@type": "ListItem",
+					position: 2,
+					name: "Free tools",
+					item: pageUrl,
+				},
+			],
+		},
+		{
+			"@type": "CollectionPage",
+			name: "Free video tools",
+			description: pageDescription,
+			url: pageUrl,
+			image: heroJpg,
+			author: { "@type": "Person", name: "Chris", worksFor: org },
+			publisher: org,
+			datePublished: "2026-10-24",
+			dateModified: "2026-10-24",
+		},
+	],
+};
 
 export default function ToolsPage() {
 	return (
@@ -42,7 +77,7 @@ export default function ToolsPage() {
 				type="application/ld+json"
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD
 				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(breadcrumbSchema),
+					__html: JSON.stringify(structuredData),
 				}}
 			/>
 			<PageContent />

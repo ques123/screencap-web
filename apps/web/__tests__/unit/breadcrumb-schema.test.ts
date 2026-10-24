@@ -98,11 +98,6 @@ const toolPages: Array<{
 	base?: string;
 }> = [
 	{
-		file: "(site)/tools/page.tsx",
-		base: "https://screencap.co",
-		breadcrumbItems: ["https://screencap.co/tools"],
-	},
-	{
 		file: "(site)/tools/convert/page.tsx",
 		breadcrumbItems: ["https://cap.so/tools", "https://cap.so/tools/convert"],
 	},
@@ -176,6 +171,14 @@ describe("Breadcrumb structured data in tools pages", () => {
 			expect(content).not.toMatch(/https?:\/\/(www\.)?cap\.so/);
 		});
 	}
+
+	it("(site)/tools/page.tsx has a Screencap Home > Free tools BreadcrumbList", () => {
+		const content = readPage("(site)/tools/page.tsx");
+		expect(content).toContain('"@type": "BreadcrumbList"');
+		expect(content).toContain("https://screencap.co/");
+		expect(content).toContain("https://screencap.co/tools");
+		expect(content).not.toMatch(/https?:\/\/(www\.)?cap\.so/);
+	});
 
 	it("dynamic [conversionPath] route generates breadcrumb from path param", () => {
 		const content = readPage("(site)/tools/convert/[conversionPath]/page.tsx");

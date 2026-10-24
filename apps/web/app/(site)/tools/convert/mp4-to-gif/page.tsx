@@ -3,12 +3,14 @@ import { MediaFormatConverter } from "@/components/tools/MediaFormatConverter";
 import { ToolsPageTemplate } from "@/components/tools/ToolsPageTemplate";
 import type { ToolPageContent } from "@/components/tools/types";
 
+// sources (checked 2026-10-24): https://ffmpeg.org/ffmpeg-filters.html#palettegen
+
 const pageUrl = "https://screencap.co/tools/convert/mp4-to-gif";
 const heroJpg =
 	"https://screencap.co/assets/img/tools-mp4-to-gif-hero-1520.jpg";
 const pageTitle = "MP4 to GIF Converter: Free, High Quality | Screencap";
 const pageDescription =
-	"Convert MP4 to GIF in your browser. Free, no watermark, no sign-up, and your video is never uploaded. Set frame rate, width and quality.";
+	"Convert MP4 to GIF in your browser, free and with no watermark. Your video is never uploaded. Set the frame rate, width and quality yourself.";
 const heroAlt =
 	"A glossy film-strip sticker flowing into looping picture-frame stickers";
 
@@ -37,7 +39,7 @@ const faqs = [
 	{
 		question: "Is there a free MP4 to GIF converter with no watermark?",
 		answer:
-			"Yes. This one is free, adds no watermark and needs no account. It runs in your browser, so there is no upload queue either.",
+			"Yes, this one. It is free, needs no account and leaves your GIF exactly as you set it, with no logo stamped on. Because it runs on your own computer, you never wait for an upload either.",
 	},
 	{
 		question: "How long can the GIF be?",
@@ -52,14 +54,21 @@ const faqs = [
 	{
 		question: "Does it work on a phone?",
 		answer:
-			"It works best in Chrome or Edge on a computer. We have not verified Safari, Firefox or phones yet, so we do not promise them.",
+			"For reliable results, use Chrome or Edge on a computer. The converter relies on your browser's built-in video features, and a browser that lacks them shows an error message instead of making a broken GIF.",
 	},
 	{
 		question: "Can I make an animated GIF from a screen recording?",
 		answer:
-			"Yes, any MP4 your browser can decode works, including screen recordings. Keep the clip short and the width modest for a small file.",
+			"Yes, any MP4 your browser can play works, including screen recordings. Their flat colours suit the GIF format well. Keep the clip short and the width modest for a small file.",
 	},
 ];
+
+const org = {
+	"@type": "Organization",
+	"@id": "https://screencap.co/#org",
+	name: "Screencap",
+	url: "https://screencap.co/",
+};
 
 const breadcrumbs = [
 	{ name: "Home", url: "https://screencap.co/" },
@@ -86,11 +95,9 @@ const structuredData = {
 			url: pageUrl,
 			primaryImageOfPage: heroJpg,
 			image: heroJpg,
-			author: {
-				"@type": "Person",
-				name: "Chris",
-				worksFor: { "@type": "Organization", name: "Screencap" },
-			},
+			author: { "@type": "Person", name: "Chris", worksFor: org },
+			publisher: org,
+			datePublished: "2026-10-24",
 			dateModified: "2026-10-24",
 		},
 		{
@@ -116,7 +123,7 @@ export default function MP4ToGIFPage() {
 	const pageContent: ToolPageContent = {
 		title: "MP4 to GIF Converter: free and high quality",
 		description:
-			"To convert MP4 to GIF, drop your video into the converter below, pick a frame rate, width and quality, and press Convert. It runs in your browser, so your file never leaves your device. It is free, adds no watermark and needs no sign-up. Works best in Chrome or Edge on a computer.",
+			"To convert MP4 to GIF, drop your video into the converter below, adjust the settings if you like, and press Convert. The GIF is made inside your browser, so your file never leaves your device. It is free, adds no watermark and needs no account. It works best in Chrome or Edge on a computer.",
 		byline: "By Chris, Screencap Team",
 		updated: "24 October 2026",
 		privacyBadge: "Your file never leaves your device",
@@ -133,7 +140,7 @@ export default function MP4ToGIFPage() {
 <li><strong>Choose your settings</strong>, or leave the defaults of 15 fps and 1280 px wide.</li>
 <li><strong>Press Convert</strong>, then download the GIF when the progress bar finishes.</li>
 </ol>
-<p>A short clip takes a few seconds. Longer ones take more, because your browser encodes every frame itself.</p>`,
+<p>A short clip is done quickly. Longer ones take more time, because your browser draws and encodes every frame itself.</p>`,
 			},
 			{
 				title: "What settings make a good GIF?",
@@ -150,9 +157,9 @@ export default function MP4ToGIFPage() {
 				},
 			},
 			{
-				title: "How do I make an MP4 to GIF in high quality?",
-				body: `<p>For an MP4 to GIF at high quality, keep the width near the original, set quality to 1 to 5 and turn dithering on for skies, skin and other gradients.</p>
-<p>A GIF can only use 256 colours per image, so photographic video will always look a little grainy. Screen recordings, with their flat colours, convert far better. For a small file, keep the clip short and the width modest.</p>`,
+				title: "How do I make a high quality GIF from an MP4?",
+				body: `<p>For an MP4 to GIF in high quality, keep the width near the original, set quality to between 1 and 5, and turn dithering on for skies, skin and other gradients.</p>
+<p>A GIF can only use 256 colours per image, so photographic video will always look a little grainy. Screen recordings, with their flat colours, convert far better.</p>`,
 			},
 			{
 				title: "Why is my GIF bigger than the MP4?",
@@ -166,13 +173,13 @@ export default function MP4ToGIFPage() {
 			},
 			{
 				title: "How do I convert MP4 to GIF on Mac or Windows?",
-				body: `<p>The same way on both: open this page in Chrome or Edge, drop the file in and convert. Nothing is installed, so there is no Mac or Windows version to pick.</p>
-<p>It uses your browser's video features, so very old browsers are refused with a message.</p>`,
+				body: `<p>Open this page in Chrome or Edge, drop the file in and convert. The steps are identical on a Mac and on a Windows PC, because the converter is a web page and nothing gets installed.</p>
+<p>It uses your browser's built-in video features, so a very old browser shows a message instead of converting.</p>`,
 			},
 			{
 				title: "Is it safe to convert videos here?",
-				body: `<p>Your file never leaves your device. The conversion runs inside your browser tab, and your MP4 is not uploaded to Screencap or anyone else.</p>
-<p>That makes it fine for private or work videos. Many online converters upload your file to their servers, so it is worth checking before you drop in anything sensitive.</p>`,
+				body: `<p>Yes. Your MP4 is read and turned into a GIF inside this browser tab, and the video is never sent to Screencap or to anyone else.</p>
+<p>So a clip from a work meeting or a family video is fine to use. Many online converters upload your file to their servers, so check how a site works before you give it anything sensitive.</p>`,
 			},
 			{
 				title: "Can I convert MP4 to GIF with ffmpeg?",
@@ -182,7 +189,7 @@ export default function MP4ToGIFPage() {
 		],
 		featuresTitle: "What this MP4 to GIF converter does",
 		featuresDescription:
-			"Small, specific and free. Every number below is what the tool really does.",
+			"Four facts about the converter, each taken from how it actually works.",
 		features: [
 			{
 				title: "0 bytes uploaded",
@@ -202,12 +209,17 @@ export default function MP4ToGIFPage() {
 			{
 				title: "Up to 500 MB",
 				description:
-					"Drop in a source MP4 up to 500 MB. Free, no watermark and no sign-up.",
+					"Drop in a source MP4 of up to 500 MB. Free, with no watermark.",
 			},
 		],
 		faqs,
 		relatedTitle: "More free video tools",
 		relatedTools: [
+			{
+				title: "GIF to MP4",
+				href: "/tools/convert/gif-to-mp4",
+				description: "Turn a GIF into a video, usually a much smaller file.",
+			},
 			{
 				title: "MOV to MP4",
 				href: "/tools/convert/mov-to-mp4",
@@ -222,7 +234,7 @@ export default function MP4ToGIFPage() {
 		cta: {
 			title: "Skip the GIF. Share a link.",
 			description:
-				"Screencap records your screen and gives you a link that plays instantly, with no heavy GIF to send. On the Mac app you can switch on end-to-end encryption, so only people with the link can watch.",
+				"Screencap records your screen and gives you a link that plays in any browser, so there is no heavy GIF to attach. It is free, on the Mac or in Chrome and Edge.",
 			buttonText: "Sign up free",
 			buttonHref: "/signup?from=tool-mp4-to-gif",
 			secondaryButtonText: "Download for Mac",

@@ -3,14 +3,22 @@ import { MediaFormatConverter } from "@/components/tools/MediaFormatConverter";
 import { ToolsPageTemplate } from "@/components/tools/ToolsPageTemplate";
 import type { ToolPageContent } from "@/components/tools/types";
 
+// sources (checked 2026-10-24):
+// https://support.apple.com/en-us/120755 (Convert a MOV file to MP4 on Mac: rename H.264 MOVs, or iMovie Export File)
+// https://support.apple.com/guide/quicktime-player/export-movies-qtp20e395859/mac (QuickTime exports .mov only)
+
 const pageUrl = "https://screencap.co/tools/convert/mov-to-mp4";
 const heroJpg =
 	"https://screencap.co/assets/img/tools-mov-to-mp4-hero-1520.jpg";
 const heroAlt =
 	"A phone sticker sending a clapperboard into a play-button video that fits a laptop";
-const pageTitle = "MOV to MP4 Converter: Free, Private, In Your Browser";
+const pageTitle = "MOV to MP4 Converter: Free and Private | Screencap";
 const pageDescription =
-	"Convert MOV to MP4 free in your browser. Your file never leaves your device, with no sign-up and no watermark. Works with iPhone and Mac videos.";
+	"Convert MOV to MP4 free in your browser. Your file never leaves your device and there is no watermark. Handles QuickTime and iPhone videos.";
+
+const appleMovGuide = "https://support.apple.com/en-us/120755";
+const appleQuickTimeGuide =
+	"https://support.apple.com/guide/quicktime-player/export-movies-qtp20e395859/mac";
 
 export const metadata: Metadata = {
 	title: pageTitle,
@@ -37,27 +45,27 @@ const faqs = [
 	{
 		question: "How do I convert MOV to MP4 for free?",
 		answer:
-			"Use the converter on this page. Drop your .mov file in, press Convert and download the MP4. It costs nothing, needs no sign-up and adds no watermark. Files up to 500 MB are accepted.",
+			"Use the converter on this page. Drop your .mov file in, press Convert and download the MP4. It costs nothing, needs no account and adds no watermark, for files up to 500 MB.",
 	},
 	{
 		question: "Is this MOV to MP4 converter safe for private videos?",
 		answer:
-			"The conversion runs in your browser, so the file is not uploaded to Screencap or anyone else. That makes it suitable for work or personal videos. Many online converters do upload your file to their servers, so it is worth checking before you use one.",
+			"Yes. The conversion runs in your browser, so the file is not uploaded to Screencap or anyone else. Many online converters do upload your file to their servers, so it is worth checking before you use one.",
 	},
 	{
-		question: "Can I convert .mov to MP4 on Mac without installing anything?",
+		question: "Can I just rename .mov to .mp4?",
 		answer:
-			"Yes. Open this page in Chrome or Edge on your Mac and use the converter. QuickTime Player and iMovie are also built in, but they do not always save a file ending in .mp4.",
+			"Sometimes. Apple says that if the video inside uses H.264, changing the extension from .mov to .mp4 works. For other codecs, such as HEVC, the video needs converting, which this page does for you.",
 	},
 	{
-		question: "Can I convert MOV to MP4 on Windows?",
+		question: "Does QuickTime Player save MOV as MP4?",
 		answer:
-			"Yes. The converter works in Chrome or Edge on Windows, so there is nothing to install. It re-encodes the video to H.264 in an MP4 file.",
+			"No. According to Apple, QuickTime Player's Export As always writes a .mov file. Apple's free iMovie app can export an MP4, or you can use the converter on this page.",
 	},
 	{
 		question: "Does converting MOV to MP4 reduce quality?",
 		answer:
-			"It re-encodes the video to H.264, so it is not a lossless copy and some detail can be lost. The resolution stays the same as your original.",
+			"Not when the video is already H.264, because it is usually copied into the MP4 untouched. Other codecs, such as HEVC from an iPhone, are re-encoded to H.264, which can lose a little detail. The resolution stays the same either way.",
 	},
 	{
 		question: "Why is my MOV file not playing?",
@@ -65,6 +73,13 @@ const faqs = [
 			"MOV is Apple's QuickTime container, and some players cannot decode the codec inside it, such as HEVC from an iPhone. Converting to an H.264 MP4 gives you a file most players open.",
 	},
 ];
+
+const org = {
+	"@type": "Organization",
+	"@id": "https://screencap.co/#org",
+	name: "Screencap",
+	url: "https://screencap.co/",
+};
 
 const graph = {
 	"@context": "https://schema.org",
@@ -76,7 +91,7 @@ const graph = {
 					"@type": "ListItem",
 					position: 1,
 					name: "Home",
-					item: "https://screencap.co",
+					item: "https://screencap.co/",
 				},
 				{
 					"@type": "ListItem",
@@ -95,14 +110,13 @@ const graph = {
 		{
 			"@type": "WebPage",
 			url: pageUrl,
-			name: pageTitle,
+			name: "MOV to MP4 Converter",
 			description: pageDescription,
+			primaryImageOfPage: heroJpg,
 			image: heroJpg,
-			author: {
-				"@type": "Person",
-				name: "Chris",
-				worksFor: { "@type": "Organization", name: "Screencap" },
-			},
+			author: { "@type": "Person", name: "Chris", worksFor: org },
+			publisher: org,
+			datePublished: "2026-10-24",
 			dateModified: "2026-10-24",
 		},
 		{
@@ -126,9 +140,9 @@ const graph = {
 
 export default function MOVToMP4Page() {
 	const pageContent: ToolPageContent = {
-		title: "MOV to MP4 converter, free and private",
+		title: "MOV to MP4 Converter: free and private",
 		description:
-			"To convert MOV to MP4, drop your .mov file into the converter above, press Convert and download the MP4. It runs in your browser, so your video is never uploaded. It is free, needs no sign-up and adds no watermark. Files up to 500 MB work best in Chrome or Edge on a computer.",
+			"To convert MOV to MP4, drop your .mov file into the converter below, press Convert and download the MP4. Everything happens in your browser, so your video is never uploaded. It is free for files up to 500 MB, with no account and no watermark. Use Chrome or Edge on a computer for best results.",
 		privacyBadge: "Your file never leaves your device",
 		byline: "By Chris, Screencap Team",
 		updated: "24 October 2026",
@@ -139,11 +153,11 @@ export default function MOVToMP4Page() {
 		sections: [
 			{
 				title: "How do I convert MOV to MP4?",
-				body: "<p>Use the converter above. <strong>Drop your .mov file in, press Convert, then download the MP4.</strong> The video is re-encoded to H.264 inside an MP4 file, and the resolution stays as it was.</p><ol><li>Open this page in Chrome or Edge on a computer.</li><li>Drag in your MOV file, or click to browse. The limit is 500 MB.</li><li>Press Convert and wait for the progress bar to finish.</li><li>Download the MP4.</li></ol><p>There is no sign-up and no watermark.</p>",
+				body: "<p>Use the converter above. <strong>Drop your .mov file in, press Convert, then download the MP4.</strong> The resolution stays as it was.</p><ol><li>Open this page in Chrome or Edge on a computer.</li><li>Drag in your MOV file, or click to browse. The limit is 500 MB.</li><li>Press Convert and wait for the progress bar to finish.</li><li>Download the MP4.</li></ol><p>If the video inside is already H.264, it is usually copied across as it is, which is quick. Other codecs are re-encoded to H.264, which takes longer.</p>",
 			},
 			{
 				title: "How do I convert MOV to MP4 on a Mac?",
-				body: "<p>You can do it in the browser, or with the apps already on your Mac. QuickTime Player has <strong>File &gt; Export As</strong>, and iMovie can export a finished video. Both give you resolution choices, but check the file extension they write, because they do not always produce a .mp4.</p><p>If you want a file that ends in .mp4 without installing anything, open this page in Chrome or Edge and use the converter above. Screen recordings made with QuickTime are MOV files too, so the same steps apply.</p>",
+				body: `<p>Start by checking the codec. In Finder, select the file, choose <strong>File &gt; Get Info</strong> and look under More Info. If it says H.264, Apple's guide to <a href="${appleMovGuide}">converting a MOV file to MP4 on Mac</a> says you can simply change the extension from .mov to .mp4.</p><p>For other codecs, Apple suggests its free iMovie app: import the clip, then choose Share and Export File to save an MP4. QuickTime Player will not do it, because its <a href="${appleQuickTimeGuide}">Export As</a> always writes a .mov.</p><p>Or skip both and use the converter above in Chrome or Edge. Screen recordings made with QuickTime are MOV files too, so the same steps apply.</p>`,
 				image: {
 					src: "/assets/img/tools-mov-to-mp4-fig-1-1520.webp",
 					alt: "a laptop with a film strip going into a folder and a play button coming out",
@@ -151,23 +165,23 @@ export default function MOVToMP4Page() {
 			},
 			{
 				title: "How do I convert MOV to MP4 on Windows?",
-				body: "<p>Open this page in Chrome or Edge and use the converter above. It needs no app and no account, so it works on any Windows computer with a current browser. The result is an H.264 MP4, the format most Windows players, editors and websites accept.</p>",
+				body: "<p>Open this page in a current version of Chrome or Edge and use the converter above. There is no app to install and no account to create. You get an H.264 MP4, the format most Windows players, editors and websites accept.</p>",
 			},
 			{
 				title: "Why won't my MOV file play?",
-				body: "<p>MOV is Apple's QuickTime container. MP4 is a related, open format that nearly every player accepts. <strong>The usual problem is the codec inside the file, not the .mov extension.</strong> An iPhone video, for example, may use HEVC, which some players cannot decode.</p><p>Converting to an H.264 MP4 gives you a file that most players, phones and upload forms open without fuss.</p>",
+				body: "<p>MOV is Apple's QuickTime container, and MP4 is a standard format closely related to it. <strong>The usual problem is the codec inside the file, not the .mov extension.</strong> An iPhone video, for example, may use HEVC, which some players cannot decode.</p><p>Converting to an H.264 MP4 gives you a file that most players and upload forms accept.</p>",
 			},
 			{
 				title: "Does converting MOV to MP4 lose quality?",
-				body: "<p>A little can, because this is a re-encode and not a lossless rewrap. The converter decodes your video and writes it again as H.264. <strong>The resolution is kept</strong>, so a 1080p MOV comes out as a 1080p MP4.</p><p>If you need a perfect copy of the original, keep the MOV as well and use the MP4 for sharing.</p>",
+				body: "<p>It depends on what is inside the MOV. <strong>H.264 video is usually copied into the MP4 without re-encoding</strong>, so nothing is lost. HEVC and other codecs are decoded and written again as H.264, which can soften fine detail.</p><p>Either way the resolution is kept, so a 1080p MOV comes out as a 1080p MP4. If you need a perfect copy of an HEVC original, keep the MOV and use the MP4 for sharing.</p>",
 			},
 			{
 				title: "Can I convert iPhone videos from MOV to MP4?",
-				body: "<p>Yes, where your browser can decode them. iPhones save video as MOV, often with HEVC. Chrome and Edge can decode HEVC on many computers, but not all, so a file that will not open here may need another route.</p><p>Move the video to your computer first, then drop it into the converter above.</p>",
+				body: "<p>Yes, where your browser can decode them. iPhones save video as MOV, often with HEVC. Chrome and Edge can decode HEVC on many computers, but not all, so a file that will not open here may need another route, such as iMovie on a Mac.</p><p>Move the video to your computer first, then drop it into the converter above.</p>",
 			},
 			{
 				title: "Is it private to convert MOV to MP4 here?",
-				body: "<p>Yes. <strong>The conversion runs in your browser, and the file is not uploaded to Screencap or anyone else.</strong> That makes it fine for work videos and personal clips.</p><p>Many online converters upload your file to their servers, so check how a site handles your video before you use it.</p>",
+				body: "<p>Yes. <strong>Your MOV is converted on your own computer, and the file is not uploaded to Screencap or anyone else.</strong> Phone videos of your family or a screen recording of a client project stay with you.</p><p>Plenty of online converters work by uploading your file to their servers, so read how a site handles video before you use it.</p>",
 				image: {
 					src: "/assets/img/tools-mov-to-mp4-fig-2-1520.webp",
 					alt: "a padlock on a laptop, the file stays on your computer",
@@ -184,14 +198,14 @@ export default function MOVToMP4Page() {
 					"The file stays on your device. Nothing is uploaded to Screencap.",
 			},
 			{
-				title: "Free, no sign-up",
+				title: "Free, no account",
 				description:
-					"Convert as many .mov files as you like, with no account and no watermark.",
+					"Convert as many .mov files as you like, up to 500 MB each, with no watermark.",
 			},
 			{
 				title: "H.264 MP4 output",
 				description:
-					"The video is re-encoded to H.264 in an MP4 file, at the original resolution.",
+					"H.264 video is usually copied as it is. HEVC and other codecs are re-encoded to H.264, at the original resolution.",
 			},
 			{
 				title: "Mac and Windows",
@@ -201,9 +215,9 @@ export default function MOVToMP4Page() {
 		],
 		faqs,
 		cta: {
-			title: "Record straight to MP4",
+			title: "Record straight to a link",
 			description:
-				"Screencap records straight to MP4, so there is nothing to convert. Record your screen, then share a link that plays in any browser.",
+				"Screencap exports your screen recordings as MP4, so there is nothing to convert. Or skip the file and share a link that plays in any browser.",
 			buttonText: "Sign up free",
 			buttonHref: "/signup?from=tool-mov-to-mp4",
 			secondaryButtonText: "Download for Mac",

@@ -8,7 +8,7 @@ const heroJpg =
 	"https://screencap.co/assets/img/tools-gif-to-mp4-hero-1520.jpg";
 const pageTitle = "GIF to MP4 Converter: Free, No Upload | Screencap";
 const pageDescription =
-	"Convert GIF to MP4 in your browser. Free, no watermark, no sign-up, and your GIF is never uploaded. Keeps frame timing and can repeat the loop.";
+	"Convert GIF to MP4 in your browser for free. Your GIF is never uploaded, each frame keeps its timing, and you can repeat the loop or fill transparency.";
 const heroAlt =
 	"looping picture-frame stickers flowing into a play-button video sticker";
 
@@ -44,7 +44,7 @@ const faqs = [
 	{
 		question: "Is there a free GIF to MP4 converter with no watermark?",
 		answer:
-			"Yes. This GIF to MP4 converter is free, adds no watermark and needs no account. It runs in your browser, so there is no upload queue.",
+			"Yes. This GIF to MP4 converter is free, needs no account and puts no logo on your video. The work happens on your own computer, so large GIFs never sit in an upload queue.",
 	},
 	{
 		question: "How big a GIF can I convert?",
@@ -57,21 +57,28 @@ const faqs = [
 			"MP4 files have no loop setting of their own. Choose Repeat 2, 3, 5 or 10 times to bake the repeats into the file, or switch on loop in the video player you use.",
 	},
 	{
-		question: "Does the MP4 keep my GIF's timing?",
+		question: "Will the MP4 be smaller than the GIF?",
 		answer:
-			"Yes, each frame keeps its own delay from the GIF. A delay of 0 or under 20 ms is set to 100 ms, which is what browsers do when they play such a GIF.",
+			"Usually, and often by a wide margin, because video compression handles moving pictures far better than GIF does. Very small or simple GIFs can come out close in size. Each extra repeat makes the MP4 longer and bigger.",
 	},
 	{
-		question: "What happens to a transparent GIF?",
+		question: "Can I convert a GIF to MP4 on Mac or Windows?",
 		answer:
-			"MP4 has no transparency, so transparent pixels are filled with a background colour. The default is white, and you can pick any colour before you convert.",
+			"Yes. Open this page in Chrome or Edge on either and use the converter above. There is nothing to install, and the result is the same H.264 MP4 on both.",
 	},
 	{
 		question: "Which browsers does it work in?",
 		answer:
-			"It works best in Chrome or Edge on a computer. If your browser cannot encode H.264 video, the tool tells you instead of producing a broken file. We have not verified phones yet, so we do not promise them.",
+			"It works best in Chrome or Edge on a computer. If your browser cannot encode H.264 video, the tool tells you so instead of producing a broken file.",
 	},
 ];
+
+const org = {
+	"@type": "Organization",
+	"@id": "https://screencap.co/#org",
+	name: "Screencap",
+	url: "https://screencap.co/",
+};
 
 const breadcrumbs = [
 	{ name: "Home", url: "https://screencap.co/" },
@@ -98,11 +105,9 @@ const structuredData = {
 			url: pageUrl,
 			primaryImageOfPage: heroJpg,
 			image: heroJpg,
-			author: {
-				"@type": "Person",
-				name: "Chris",
-				worksFor: { "@type": "Organization", name: "Screencap" },
-			},
+			author: { "@type": "Person", name: "Chris", worksFor: org },
+			publisher: org,
+			datePublished: "2026-10-24",
 			dateModified: "2026-10-24",
 		},
 		{
@@ -126,9 +131,9 @@ const structuredData = {
 
 export default function GifToMp4Page() {
 	const pageContent: ToolPageContent = {
-		title: "GIF to MP4 Converter: free and private",
+		title: "GIF to MP4 Converter: free, with no upload",
 		description:
-			"To convert a GIF to MP4, drop your GIF into the converter below, choose a width, repeat count and background colour, and press Convert. It makes an H.264 MP4 in your browser, so your file never leaves your device. It is free, adds no watermark and needs no sign-up.",
+			"To convert a GIF to MP4, drop your GIF into the converter below, pick a width, a repeat count and a background colour, then press Convert. Your browser builds an H.264 MP4 on your own computer, so your file never leaves your device. It is free and needs no account.",
 		byline: "By Chris, Screencap Team",
 		updated: "24 October 2026",
 		privacyBadge: "Your file never leaves your device",
@@ -142,15 +147,15 @@ export default function GifToMp4Page() {
 				body: `<p>You can convert a GIF to MP4 in three steps, with no app to install.</p>
 <ol>
 <li><strong>Drop your GIF</strong> onto the converter above, or click to browse (up to 100 MB).</li>
-<li><strong>Choose your settings</strong>: max width, how many times to repeat, and a background colour.</li>
+<li><strong>Choose your settings</strong> for max width, repeats and background colour, or keep the defaults.</li>
 <li><strong>Press Convert</strong>, preview the video, then download the MP4.</li>
 </ol>
-<p>The file is an H.264 MP4, the most widely supported video format. Short GIFs finish in seconds. Long or large ones take longer, because your browser encodes every frame itself.</p>`,
+<p>The result is an H.264 MP4, the video format most players and websites expect. Short GIFs finish in seconds. Long or large ones take longer, because your browser encodes every frame itself.</p>`,
 			},
 			{
 				title: "Why convert a GIF to MP4?",
 				body: `<p>An MP4 is usually much smaller than the GIF it came from, because video compresses frames far better than the GIF format can.</p>
-<p>Many apps, slide tools and websites also accept video but not GIFs, or play video more smoothly. A GIF stores each frame with a 256-colour palette. An MP4 does not have that limit.</p>
+<p>Some sites and apps take video uploads but not GIFs. A GIF also stores each frame with a 256-colour palette, a limit an MP4 does not have.</p>
 <p>Check the upload rules of the place you are posting to, since each one sets its own.</p>`,
 			},
 			{
@@ -165,7 +170,7 @@ export default function GifToMp4Page() {
 			{
 				title: "How do I make the MP4 loop?",
 				body: `<p>An MP4 does not loop on its own, so a converted GIF plays once and stops unless you ask for more.</p>
-<p>You have two options. Set <strong>Repeat</strong> to 2, 3, 5 or 10 times, and the repeats are written into the file. Or leave it at 1 and turn on loop in the video player, slide tool or website you use.</p>
+<p>Set <strong>Repeat</strong> to 2, 3, 5 or 10 and the repeats are written into the file. Or leave it at 1 and turn on looping in the video player or slide tool you use.</p>
 <p>Repeating makes the file longer and bigger, roughly in proportion to the count. Keep it low unless you need a fixed run time.</p>`,
 				image: {
 					src: "/assets/img/tools-gif-to-mp4-fig-2-1520.webp",
@@ -175,23 +180,23 @@ export default function GifToMp4Page() {
 			{
 				title: "Does it keep the GIF's timing?",
 				body: `<p>Yes. Every frame keeps the delay stored in the GIF, so slow and fast moments play as they did.</p>
-<p>One exception: a delay of 0 or under 20 ms is set to 100 ms. Browsers do the same when they play such a GIF, so the MP4 looks the way you remember it.</p>
+<p>One exception: a delay of 0 or under 20 ms is set to 100 ms. Most browsers apply a similar rule when they play such a GIF, so the MP4 should look the way you remember it.</p>
 <p>The output width and height are rounded to even numbers, which video encoders need. Max width is <strong>original (capped at 1920), 1080, 720 or 480</strong>, and it only scales down.</p>`,
 			},
 			{
 				title: "Is it safe to convert GIFs here?",
-				body: `<p>Your file never leaves your device. The conversion runs inside your browser tab, and your GIF is not uploaded to Screencap or anyone else.</p>
-<p>That makes it fine for private or work files. Many online converters upload your file to their servers, so it is worth checking before you drop in anything sensitive.</p>`,
+				body: `<p>Yes. The GIF is decoded and re-encoded inside this browser tab, and the file is never sent to Screencap or to anyone else.</p>
+<p>That matters for screenshots of private chats or unreleased work. Many online converters upload what you give them to their own servers, so it is worth knowing which kind you are using.</p>`,
 			},
 		],
 		featuresTitle: "What this GIF to MP4 converter does",
 		featuresDescription:
-			"Small, specific and free. Every number below is what the tool really does.",
+			"The settings and limits, exactly as the converter applies them.",
 		features: [
 			{
-				title: "0 bytes uploaded",
+				title: "Stays on your computer",
 				description:
-					"Frames are decoded and encoded in your browser, so the GIF stays on your computer.",
+					"Frames are decoded and encoded in your browser. The GIF is never uploaded.",
 			},
 			{
 				title: "4 width choices",
@@ -205,15 +210,14 @@ export default function GifToMp4Page() {
 			},
 			{
 				title: "Up to 100 MB",
-				description:
-					"Drop in a GIF up to 100 MB. Free, no watermark and no sign-up.",
+				description: "Drop in a GIF of up to 100 MB. Free, with no watermark.",
 			},
 		],
 		faqs,
 		cta: {
 			title: "Need to show something on screen?",
 			description:
-				"Record it with Screencap and share a link that plays instantly, instead of sending a heavy GIF. On the Mac app you can switch on end-to-end encryption, so only people with the link can watch.",
+				"Record it with Screencap and send a link instead of a GIF. The link plays in any browser, and in the Mac app you can turn on end-to-end encryption, which keeps the key in the link where our servers never see it.",
 			buttonText: "Sign up free",
 			buttonHref: "/signup?from=tool-gif-to-mp4",
 			secondaryButtonText: "Download for Mac",
