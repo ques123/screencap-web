@@ -24,6 +24,7 @@ const screencapToolPaths = new Set([
 	"/tools",
 	"/tools/convert/mp4-to-gif",
 	"/tools/convert/mov-to-mp4",
+	"/tools/convert/gif-to-mp4",
 	"/tools/video-speed-controller",
 ]);
 
