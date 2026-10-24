@@ -114,7 +114,7 @@ export function ScreencapHeader() {
 						</a>
 						<div
 							role="menu"
-							className="invisible absolute top-full left-1/2 z-50 min-w-[250px] -translate-x-1/2 rounded-[18px] border border-[#D3E3F3] bg-white p-2 opacity-0 shadow-[0_14px_34px_rgba(11,36,64,0.16)] transition-opacity duration-100 before:absolute before:inset-x-0 before:-top-3 before:h-3 before:content-[''] group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+							className="invisible absolute top-[calc(100%+16px)] left-1/2 z-50 min-w-[250px] -translate-x-1/2 rounded-[18px] border border-[#D3E3F3] bg-white p-2 opacity-0 shadow-[0_14px_34px_rgba(11,36,64,0.16)] transition-opacity duration-100 before:absolute before:inset-x-0 before:-top-5 before:h-5 before:content-[''] group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
 						>
 							{TOOL_LINKS.map((tool) => (
 								<a
