@@ -12,37 +12,24 @@ interface ToolCategory {
 
 const toolCategories: ToolCategory[] = [
 	{
-		title: "Loom Video Importer",
+		title: "MP4 to GIF",
 		description:
-			"Import your existing Loom recordings directly into Cap — seamless migration",
-		href: "/loom-alternative",
-		icon: "M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15",
-	},
-	{
-		title: "Loom Video Downloader",
-		description:
-			"Download any public Loom video as an MP4 file — free and instant",
-		href: "/tools/loom-downloader",
-		icon: "M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3",
-	},
-	{
-		title: "File Conversion",
-		description:
-			"Convert between different file formats directly in your browser",
-		href: "/tools/convert",
+			"Turn an MP4 into an animated GIF with control over frame rate, size, and quality",
+		href: "/tools/convert/mp4-to-gif",
 		icon: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
 	},
 	{
-		title: "Video Speed Controller",
-		description: "Speed up or slow down your videos without losing quality",
-		href: "/tools/video-speed-controller",
-		icon: "M15.75 5.25a3 3 0 013 3m-3-3a3 3 0 00-3 3m3-3v1.5m0 9.75a3 3 0 01-3-3m3 3a3 3 0 003-3m-3 3v-1.5m-6-1.5h.008v.008H7.5v-.008zm1.5-9h.375c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-.375m1.5-4.5A1.125 1.125 0 0110.375 7.5h-1.5A1.125 1.125 0 017.75 8.625M10.5 12a.375.375 0 11-.75 0 .375.375 0 01.75 0z",
+		title: "MOV to MP4",
+		description:
+			"Convert QuickTime MOV files, including iPhone videos, to MP4 that plays everywhere",
+		href: "/tools/convert/mov-to-mp4",
+		icon: "M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3",
 	},
 	{
-		title: "Video Trimmer",
-		description: "Cut unwanted sections from videos with precision",
-		href: "/tools/trim",
-		icon: "M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244",
+		title: "Video Speed Controller",
+		description: "Speed up or slow down your videos from 0.25x to 3x",
+		href: "/tools/video-speed-controller",
+		icon: "M15.75 5.25a3 3 0 013 3m-3-3a3 3 0 00-3 3m3-3v1.5m0 9.75a3 3 0 01-3-3m3 3a3 3 0 003-3m-3 3v-1.5m-6-1.5h.008v.008H7.5v-.008zm1.5-9h.375c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-.375m1.5-4.5A1.125 1.125 0 0110.375 7.5h-1.5A1.125 1.125 0 017.75 8.625M10.5 12a.375.375 0 11-.75 0 .375.375 0 01.75 0z",
 	},
 ];
 
@@ -109,22 +96,30 @@ export function PageContent() {
 					<div className="mx-auto h-full flex flex-col justify-center items-center relative z-10">
 						<div className="text-center max-w-[800px] mx-auto mb-6 md:mb-8">
 							<h2 className="text-2xl sm:text-3xl md:text-4xl font-medium text-gray-12 mb-3 md:mb-4 drop-shadow-md">
-								The open source Loom alternative
+								Record your screen, share a link
 							</h2>
 							<p className="text-base sm:text-lg md:text-xl mb-5 md:mb-6 text-gray-10">
-								Cap is lightweight, powerful, and cross-platform. Record and
-								share securely in seconds. Import your Loom videos and get
-								started instantly.
+								Screencap is a free screen recorder for Mac. Record, get a share
+								link instantly, and turn on end-to-end encryption so only people
+								with the link can watch. No time limits.
 							</p>
 						</div>
 						<div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
 							<Button
-								variant="gray"
+								variant="blue"
 								href="/download"
 								size="lg"
 								className="w-full sm:w-auto transition-all duration-300 font-medium px-8 py-3"
 							>
-								Download Cap Free
+								Download Screencap free
+							</Button>
+							<Button
+								variant="gray"
+								href="/signup"
+								size="lg"
+								className="w-full sm:w-auto transition-all duration-300 font-medium px-8 py-3"
+							>
+								Sign up free
 							</Button>
 						</div>
 					</div>

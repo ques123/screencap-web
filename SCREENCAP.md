@@ -13,6 +13,11 @@ and the Mac app.
 - Web: free-beta limits (`apps/web/lib/screencap-limits.ts`, `/api/upload/limits`), a Report link on
   share pages (`/api/report`), sign-up refusal by country (off by default), sign-in codes revoked
   after five wrong guesses, email through Brevo, self-hosted Umami + Matomo analytics.
+- Web: free browser tools. Only the paths in `screencapToolPaths` (`apps/web/proxy.ts`) are served:
+  `/tools`, MP4 to GIF, MOV to MP4 and the video speed controller; every other upstream tool route
+  stays a 404. On Screencap builds `app/(site)/layout.tsx` wraps them in a header and footer matching
+  the static site (`ScreencapHeader`/`ScreencapFooter`, fonts in `app/(site)/fonts`), and the
+  converter hides its format pickers so it never links to a disabled route.
 - Web: transcripts and AI titles/summaries/chapters run on each user's own OpenRouter key (BYOK).
   Settings → AI & transcription (`app/(org)/dashboard/settings/ai`, connect via OpenRouter OAuth PKCE
   or paste a key); keys are encrypted in the `user_ai_settings` table (migration

@@ -6,15 +6,15 @@ import { ogImageUrl } from "@/lib/og/url";
 import { createBreadcrumbSchema } from "@/utils/web-schema";
 
 const ogImage = ogImageUrl({
-	title: "Speed up or slow down videos — free, in your browser",
+	title: "Speed up or slow down videos : free, in your browser",
 	tag: "Tools",
 });
 
 export const metadata: Metadata = {
 	title:
-		"Video Speed Controller Online – Speed Up or Slow Down Videos Free | Cap",
+		"Video Speed Controller Online – Speed Up or Slow Down Videos Free | Screencap",
 	description:
-		"Free online video speed controller. Adjust playback from 0.25× to 3× without quality loss — processed locally in your browser for complete privacy. No uploads required.",
+		"Free online video speed controller. Adjust playback from 0.25× to 3× at your original resolution, processed locally in your browser for complete privacy. No uploads required.",
 	keywords: [
 		"video speed controller",
 		"speed up video online",
@@ -26,17 +26,17 @@ export const metadata: Metadata = {
 	],
 	openGraph: {
 		title:
-			"Video Speed Controller Online – Speed Up or Slow Down Videos Free | Cap",
+			"Video Speed Controller Online – Speed Up or Slow Down Videos Free | Screencap",
 		description:
-			"Adjust video playback speed from 0.25× to 3× directly in your browser. Free, private, no uploads — works with MP4, WebM, MOV, AVI and MKV.",
-		url: "https://cap.so/tools/video-speed-controller",
-		siteName: "Cap",
+			"Adjust video playback speed from 0.25× to 3× directly in your browser. Free, private, no uploads, works with MP4, WebM, MOV, AVI and MKV.",
+		url: "https://screencap.co/tools/video-speed-controller",
+		siteName: "Screencap",
 		images: [
 			{
 				url: ogImage,
 				width: 1200,
 				height: 630,
-				alt: "Speed up or slow down videos — free, in your browser",
+				alt: "Speed up or slow down videos : free, in your browser",
 			},
 		],
 		locale: "en_US",
@@ -45,13 +45,13 @@ export const metadata: Metadata = {
 	twitter: {
 		card: "summary_large_image",
 		title:
-			"Video Speed Controller Online – Speed Up or Slow Down Videos Free | Cap",
+			"Video Speed Controller Online – Speed Up or Slow Down Videos Free | Screencap",
 		description:
 			"Adjust video playback speed from 0.25× to 3× directly in your browser. Free, private, no uploads required.",
 		images: [ogImage],
 	},
 	alternates: {
-		canonical: "https://cap.so/tools/video-speed-controller",
+		canonical: "https://screencap.co/tools/video-speed-controller",
 	},
 };
 
@@ -59,12 +59,12 @@ const faqs = [
 	{
 		question: "How do I change the speed of a video online?",
 		answer:
-			"Open Cap's Video Speed Controller, drag and drop your video file (or click to browse), select your target speed from 0.25× to 3×, then click Speed Up or Slow Down Video. The entire process runs in your browser — your file never leaves your device. Once processing is complete, preview and download the result.",
+			"Open Screencap's Video Speed Controller, drag and drop your video file (or click to browse), select your target speed from 0.25× to 3×, then click Speed Up or Slow Down Video. The entire process runs in your browser, your file never leaves your device. Once processing is complete, preview and download the result.",
 	},
 	{
 		question: "What video formats does the speed controller support?",
 		answer:
-			"MP4, WebM, MOV, AVI and MKV are all supported — essentially any video format modern browsers can decode. Chrome is recommended for the best compatibility and performance.",
+			"MP4, WebM, MOV, AVI and MKV are all supported, essentially any video format modern browsers can decode. Chrome is recommended for the best compatibility and performance.",
 	},
 	{
 		question: "Is the video speed controller free?",
@@ -74,7 +74,7 @@ const faqs = [
 	{
 		question: "Will my video quality change when I adjust the speed?",
 		answer:
-			"No. The tool preserves your original resolution and bitrate — only the playback speed changes. There is no re-encoding that degrades visual quality. Audio pitch is also automatically corrected to stay natural at the new speed.",
+			"Resolution is preserved, but the video is re-encoded in your browser (at up to 5 Mbps), so some quality loss is possible on very high bitrate sources. Only the playback speed changes. Audio pitch is handled by the browser's playback engine, which normally keeps it natural at the new speed.",
 	},
 	{
 		question: "Is there a file size limit?",
@@ -84,24 +84,24 @@ const faqs = [
 	{
 		question: "Why is processing taking a long time?",
 		answer:
-			"Browser-based video processing relies on your device's hardware. Older CPUs or GPUs, throttled mobile devices, and very long or high-resolution videos will take longer. For fastest results, use Chrome on a modern desktop or laptop.",
+			"The video is processed by playing it through at the new speed in your browser, so a 10 minute video at 2x takes about 5 minutes. It also relies on your device's hardware. Older CPUs or GPUs, throttled mobile devices, and very long or high-resolution videos will take longer. For fastest results, use Chrome on a modern desktop or laptop.",
 	},
 	{
 		question: "Does this work on iPhone or Android?",
 		answer:
-			"Yes — modern Safari, Chrome, and Firefox on mobile are supported, though Chrome on desktop delivers the most reliable performance. If you encounter issues on mobile, try Chrome or Firefox instead of the default browser.",
+			"It can work on mobile browsers, but the tool depends on in-browser video recording support, so desktop Chrome delivers the most reliable results.",
 	},
 	{
 		question: "Do I need to install any software?",
 		answer:
-			"No. The tool runs entirely in your browser — no downloads, no plugins, no extensions required. Just open the page and start adjusting your video speed. All processing happens locally on your device for complete privacy.",
+			"No. The tool runs entirely in your browser, no downloads, no plugins, no extensions required. Just open the page and start adjusting your video speed. All processing happens locally on your device for complete privacy.",
 	},
 ];
 
 const howToSteps = [
 	{
 		name: "Upload your video file",
-		text: "Open Cap's Video Speed Controller and drag and drop your video into the upload area, or click to browse your files. Supported formats include MP4, WebM, MOV, AVI, and MKV up to 500 MB.",
+		text: "Open Screencap's Video Speed Controller and drag and drop your video into the upload area, or click to browse your files. Supported formats include MP4, WebM, MOV, AVI, and MKV up to 500 MB.",
 	},
 	{
 		name: "Select your target speed",
@@ -109,7 +109,7 @@ const howToSteps = [
 	},
 	{
 		name: "Process and download your video",
-		text: "Click Speed Up or Slow Down Video. Processing runs entirely in your browser — nothing is uploaded to any server. Once complete, preview the result and click Download to save the speed-adjusted video.",
+		text: "Click Speed Up or Slow Down Video. Processing runs entirely in your browser, nothing is uploaded to any server. Once complete, preview the result and click Download to save the speed-adjusted video.",
 	},
 ];
 
@@ -131,7 +131,7 @@ const howToStructuredData = {
 	"@type": "HowTo",
 	name: "How to Change Video Speed Online",
 	description:
-		"Adjust the playback speed of any video for free using Cap's browser-based speed controller. No upload required.",
+		"Adjust the playback speed of any video for free using Screencap's browser-based speed controller. No upload required.",
 	step: howToSteps.map((step, index) => ({
 		"@type": "HowToStep",
 		position: index + 1,
@@ -145,11 +145,11 @@ const howToStructuredData = {
 };
 
 const breadcrumbSchema = createBreadcrumbSchema([
-	{ name: "Home", url: "https://cap.so" },
-	{ name: "Tools", url: "https://cap.so/tools" },
+	{ name: "Home", url: "https://screencap.co" },
+	{ name: "Tools", url: "https://screencap.co/tools" },
 	{
 		name: "Video Speed Controller",
-		url: "https://cap.so/tools/video-speed-controller",
+		url: "https://screencap.co/tools/video-speed-controller",
 	},
 ]);
 
@@ -157,25 +157,25 @@ export default function SpeedControllerPage() {
 	const pageContent: ToolPageContent = {
 		title: "Video Speed Controller (0.25×–3×)",
 		description:
-			"Speed up or slow down any video directly in your browser — free, private, and no installation required",
+			"Speed up or slow down any video directly in your browser, free, private, and no installation required",
 		featuresTitle: "Why Use This Online Video Speed Controller",
 		featuresDescription:
-			"A fast, free, and private way to adjust video speed — entirely in your browser with no uploads and no quality loss.",
+			"A fast, free, and private way to adjust video speed, entirely in your browser with no uploads.",
 		features: [
 			{
 				title: "100% Browser-Based",
 				description:
-					"All processing runs locally in your browser. No server uploads, no processing queues — your files stay on your device at all times.",
+					"All processing runs locally in your browser. No server uploads, no processing queues, your files stay on your device at all times.",
 			},
 			{
 				title: "Wide Speed Range (0.25×–3×)",
 				description:
-					"Dial in super-slow 0.25× for step-by-step tutorials, or crank up to 3× for quick demos. Audio pitch is automatically corrected to stay natural at any speed.",
+					"Dial in super-slow 0.25× for step-by-step tutorials, or crank up to 3× for quick demos. Audio pitch is normally kept natural by your browser.",
 			},
 			{
-				title: "No Quality Loss",
+				title: "Original Resolution",
 				description:
-					"The tool preserves your original resolution and bitrate. Only the playback speed changes — there is no re-encoding that degrades visual quality.",
+					"The tool keeps your original resolution. Only the playback speed changes, though the result is re-encoded in your browser at up to 5 Mbps.",
 			},
 			{
 				title: "Complete Privacy",
@@ -185,7 +185,7 @@ export default function SpeedControllerPage() {
 			{
 				title: "No Sign-Up or Installation",
 				description:
-					"No software downloads, browser extensions, or accounts required. Just open the page and start adjusting — works instantly in Chrome, Edge, and Brave.",
+					"No software downloads, browser extensions, or accounts required. Just open the page and start adjusting, works instantly in Chrome, Edge, and Brave.",
 			},
 			{
 				title: "Supports All Common Formats",
@@ -195,10 +195,13 @@ export default function SpeedControllerPage() {
 		],
 		faqs,
 		cta: {
-			title: "Cap is the open source Loom alternative",
+			title: "Record your screen, share a link",
 			description:
-				"Record, edit, and share video messages with Cap. 100% open source and privacy focused. No speed adjustments needed — just hit record.",
-			buttonText: "Download Cap Free",
+				"Screencap is a free screen recorder for Mac. Record, get a share link instantly, and turn on end-to-end encryption so only people with the link can watch. No time limits. Just hit record, then trim and share.",
+			buttonText: "Download Screencap free",
+			buttonHref: "/download",
+			secondaryButtonText: "Sign up free",
+			secondaryButtonHref: "/signup",
 		},
 	};
 

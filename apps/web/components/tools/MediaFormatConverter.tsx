@@ -1,8 +1,8 @@
 "use client";
 
+import { buildEnv } from "@cap/env";
 import { Button } from "@cap/ui";
 import * as MediaParser from "@remotion/media-parser";
-import type { WebCodecsController } from "@remotion/webcodecs";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -389,16 +389,13 @@ export const MediaFormatConverter = ({
 
 	const extractAudioFromVideo = async (inputFile: File): Promise<void> => {
 		try {
-			const parser = await import("@remotion/media-parser");
 			const webcodecs = await import("@remotion/webcodecs");
 
 			const _handleProgress = (progressEvent: { progress: number }) => {
 				setProgress(Math.min(Math.round(progressEvent.progress * 100), 99));
 			};
 
-			const controller = parser.mediaParserController
-				? parser.mediaParserController()
-				: null;
+			const controller = webcodecs.webcodecsController();
 			parserControllerRef.current = controller;
 
 			const result = await webcodecs.convertMedia({
@@ -409,7 +406,7 @@ export const MediaFormatConverter = ({
 						setProgress(Math.min(Math.round(overallProgress * 100), 99));
 					}
 				},
-				controller: controller as unknown as WebCodecsController,
+				controller,
 			});
 
 			const blob = await result.save();
@@ -606,9 +603,7 @@ export const MediaFormatConverter = ({
 				}
 			};
 
-			const controller = parser.mediaParserController
-				? parser.mediaParserController()
-				: null;
+			const controller = webcodecs.webcodecsController();
 			parserControllerRef.current = controller;
 
 			console.log(`Starting conversion with Remotion: ${conversionPath}`);
@@ -652,7 +647,7 @@ export const MediaFormatConverter = ({
 				container: outputContainer as any,
 				videoCodec: videoCodec as any,
 				onProgress,
-				controller: controller as unknown as WebCodecsController,
+				controller,
 				expectedDurationInSeconds: metadata.durationInSeconds || undefined,
 			});
 
@@ -801,10 +796,10 @@ export const MediaFormatConverter = ({
 			<div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-600">
 				<p>Unsupported conversion: {conversionPath}</p>
 				<Link
-					href="/tools/convert"
+					href="/tools"
 					className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800"
 				>
-					← Back to Conversion Tools
+					← Back to Tools
 				</Link>
 			</div>
 		);
@@ -816,70 +811,62 @@ export const MediaFormatConverter = ({
 				{config.title(currentSourceFormat, currentTargetFormat)}
 			</h2>
 
-			<div className="w-full mb-6">
-				<div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-2">
-					<div className="w-full sm:w-auto flex flex-col sm:flex-row items-center">
-						<span className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 sm:mr-2 text-gray-700 font-medium">
-							From:
-						</span>
-						<div className="flex flex-wrap justify-center gap-2 w-full">
-							{validSourceFormats.map((format) => (
-								<Link
-									key={format}
-									href={`/tools/convert/${format}-to-${
-										getValidTargetFormats(format).includes(currentTargetFormat)
-											? currentTargetFormat
-											: getValidTargetFormats(format)[0]
-									}`}
-									onClick={(e) => {
-										e.preventDefault();
-										handleSourceFormatChange(format);
-									}}
-									className={`px-3 py-1.5 rounded-md text-sm font-medium text-center min-w-[60px] ${
-										currentSourceFormat === format
-											? "bg-blue-600 text-white"
-											: "bg-gray-200 text-gray-800 hover:bg-gray-300"
-									}`}
-									aria-label={`Convert from ${format.toUpperCase()} format`}
-								>
-									{format.toUpperCase()}
-								</Link>
-							))}
+			{buildEnv.NEXT_PUBLIC_IS_CAP === "true" && (
+				<div className="w-full mb-6">
+					<div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-2">
+						<div className="w-full sm:w-auto flex flex-col sm:flex-row items-center">
+							<span className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 sm:mr-2 text-gray-700 font-medium">
+								From:
+							</span>
+							<div className="flex flex-wrap justify-center gap-2 w-full">
+								{validSourceFormats.map((format) => (
+									<button
+										key={format}
+										type="button"
+										onClick={() => handleSourceFormatChange(format)}
+										className={`px-3 py-1.5 rounded-md text-sm font-medium text-center min-w-[60px] ${
+											currentSourceFormat === format
+												? "bg-blue-600 text-white"
+												: "bg-gray-200 text-gray-800 hover:bg-gray-300"
+										}`}
+										aria-label={`Convert from ${format.toUpperCase()} format`}
+									>
+										{format.toUpperCase()}
+									</button>
+								))}
+							</div>
 						</div>
-					</div>
 
-					<span className="hidden sm:block mx-2 text-gray-400">→</span>
-					<div className="w-full sm:hidden flex justify-center my-2">
-						<span className="text-gray-400 text-xl">↓</span>
-					</div>
+						<span className="hidden sm:block mx-2 text-gray-400">→</span>
+						<div className="w-full sm:hidden flex justify-center my-2">
+							<span className="text-gray-400 text-xl">↓</span>
+						</div>
 
-					<div className="w-full sm:w-auto flex flex-col sm:flex-row items-center">
-						<span className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 sm:mr-2 text-gray-700 font-medium">
-							To:
-						</span>
-						<div className="flex flex-wrap justify-center gap-2 w-full">
-							{validTargetFormats.map((format) => (
-								<Link
-									key={format}
-									href={`/tools/convert/${currentSourceFormat}-to-${format}`}
-									onClick={(e) => {
-										e.preventDefault();
-										handleTargetFormatChange(format);
-									}}
-									className={`px-3 py-1.5 rounded-md text-sm font-medium text-center min-w-[60px] ${
-										currentTargetFormat === format
-											? "bg-blue-600 text-white"
-											: "bg-gray-200 text-gray-800 hover:bg-gray-300"
-									}`}
-									aria-label={`Convert to ${format.toUpperCase()} format`}
-								>
-									{format.toUpperCase()}
-								</Link>
-							))}
+						<div className="w-full sm:w-auto flex flex-col sm:flex-row items-center">
+							<span className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 sm:mr-2 text-gray-700 font-medium">
+								To:
+							</span>
+							<div className="flex flex-wrap justify-center gap-2 w-full">
+								{validTargetFormats.map((format) => (
+									<button
+										key={format}
+										type="button"
+										onClick={() => handleTargetFormatChange(format)}
+										className={`px-3 py-1.5 rounded-md text-sm font-medium text-center min-w-[60px] ${
+											currentTargetFormat === format
+												? "bg-blue-600 text-white"
+												: "bg-gray-200 text-gray-800 hover:bg-gray-300"
+										}`}
+										aria-label={`Convert to ${format.toUpperCase()} format`}
+									>
+										{format.toUpperCase()}
+									</button>
+								))}
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			)}
 
 			{currentTargetFormat === "gif" && (
 				<div className="mb-6 border border-gray-200 rounded-lg p-4">

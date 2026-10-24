@@ -20,6 +20,13 @@ const mainOrigins = [
 	addHttps(serverEnv().VERCEL_PROJECT_PRODUCTION_URL_HOST),
 ].filter(Boolean) as string[];
 
+const screencapToolPaths = new Set([
+	"/tools",
+	"/tools/convert/mp4-to-gif",
+	"/tools/convert/mov-to-mp4",
+	"/tools/video-speed-controller",
+]);
+
 export async function proxy(request: NextRequest) {
 	const url = new URL(request.url);
 	const path = url.pathname;
@@ -75,7 +82,8 @@ export async function proxy(request: NextRequest) {
 				path.startsWith("/mobile/") ||
 				path.startsWith("/embed/") ||
 				path.startsWith("/.well-known/workflow/") ||
-				path.startsWith("/.well-known/oauth-")
+				path.startsWith("/.well-known/oauth-") ||
+				screencapToolPaths.has(path)
 			) &&
 			process.env.NODE_ENV !== "development"
 		) {
