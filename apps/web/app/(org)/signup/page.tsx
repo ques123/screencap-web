@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SignupForm } from "./form";
+import { ToolAttribution } from "./ToolAttribution";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function SignupPage(props: {
 		mobileProvider?: string | string[];
 		sso?: string | string[];
 		error?: string | string[];
+		from?: string | string[];
 	}>;
 }) {
 	const [searchParams, session] = await Promise.all([
@@ -42,6 +44,9 @@ export default async function SignupPage(props: {
 	if (session && !isSsoEntry) {
 		redirect("/dashboard");
 	}
+	const from = Array.isArray(searchParams.from)
+		? searchParams.from[0]
+		: searchParams.from;
 	return (
 		<div className="flex relative justify-center items-center w-full h-screen bg-gray-2">
 			<div className="flex absolute top-10 left-10 gap-2 justify-center items-center transition-opacity hover:opacity-75">
@@ -53,6 +58,7 @@ export default async function SignupPage(props: {
 					Home
 				</Link>
 			</div>
+			<ToolAttribution from={from} />
 			<SignupForm />
 		</div>
 	);

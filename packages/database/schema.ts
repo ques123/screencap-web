@@ -997,6 +997,32 @@ export const screencapEmailLog = mysqlTable(
 	(table) => [index("email_log_at_idx").on(table.at)],
 );
 
+export const screencapToolEvents = mysqlTable(
+	"screencap_tool_events",
+	{
+		id: bigint("id", { mode: "number", unsigned: true })
+			.autoincrement()
+			.primaryKey(),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+		tool: varchar("tool", { length: 32 }).notNull(),
+		step: varchar("step", { length: 24 }).notNull(),
+		visitId: varchar("visit_id", { length: 36 }),
+		sizeBucket: varchar("size_bucket", { length: 16 }),
+		durationBucket: varchar("duration_bucket", { length: 16 }),
+		outputBucket: varchar("output_bucket", { length: 16 }),
+		errorClass: varchar("error_class", { length: 64 }),
+		browser: varchar("browser", { length: 32 }),
+		os: varchar("os", { length: 32 }),
+		country: varchar("country", { length: 2 }),
+		referrerHost: varchar("referrer_host", { length: 128 }),
+		utmSource: varchar("utm_source", { length: 64 }),
+	},
+	(table) => [
+		index("tool_events_created_idx").on(table.createdAt),
+		index("tool_events_tool_created_idx").on(table.tool, table.createdAt),
+	],
+);
+
 export const storageIntegrations = mysqlTable(
 	"storage_integrations",
 	{

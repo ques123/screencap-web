@@ -18,6 +18,13 @@ and the Mac app.
   stays a 404. On Screencap builds `app/(site)/layout.tsx` wraps them in a header and footer matching
   the static site (`ScreencapHeader`/`ScreencapFooter`, fonts in `app/(site)/fonts`), and the
   converter hides its format pickers so it never links to a disabled route.
+- Web: admin Tools tab (`/dashboard/admin/tools`, `lib/screencap-admin/tools.ts`) shows whether the
+  free tools are used, work and bring sign-ups: views, funnel, daily chart, failures by browser and
+  error, referrers, countries, file sizes. Events come from `toolEvent()` in
+  `components/tools/toolEvents.ts` via `POST /api/tools/events` into `screencap_tool_events`
+  (migration 0054): buckets only, no IP, file name or raw user agent, deleted after 90 days by the
+  nightly purge. `/signup?from=tool-<slug>` sets a 30-day `sc_tool` cookie and NextAuth
+  `events.createUser` records `signed_up`.
 - Web: transcripts and AI titles/summaries/chapters run on each user's own OpenRouter key (BYOK).
   Settings → AI & transcription (`app/(org)/dashboard/settings/ai`, connect via OpenRouter OAuth PKCE
   or paste a key); keys are encrypted in the `user_ai_settings` table (migration

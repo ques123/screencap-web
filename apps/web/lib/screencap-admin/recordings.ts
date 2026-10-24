@@ -31,6 +31,7 @@ import {
 import { isE2eeVideo } from "@/lib/e2ee";
 import { logAdminAction, telegramAlert } from "./audit";
 import { sendRemovalNotice } from "./notices";
+import { purgeToolEvents } from "./tools";
 import type {
 	ActionInput,
 	ActionResult,
@@ -523,6 +524,7 @@ export async function purgeDue(opts?: {
 	failed: { videoId: string; error: string }[];
 	dryRun?: boolean;
 	wouldPurge?: string[];
+	toolEvents?: { deleted?: number; wouldDelete?: number };
 }> {
 	const dryRun =
 		opts?.dryRun === true || serverEnv().SCREENCAP_PURGE_DRY_RUN === "1";
@@ -603,5 +605,16 @@ export async function purgeDue(opts?: {
 		await telegramAlert(
 			`Screencap purge: ${failed.length} failed (${failed.map((f) => f.videoId).join(", ")}). First error: ${failed[0]?.error}`,
 		);
-	return { purged, failed, ...(dryRun ? { dryRun, wouldPurge } : {}) };
+	let toolEvents: { deleted?: number; wouldDelete?: number } | undefined;
+	try {
+		toolEvents = await purgeToolEvents({ dryRun, now });
+	} catch (error) {
+		console.warn("[screencap-admin] tool events purge failed", error);
+	}
+	return {
+		purged,
+		failed,
+		toolEvents,
+		...(dryRun ? { dryRun, wouldPurge } : {}),
+	};
 }

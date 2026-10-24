@@ -379,6 +379,13 @@
       "when": 1791387232097,
       "tag": "0053_screencap_e2ee",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "5",
+      "when": 1792834696909,
+      "tag": "0054_screencap_tool_events",
+      "breakpoints": true
     }
   ]
 }

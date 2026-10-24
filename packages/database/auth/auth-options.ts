@@ -13,7 +13,7 @@ import type { Provider } from "next-auth/providers/index";
 import WorkOSProvider from "next-auth/providers/workos";
 import { isEmailConfigured, sendEmail } from "../emails/config.ts";
 import { db } from "../index.ts";
-import { screencapUserAdmin, users } from "../schema.ts";
+import { screencapToolEvents, screencapUserAdmin, users } from "../schema.ts";
 import { getSettings, getSettingsSync } from "../screencap-settings.ts";
 import {
 	isBlockedAccountEmail,
@@ -30,6 +30,13 @@ import {
 import { ssoLoginErrorPath } from "./sso-state.ts";
 
 export const maxDuration = 120;
+
+const TOOL_SLUGS = [
+	"mp4-to-gif",
+	"gif-to-mp4",
+	"mov-to-mp4",
+	"video-speed-controller",
+];
 
 // Reads Cloudflare's CF-IPCountry header for the current request. "XX"/"T1"
 // (unknown/Tor) and anything unreadable count as allowed. The blocked list
@@ -241,6 +248,24 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 					secure: true,
 					maxAge: 60 * 15,
 				},
+			},
+		},
+		events: {
+			async createUser() {
+				try {
+					const { cookies } = await import("next/headers");
+					const jar = await cookies();
+					const slug = jar.get("sc_tool")?.value;
+					if (!slug) return;
+					jar.set("sc_tool", "", { path: "/", maxAge: 0 });
+					if (!TOOL_SLUGS.includes(slug)) return;
+					await db().insert(screencapToolEvents).values({
+						tool: slug,
+						step: "signed_up",
+					});
+				} catch (error) {
+					console.warn("[tool-events] signed_up not recorded", error);
+				}
 			},
 		},
 		callbacks: {

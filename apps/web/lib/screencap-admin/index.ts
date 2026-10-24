@@ -5,5 +5,6 @@ export * from "./recordings";
 export * from "./reports";
 export * from "./settings";
 export * from "./stats";
+export * from "./tools";
 export * from "./types";
 export * from "./users";
