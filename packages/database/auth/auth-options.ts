@@ -35,7 +35,7 @@ const TOOL_SLUGS = [
 	"mp4-to-gif",
 	"gif-to-mp4",
 	"mov-to-mp4",
-	"video-speed-controller",
+	"speed-up-video",
 ];
 
 // Reads Cloudflare's CF-IPCountry header for the current request. "XX"/"T1"

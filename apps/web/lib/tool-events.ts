@@ -2,7 +2,7 @@ export const TOOL_SLUGS = [
 	"mp4-to-gif",
 	"gif-to-mp4",
 	"mov-to-mp4",
-	"video-speed-controller",
+	"speed-up-video",
 ] as const;
 
 export const TOOL_STEPS = [
@@ -25,7 +25,7 @@ export const TOOL_LABELS: Record<ToolSlug, string> = {
 	"mp4-to-gif": "MP4 to GIF",
 	"gif-to-mp4": "GIF to MP4",
 	"mov-to-mp4": "MOV to MP4",
-	"video-speed-controller": "Video speed controller",
+	"speed-up-video": "Speed up video",
 };
 
 export const SIZE_BUCKETS = [

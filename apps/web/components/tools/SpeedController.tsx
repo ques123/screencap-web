@@ -12,7 +12,7 @@ import {
 } from "@/components/tools/toolEvents";
 
 const trackEvent = (name: string, props?: Record<string, unknown>) =>
-	trackLegacyToolEvent("video-speed-controller", name, props);
+	trackLegacyToolEvent("speed-up-video", name, props);
 
 const SPEED_OPTIONS = [
 	{ value: 0.25, label: "0.25x (Very Slow)" },
@@ -27,7 +27,7 @@ const SPEED_OPTIONS = [
 const SUPPORTED_VIDEO_FORMATS = ["mp4", "webm", "mov", "avi", "mkv"];
 
 export const SpeedController = () => {
-	useToolView("video-speed-controller");
+	useToolView("speed-up-video");
 	const [file, setFile] = useState<File | null>(null);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [progress, setProgress] = useState(0);
@@ -643,15 +643,15 @@ export const SpeedController = () => {
 						</button>
 					</div>
 					<ToolNextStepPrompt
-						tool="video-speed-controller"
-						onShow={() => toolEvent("video-speed-controller", "prompt_shown")}
+						tool="speed-up-video"
+						onShow={() => toolEvent("speed-up-video", "prompt_shown")}
 						onSignupClick={() =>
-							toolEvent("video-speed-controller", "cta_signup")
+							toolEvent("speed-up-video", "cta_signup")
 						}
 						onDownloadClick={() =>
-							toolEvent("video-speed-controller", "cta_download")
+							toolEvent("speed-up-video", "cta_download")
 						}
-						line={TOOL_NEXT_STEP_LINES["video-speed-controller"]}
+						line={TOOL_NEXT_STEP_LINES["speed-up-video"]}
 					/>
 				</div>
 			)}

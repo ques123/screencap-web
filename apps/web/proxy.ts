@@ -25,7 +25,7 @@ const screencapToolPaths = new Set([
 	"/tools/convert/mp4-to-gif",
 	"/tools/convert/mov-to-mp4",
 	"/tools/convert/gif-to-mp4",
-	"/tools/video-speed-controller",
+	"/tools/speed-up-video",
 ]);
 
 export async function proxy(request: NextRequest) {

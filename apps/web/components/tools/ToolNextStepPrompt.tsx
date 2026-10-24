@@ -7,7 +7,7 @@ export const TOOL_NEXT_STEP_LINES: Record<string, string> = {
 		"Record your screen and share a link that plays instantly, instead of a heavy GIF.",
 	"mov-to-mp4":
 		"Screencap records straight to MP4, so there is nothing to convert.",
-	"video-speed-controller":
+	"speed-up-video":
 		"Record with Screencap and share a link; viewers can watch at the speed they like.",
 	"gif-to-mp4":
 		"Record your screen and share a link that plays instantly, instead of a heavy GIF.",

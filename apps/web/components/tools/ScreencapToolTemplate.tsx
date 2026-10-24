@@ -14,7 +14,8 @@ const DEFAULT_PRIVACY = "Your file never leaves your device";
 const ALL_TOOLS: ToolRelatedLink[] = [
 	{ title: "MP4 to GIF", href: "/tools/convert/mp4-to-gif" },
 	{ title: "MOV to MP4", href: "/tools/convert/mov-to-mp4" },
-	{ title: "Video speed controller", href: "/tools/video-speed-controller" },
+	{ title: "GIF to MP4", href: "/tools/convert/gif-to-mp4" },
+	{ title: "Speed up or slow down a video", href: "/tools/speed-up-video" },
 ];
 
 const renderHTML = (content: string) => {

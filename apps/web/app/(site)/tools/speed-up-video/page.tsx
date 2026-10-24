@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 			"Video Speed Controller Online – Speed Up or Slow Down Videos Free | Screencap",
 		description:
 			"Adjust video playback speed from 0.25× to 3× directly in your browser. Free, private, no uploads, works with MP4, WebM, MOV, AVI and MKV.",
-		url: "https://screencap.co/tools/video-speed-controller",
+		url: "https://screencap.co/tools/speed-up-video",
 		siteName: "Screencap",
 		images: [
 			{
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
 		images: [ogImage],
 	},
 	alternates: {
-		canonical: "https://screencap.co/tools/video-speed-controller",
+		canonical: "https://screencap.co/tools/speed-up-video",
 	},
 };
 
@@ -149,7 +149,7 @@ const breadcrumbSchema = createBreadcrumbSchema([
 	{ name: "Tools", url: "https://screencap.co/tools" },
 	{
 		name: "Video Speed Controller",
-		url: "https://screencap.co/tools/video-speed-controller",
+		url: "https://screencap.co/tools/speed-up-video",
 	},
 ]);
 
