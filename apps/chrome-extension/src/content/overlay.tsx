@@ -1709,7 +1709,23 @@ const watchExtensionContext = (root: HTMLElement, teardown: () => void) => {
 	return () => window.clearInterval(interval);
 };
 
+const FONT_STYLE_ID = "cap-extension-brand-font";
+
+// @font-face rules inside a shadow root are ignored, so the brand display
+// font is registered once on the page document under a private family name.
+const ensureBrandFont = () => {
+	if (document.getElementById(FONT_STYLE_ID)) return;
+	try {
+		const style = document.createElement("style");
+		style.id = FONT_STYLE_ID;
+		const url = chrome.runtime.getURL("fonts/BricolageGrotesque-Variable.woff2");
+		style.textContent = `@font-face{font-family:"Screencap Bricolage";src:url("${url}") format("woff2");font-weight:200 800;font-style:normal;font-display:swap;}`;
+		document.head.append(style);
+	} catch {}
+};
+
 const mountOverlay = () => {
+	ensureBrandFont();
 	// Re-initializing this module (extension reload loads a fresh copy in a
 	// new isolated world) must fully unmount the previous React tree:
 	// removing only its DOM node would leak the tree's chrome listeners,

@@ -30,8 +30,8 @@ export const SystemAudioToggle = ({
 				disabled={disabled}
 				onClick={() => onToggle(!enabled)}
 				className={clsx(
-					"relative flex flex-row items-center h-[2rem] px-[0.375rem] gap-[0.375rem] border border-gray-3 rounded-lg w-full transition-colors overflow-hidden font-normal text-[0.875rem] text-[--text-primary] disabled:text-gray-11",
-					disabled ? "cursor-default" : "cursor-pointer hover:bg-gray-3/50",
+					"relative flex flex-row items-center h-[2rem] px-[0.375rem] gap-[0.375rem] border-2 border-gray-4 rounded-xl bg-white w-full transition-colors overflow-hidden font-normal text-[0.875rem] text-[--text-primary] disabled:text-gray-11",
+					disabled ? "cursor-default" : "cursor-pointer hover:border-gray-6",
 				)}
 			>
 				<Icon className="size-4 text-gray-11 shrink-0" />

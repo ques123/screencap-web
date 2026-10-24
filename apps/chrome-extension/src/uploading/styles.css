@@ -11,7 +11,7 @@ body {
 }
 
 .cloud-arrow {
-	stroke: var(--accent);
+	stroke: var(--rec);
 	opacity: 0;
 	animation:
 		fade-in 0.4s ease 0.85s forwards,
@@ -66,9 +66,12 @@ body {
 
 #upload-title {
 	margin-top: 28px;
-	font-size: 24px;
-	font-weight: 500;
-	letter-spacing: -0.01em;
+	font-family: var(--display);
+	font-size: 34px;
+	font-weight: 800;
+	line-height: 1;
+	color: var(--navy);
+	letter-spacing: -0.045em;
 	animation: fade-up 0.5s ease 0.1s both;
 }
 
@@ -78,7 +81,7 @@ body {
 	min-height: 22px;
 	font-size: 15px;
 	line-height: 1.5;
-	color: var(--ink-soft);
+	color: var(--body);
 	animation: fade-up 0.5s ease 0.15s both;
 }
 
@@ -106,7 +109,7 @@ body {
 
 .squiggle-progress {
 	fill: none;
-	stroke: var(--accent);
+	stroke: var(--rec);
 	stroke-width: 3.2;
 	stroke-linecap: round;
 	stroke-dasharray: 100;
@@ -147,17 +150,7 @@ body {
 
 .share-link {
 	display: none;
-	align-items: center;
-	justify-content: center;
 	margin-top: 24px;
-	min-height: 40px;
-	padding: 0 22px;
-	border: 1.5px solid var(--ink);
-	border-radius: 999px;
-	color: var(--ink);
-	font-size: 14px;
-	font-weight: 500;
-	text-decoration: none;
 	animation: fade-up 0.4s ease both;
 }
 
@@ -165,10 +158,6 @@ body {
 	display: inline-flex;
 }
 
-.share-link:hover {
-	background: var(--ink);
-	color: var(--paper);
-}
 
 .error-actions {
 	display: flex;
@@ -183,31 +172,7 @@ body {
 	display: none;
 }
 
-.action-button {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 40px;
-	padding: 0 22px;
-	border: 1.5px solid var(--ink);
-	border-radius: 999px;
-	background: transparent;
-	color: var(--ink);
-	font-family: inherit;
-	font-size: 14px;
-	font-weight: 500;
-	cursor: pointer;
-}
 
-.action-button:hover:not(:disabled) {
-	background: var(--ink);
-	color: var(--paper);
-}
-
-.action-button:disabled {
-	opacity: 0.5;
-	cursor: default;
-}
 
 @media (prefers-reduced-motion: reduce) {
 	.cloud-arrow {

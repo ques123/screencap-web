@@ -2,8 +2,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { classNames } from "./class-names";
 
+// Screencap "sticker buttons": thick navy border, hard offset shadow that
+// the button presses down into. Scaled down for the popup.
 const buttonVariants = cva(
-	"flex items-center justify-center transition-colors duration-200 rounded-full disabled:cursor-not-allowed cursor-pointer font-medium px-5 ring-offset-transparent relative gap-1",
+	"flex items-center justify-center transition-[transform,box-shadow,background-color] duration-100 rounded-[14px] border-[2.5px] border-navy font-display font-bold disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer px-5 relative gap-1 translate-y-0 hover:enabled:-translate-y-0.5 active:enabled:translate-y-[3px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]",
 	{
 		defaultVariants: {
 			variant: "primary",
@@ -12,22 +14,23 @@ const buttonVariants = cva(
 		variants: {
 			variant: {
 				primary:
-					"bg-gray-12 dark-button-shadow text-gray-1 disabled:bg-gray-6 disabled:text-gray-9",
-				blue: "bg-blue-600 text-white disabled:border-gray-8 border border-blue-800 shadow-[0_1.50px_0_0_rgba(255,255,255,0.20)_inset] hover:bg-blue-700  disabled:bg-gray-7 disabled:text-gray-10",
+					"bg-navy text-white shadow-[0_4px_0_#05121F] hover:enabled:shadow-[0_6px_0_#05121F] active:enabled:shadow-[0_1px_0_#05121F]",
+				// Record actions use the record red.
+				blue: "bg-rec text-white shadow-[0_4px_0_#0B2440] hover:enabled:shadow-[0_6px_0_#0B2440] active:enabled:shadow-[0_1px_0_#0B2440]",
 				destructive:
-					"bg-red-500 text-white border-transparent hover:bg-red-600 disabled:bg-gray-7 disabled:border-gray-8 border disabled:text-gray-10",
+					"bg-rec text-white shadow-[0_4px_0_#0B2440] hover:enabled:shadow-[0_6px_0_#0B2440] active:enabled:shadow-[0_1px_0_#0B2440]",
 				outline:
-					"border border-gray-4 hover:border-gray-5 hover:bg-gray-3 text-gray-12 disabled:bg-gray-8",
+					"bg-white text-navy shadow-[0_4px_0_#0B2440] hover:enabled:shadow-[0_6px_0_#0B2440] active:enabled:shadow-[0_1px_0_#0B2440]",
 				white:
-					"bg-gray-3 border border-gray-5 hover:border-gray-6 text-gray-12 hover:bg-gray-6 disabled:bg-gray-8",
-				gray: "bg-gray-5 hover:bg-gray-7 border gray-button-border gray-button-shadow text-gray-12 disabled:border-gray-7 disabled:bg-gray-8 disabled:text-gray-11",
-				dark: "bg-gray-12 dark-button-shadow hover:bg-gray-11 border dark-button-border text-gray-1 disabled:cursor-not-allowed disabled:text-gray-10 disabled:bg-gray-7 disabled:border-gray-8",
+					"bg-white text-navy shadow-[0_4px_0_#0B2440] hover:enabled:shadow-[0_6px_0_#0B2440] active:enabled:shadow-[0_1px_0_#0B2440]",
+				gray: "bg-gray-3 text-navy shadow-[0_4px_0_#0B2440] hover:enabled:shadow-[0_6px_0_#0B2440] active:enabled:shadow-[0_1px_0_#0B2440]",
+				dark: "bg-navy text-white shadow-[0_4px_0_#05121F] hover:enabled:shadow-[0_6px_0_#05121F] active:enabled:shadow-[0_1px_0_#05121F]",
 			},
 			size: {
 				xs: "text-xs h-[32px]",
 				sm: "text-sm h-[40px]",
-				md: "text-sm h-[44px]",
-				lg: "text-md h-[48px]",
+				md: "text-[15px] h-[44px]",
+				lg: "text-base h-[48px]",
 				icon: "h-9 w-9",
 			},
 		},

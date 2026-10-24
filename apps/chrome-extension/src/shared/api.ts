@@ -43,6 +43,12 @@ const extensionApiPath = (path: string) => `${EXTENSION_API_PREFIX}${path}`;
 const apiUrl = (settings: ExtensionSettings, path: string) =>
 	new URL(path, settings.apiBaseUrl).toString();
 
+const isLocalApiHost = (hostname: string) =>
+	hostname === "localhost" ||
+	hostname === "127.0.0.1" ||
+	hostname === "[::1]" ||
+	hostname.endsWith(".localhost");
+
 const checkAuthStartRoute = async (
 	settings: ExtensionSettings,
 	url: URL,
@@ -55,14 +61,37 @@ const checkAuthStartRoute = async (
 		});
 		if (response.type === "opaqueredirect" || response.status === 302) return;
 		if (response.ok) return;
-		throw new Error(`${response.status} ${await response.text()}`);
+		throw new AuthStartError(response.status, await response.text());
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
+		const status = error instanceof AuthStartError ? error.status : null;
+		// Developer instructions only make sense against a local dev server.
+		if (isLocalApiHost(url.hostname)) {
+			throw new Error(
+				`Could not reach Screencap extension auth at ${url.origin}. Start the local web server with bun run dev:extension and make sure the extension Options Screencap URL is ${settings.apiBaseUrl}. Redirect URI: ${redirectUri}. ${message}`,
+			);
+		}
+		console.error(
+			`Screencap sign-in start failed at ${url.origin} (redirect URI ${redirectUri}):`,
+			message,
+		);
 		throw new Error(
-			`Could not reach Screencap extension auth at ${url.origin}. Start the local web server with bun run dev:extension and make sure the extension Options Screencap URL is ${settings.apiBaseUrl}. Redirect URI: ${redirectUri}. ${message}`,
+			status
+				? `Couldn't start sign-in with Screencap (error ${status}). Try again in a moment.`
+				: "Couldn't reach Screencap to start sign-in. Check your connection and try again.",
 		);
 	}
 };
+
+class AuthStartError extends Error {
+	readonly status: number;
+
+	constructor(status: number, body: string) {
+		super(`${status} ${body}`);
+		this.name = "AuthStartError";
+		this.status = status;
+	}
+}
 
 // Carries the HTTP status so callers can tell a definitive server answer
 // (the request was processed and rejected) from a failure where the request

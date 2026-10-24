@@ -120,13 +120,13 @@ export const RecordingBar = ({
 	const canTogglePause = !disabled && status.phase !== "uploading";
 
 	return (
-		<div className="flex flex-row items-stretch rounded-[0.9rem] border border-gray-5 bg-gray-1 text-gray-12 shadow-[0_16px_60px_rgba(0,0,0,0.35)] w-full">
+		<div className="flex flex-row items-stretch rounded-[1rem] border-[2.5px] border-navy bg-white text-navy shadow-[0_4px_0_#0B2440] w-full">
 			<div className="flex flex-row justify-between flex-1 gap-3 p-[0.25rem]">
 				<button
 					type="button"
 					onClick={onStop}
 					disabled={!canStop}
-					className="py-[0.25rem] px-[0.5rem] text-red-300 gap-[0.35rem] flex flex-row items-center rounded-lg transition-opacity disabled:opacity-60"
+					className="py-[0.25rem] px-[0.5rem] text-rec gap-[0.35rem] flex flex-row items-center rounded-lg transition-opacity disabled:opacity-60"
 				>
 					<StopCircle className="size-5" />
 					<span className="font-[500] text-[0.875rem] tabular-nums">

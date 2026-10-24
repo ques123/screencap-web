@@ -159,7 +159,7 @@ export const MicrophoneSelector = ({
 					aria-expanded={open}
 					onClick={openPicker}
 					className={clsx(
-						"relative flex flex-row items-center h-[2rem] pl-[0.375rem] pr-[3.5rem] gap-[0.375rem] border border-gray-3 rounded-lg w-full transition-colors overflow-hidden z-10 font-normal text-[0.875rem] bg-transparent hover:bg-transparent text-[--text-primary] disabled:text-gray-11",
+						"relative flex flex-row items-center h-[2rem] pl-[0.375rem] pr-[3.5rem] gap-[0.375rem] border-2 border-gray-4 rounded-xl bg-white w-full transition-colors overflow-hidden z-10 font-medium text-[0.875rem] hover:border-gray-6 text-[--text-primary] disabled:text-gray-11",
 						disabled || shouldRequestPermission
 							? "cursor-default"
 							: "cursor-pointer",

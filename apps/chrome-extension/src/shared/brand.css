@@ -1,0 +1,44 @@
+/* Screencap brand tokens + fonts, shared by every extension page. */
+@font-face {
+	font-family: "Bricolage Grotesque";
+	src: url("/fonts/BricolageGrotesque-Variable.woff2") format("woff2");
+	font-weight: 200 800;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	--sky-ink: #0b2440;
+	--navy: #0b2440;
+	--ink: #0f2a4a;
+	--body: #1b3a5c;
+	--muted: #45627f;
+	--accent: #1e66b8;
+	--accent-hover: #17559b;
+	--bg: #eaf3fc;
+	--card: #ffffff;
+	--line: #d3e3f3;
+	--soft: #dcebfa;
+	--rec: #ff4a2e;
+	--rec-ink: #05121f;
+	--sun: #ffd84d;
+	--display:
+		"Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+	--radius-card: 22px;
+	--shadow-card: 0 10px 40px rgba(11, 36, 64, 0.07);
+}
+
+/* The logo is a white sticker; it needs a non-white page behind it. */
+.sticker-logo {
+	display: block;
+	overflow: visible;
+	filter: drop-shadow(0 1px 0 rgba(11, 36, 64, 0.14))
+		drop-shadow(0 4px 7px rgba(11, 36, 64, 0.2));
+}
+
+.sticker-mark {
+	display: block;
+	overflow: visible;
+	filter: drop-shadow(0 1px 0 rgba(11, 36, 64, 0.14))
+		drop-shadow(0 3px 5px rgba(11, 36, 64, 0.2));
+}

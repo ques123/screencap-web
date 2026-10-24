@@ -19,13 +19,13 @@
 }
 
 .lens-dot {
-	fill: var(--accent);
+	fill: var(--rec);
 	opacity: 0;
 	animation: fade-in 0.3s ease 1.2s forwards;
 }
 
 .flash-dot {
-	fill: var(--accent);
+	fill: var(--sun);
 	opacity: 0;
 	animation: fade-in 0.3s ease 1.35s forwards;
 }

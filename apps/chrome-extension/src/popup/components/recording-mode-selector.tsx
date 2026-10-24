@@ -67,7 +67,7 @@ export const RecordingModeSelector = ({
 				}}
 				disabled={disabled}
 			>
-				<SelectTrigger className="relative flex flex-row items-center h-[2rem] px-[0.375rem] border border-gray-3 rounded-lg w-full max-w-[280px] disabled:text-gray-11 transition-colors overflow-hidden z-10 font-normal text-[0.875rem] bg-transparent hover:bg-transparent focus:bg-transparent focus:border-gray-3 hover:border-gray-3 text-[--text-primary] [&>svg]:hidden">
+				<SelectTrigger className="relative flex flex-row items-center h-[2rem] px-[0.375rem] border-2 border-gray-4 rounded-xl bg-white w-full max-w-[280px] disabled:text-gray-11 transition-colors overflow-hidden z-10 font-normal text-[0.875rem] hover:border-gray-6 focus:border-gray-6 text-[--text-primary] [&>svg]:hidden">
 					<SelectValue
 						placeholder="Select recording mode"
 						className="flex w-full items-center gap-[0.375rem] text-left truncate"

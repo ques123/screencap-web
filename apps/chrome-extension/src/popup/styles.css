@@ -1,3 +1,4 @@
+@import "../shared/brand.css";
 @import "@radix-ui/colors/red.css";
 @import "@radix-ui/colors/red-dark.css";
 @import "@radix-ui/colors/gray.css";
@@ -60,20 +61,47 @@
 }
 
 :root {
-	--primary: #005cb1;
-	--primary-2: #004c93;
-	--primary-3: #003b73;
-	--secondary: #2eb4ff;
-	--secondary-2: #1696e0;
-	--secondary-3: #117ebd;
-	--tertiary: #c5eaff;
-	--tertiary-2: #d3e5ff;
-	--tertiary-3: #e0edff;
+	--primary: #0b2440;
+	--primary-2: #0b2440;
+	--primary-3: #05121f;
+	--secondary: #1e66b8;
+	--secondary-2: #17559b;
+	--secondary-3: #17559b;
+	--tertiary: #dcebfa;
+	--tertiary-2: #d3e3f3;
+	--tertiary-3: #eaf3fc;
+	/* Screencap palette over the Radix scales: navy-tinted grays, brand blue. */
+	--gray-1: #f6fafe;
+	--gray-2: #eaf3fc;
+	--gray-3: #dcebfa;
+	--gray-4: #d3e3f3;
+	--gray-5: #c6daee;
+	--gray-6: #b5cce3;
+	--gray-7: #9bb5cf;
+	--gray-8: #7f9bb8;
+	--gray-9: #5f7c9a;
+	--gray-10: #45627f;
+	--gray-11: #1b3a5c;
+	--gray-12: #0b2440;
+	--blue-1: #f3f8fd;
+	--blue-2: #e8f1fa;
+	--blue-3: #dcebfa;
+	--blue-4: #cfe2f6;
+	--blue-5: #bdd6f0;
+	--blue-6: #a5c6e8;
+	--blue-7: #86aedc;
+	--blue-8: #5a8ccb;
+	--blue-9: #1e66b8;
+	--blue-10: #17559b;
+	--blue-11: #1e66b8;
+	--blue-12: #0b2440;
+	--red-9: #ff4a2e;
+	--red-10: #e03a20;
 	--filler: #efefef;
 	--filler-2: #e4e4e4;
 	--filler-3: #e2e2e2;
 	--filler-txt: #b3b3b3;
-	--text-primary: #0d1b2a;
+	--text-primary: #0b2440;
 	--text-secondary: #ffffff;
 	color-scheme: light;
 	font-family:
@@ -120,7 +148,7 @@
 }
 
 ::selection {
-	background: #000000;
+	background: #0b2440;
 	color: #ffffff;
 }
 
@@ -220,11 +248,10 @@ body {
 
 /* Paper aesthetic shared with the welcome / how-it-works pages. */
 :root {
-	--paper: #fbfaf7;
-	--ink: #20242c;
-	--ink-soft: #8b8f98;
-	--paper-accent: #4785ff;
-	--track: #dcdcd4;
+	--paper: var(--bg);
+	--ink-soft: var(--muted);
+	--paper-accent: var(--rec);
+	--track: var(--line);
 }
 
 .cap-fade-up {
@@ -271,9 +298,8 @@ body {
 }
 
 .cap-signin-brand {
-	height: 24px;
+	height: 46px;
 	width: auto;
-	color: var(--ink);
 }
 
 .cap-signin-doodle {
@@ -289,7 +315,7 @@ body {
 
 .cap-signin-stroke {
 	fill: none;
-	stroke: var(--ink);
+	stroke: var(--navy);
 	stroke-width: 4.5;
 	stroke-linecap: round;
 	stroke-linejoin: round;
@@ -313,8 +339,8 @@ body {
 
 .cap-signin-spark {
 	fill: none;
-	stroke: var(--paper-accent);
-	stroke-width: 3.5;
+	stroke: var(--sun);
+	stroke-width: 4;
 	stroke-linecap: round;
 	opacity: 0;
 	transform-box: fill-box;
@@ -336,11 +362,12 @@ body {
 
 .cap-signin h1 {
 	margin-top: 22px;
-	font-size: 19px;
-	font-weight: 500;
-	letter-spacing: -0.01em;
-	line-height: 1.25;
-	color: var(--ink);
+	font-family: var(--display);
+	font-size: 26px;
+	font-weight: 800;
+	letter-spacing: -0.045em;
+	line-height: 1;
+	color: var(--navy);
 }
 
 .cap-signin-lede {
@@ -348,7 +375,7 @@ body {
 	max-width: 236px;
 	font-size: 13px;
 	line-height: 1.5;
-	color: var(--ink-soft);
+	color: var(--body);
 }
 
 .cap-signin-wait {
@@ -384,49 +411,53 @@ body {
 	justify-content: center;
 	gap: 8px;
 	width: 100%;
-	min-height: 42px;
+	min-height: 44px;
 	margin-top: 22px;
-	padding: 0 24px;
-	border: 1.5px solid var(--ink);
-	border-radius: 999px;
-	background: transparent;
-	color: var(--ink);
-	font-family: inherit;
-	font-size: 14px;
-	font-weight: 500;
-	line-height: 1.4;
+	padding: 0 22px;
+	border: 2.5px solid var(--navy);
+	border-radius: 14px;
+	background: var(--navy);
+	box-shadow: 0 4px 0 var(--rec-ink);
+	color: #fff;
+	font-family: var(--display);
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 1.1;
 	cursor: pointer;
 	transition:
-		background 0.2s ease,
-		color 0.2s ease,
-		border-color 0.2s ease,
+		transform 0.12s ease,
+		box-shadow 0.12s ease,
 		opacity 0.2s ease;
 }
 
 .cap-paper-cta:hover:not(:disabled) {
-	background: var(--ink);
-	color: var(--paper);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 0 var(--rec-ink);
+}
+
+.cap-paper-cta:active:not(:disabled) {
+	transform: translateY(3px);
+	box-shadow: 0 1px 0 var(--rec-ink);
 }
 
 .cap-paper-cta:focus-visible {
-	outline: 2px solid var(--paper-accent);
-	outline-offset: 2px;
+	outline: 3px solid var(--accent);
+	outline-offset: 3px;
 }
 
 .cap-paper-cta:disabled {
 	cursor: not-allowed;
-	opacity: 0.45;
+	opacity: 0.5;
 }
 
 .cap-paper-cta.is-ghost {
-	border-color: var(--track);
-	color: var(--ink-soft);
+	background: #fff;
+	color: var(--navy);
+	box-shadow: 0 4px 0 var(--navy);
 }
 
 .cap-paper-cta.is-ghost:hover:not(:disabled) {
-	background: transparent;
-	border-color: var(--ink-soft);
-	color: var(--ink);
+	box-shadow: 0 6px 0 var(--navy);
 }
 
 .cap-signin-footnote {
@@ -438,9 +469,10 @@ body {
 
 .cap-paper-error {
 	padding: 10px 14px;
-	border: 1.5px solid #e5484d;
+	border: 2px solid #d93a22;
 	border-radius: 14px;
-	color: #e5484d;
+	background: #fff;
+	color: #d93a22;
 	font-size: 12px;
 	line-height: 1.5;
 	text-align: left;

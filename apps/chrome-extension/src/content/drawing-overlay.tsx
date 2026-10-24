@@ -10,10 +10,10 @@ import {
 // A bright, presentation-friendly palette: the warm/cool brights read well on
 // light pages and white covers dark slides. Red is the default ink.
 const DRAW_COLORS = [
-	{ name: "Red", value: "#ef4444" },
-	{ name: "Yellow", value: "#facc15" },
+	{ name: "Red", value: "#ff4a2e" },
+	{ name: "Yellow", value: "#ffd84d" },
 	{ name: "Green", value: "#22c55e" },
-	{ name: "Blue", value: "#3b82f6" },
+	{ name: "Blue", value: "#1e66b8" },
 	{ name: "White", value: "#ffffff" },
 ] as const;
 
