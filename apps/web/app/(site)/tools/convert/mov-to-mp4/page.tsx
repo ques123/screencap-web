@@ -2,203 +2,212 @@ import type { Metadata } from "next";
 import { MediaFormatConverter } from "@/components/tools/MediaFormatConverter";
 import { ToolsPageTemplate } from "@/components/tools/ToolsPageTemplate";
 import type { ToolPageContent } from "@/components/tools/types";
-import { ogImageUrl } from "@/lib/og/url";
-import { createBreadcrumbSchema } from "@/utils/web-schema";
 
-const ogImage = ogImageUrl({
-	title: "Convert MOV to MP4 : free, in your browser",
-	tag: "Tools",
-});
+const pageUrl = "https://screencap.co/tools/convert/mov-to-mp4";
+const heroJpg =
+	"https://screencap.co/assets/img/tools-mov-to-mp4-hero-1520.jpg";
+const heroAlt =
+	"A phone sticker sending a clapperboard into a play-button video that fits a laptop";
+const pageTitle = "MOV to MP4 Converter: Free, Private, In Your Browser";
+const pageDescription =
+	"Convert MOV to MP4 free in your browser. Your file never leaves your device, with no sign-up and no watermark. Works with iPhone and Mac videos.";
 
 export const metadata: Metadata = {
-	title: "MOV to MP4 Converter: Free Online Video Converter | Screencap",
-	description:
-		"Convert Apple QuickTime MOV videos to MP4 format directly in your browser. Free, private, no upload needed. Works with iPhone recordings, screen captures, and any MOV file.",
-	keywords: [
-		"mov to mp4 converter",
-		"convert mov to mp4 online",
-		"free mov to mp4",
-		"quicktime to mp4",
-		"iphone video converter",
-		"mov to mp4 no upload",
-		"browser mov converter",
-	],
+	title: pageTitle,
+	description: pageDescription,
+	alternates: { canonical: pageUrl },
 	openGraph: {
-		title: "MOV to MP4 Converter: Free Online Video Converter | Screencap",
-		description:
-			"Convert MOV videos to the universally compatible MP4 format directly in your browser. No uploads, no installs, 100% private. Works with iPhone recordings and QuickTime files.",
-		url: "https://screencap.co/tools/convert/mov-to-mp4",
+		title: pageTitle,
+		description: pageDescription,
+		url: pageUrl,
 		siteName: "Screencap",
-		images: [
-			{
-				url: ogImage,
-				width: 1200,
-				height: 630,
-				alt: "Convert MOV to MP4 : free, in your browser",
-			},
-		],
+		images: [{ url: heroJpg, width: 1520, height: 760, alt: heroAlt }],
 		locale: "en_US",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "MOV to MP4 Converter: Free Online Video Converter | Screencap",
-		description:
-			"Convert MOV to MP4 directly in your browser. No uploads, no installs, 100% private.",
-		images: [ogImage],
-	},
-	alternates: {
-		canonical: "https://screencap.co/tools/convert/mov-to-mp4",
+		title: pageTitle,
+		description: pageDescription,
+		images: [{ url: heroJpg, alt: heroAlt }],
 	},
 };
 
 const faqs = [
 	{
-		question: "How do I convert MOV to MP4 online?",
+		question: "How do I convert MOV to MP4 for free?",
 		answer:
-			"Open Screencap's MOV to MP4 converter, drag and drop your MOV file (or click to browse), then click Convert. The entire process runs in your browser, your file never leaves your device. Once complete, click Download to save the MP4 file.",
+			"Use the converter on this page. Drop your .mov file in, press Convert and download the MP4. It costs nothing, needs no sign-up and adds no watermark. Files up to 500 MB are accepted.",
 	},
 	{
-		question: "Is the MOV to MP4 converter free?",
+		question: "Is this MOV to MP4 converter safe for private videos?",
 		answer:
-			"Yes, completely free with no limits on the number of conversions. There are no watermarks, no sign-up required, and no hidden fees. The converter runs entirely in your browser at zero cost.",
+			"The conversion runs in your browser, so the file is not uploaded to Screencap or anyone else. That makes it suitable for work or personal videos. Many online converters do upload your file to their servers, so it is worth checking before you use one.",
 	},
 	{
-		question: "Why convert MOV to MP4?",
+		question: "Can I convert .mov to MP4 on Mac without installing anything?",
 		answer:
-			"MOV is Apple's proprietary QuickTime format and plays natively on macOS and iOS but often has limited support on Windows, Android, and smart TVs. MP4 (H.264) is the universal standard supported by virtually every device, platform, browser, and video hosting service. Converting to MP4 ensures your video plays anywhere without compatibility issues.",
+			"Yes. Open this page in Chrome or Edge on your Mac and use the converter. QuickTime Player and iMovie are also built in, but they do not always save a file ending in .mp4.",
 	},
 	{
-		question: "Will converting MOV to MP4 reduce video quality?",
+		question: "Can I convert MOV to MP4 on Windows?",
 		answer:
-			"Quality is preserved as closely as possible during conversion, but it is a re-encode. The converter uses your browser's native video decoding and re-encodes to H.264 MP4. Some quality loss is possible, but at typical settings it is hard to notice for sharing, uploading, or playing on other devices.",
+			"Yes. The converter works in Chrome or Edge on Windows, so there is nothing to install. It re-encodes the video to H.264 in an MP4 file.",
 	},
 	{
-		question: "Is there a file size limit?",
+		question: "Does converting MOV to MP4 reduce quality?",
 		answer:
-			"The converter supports MOV files up to 500 MB. For smooth in-browser performance, smaller files convert faster since everything runs on your own device. For very large MOV files, trim the video first to keep only the section you need.",
+			"It re-encodes the video to H.264, so it is not a lossless copy and some detail can be lost. The resolution stays the same as your original.",
 	},
 	{
-		question: "Does this work with iPhone MOV files?",
+		question: "Why is my MOV file not playing?",
 		answer:
-			"Yes. iPhones and iPads record video in the MOV (QuickTime) container using HEVC or H.264. Screencap's converter handles both when your browser can decode them, and outputs a widely compatible MP4 file you can share, upload, or play on any device.",
-	},
-	{
-		question: "Does the converter work on mobile?",
-		answer:
-			"The converter works best on desktop browsers (Chrome, Edge, Brave). Mobile browser support for the underlying video processing APIs is still limited, so desktop is recommended for the most reliable results.",
-	},
-	{
-		question: "Do I need to install any software?",
-		answer:
-			"No. The converter runs entirely in your browser, no downloads, no plugins, no extensions required. Just open the page and start converting. All processing happens locally on your device for complete privacy.",
+			"MOV is Apple's QuickTime container, and some players cannot decode the codec inside it, such as HEVC from an iPhone. Converting to an H.264 MP4 gives you a file most players open.",
 	},
 ];
 
-const howToSteps = [
-	{
-		name: "Upload your MOV file",
-		text: "Open Screencap's MOV to MP4 converter and drag and drop your MOV file into the upload area, or click to browse your files. Supports QuickTime MOV files up to 500 MB.",
-	},
-	{
-		name: "Start the conversion",
-		text: "Click Convert. The file is processed entirely in your browser using local compute, nothing is uploaded to any server. Conversion time depends on file size and your device speed.",
-	},
-	{
-		name: "Download your MP4",
-		text: "Once conversion is complete, click Download to save the MP4 file to your device. The output is a standard H.264 MP4 compatible with every device, platform, and video hosting service.",
-	},
-];
-
-const faqStructuredData = {
+const graph = {
 	"@context": "https://schema.org",
-	"@type": "FAQPage",
-	mainEntity: faqs.map((faq) => ({
-		"@type": "Question",
-		name: faq.question,
-		acceptedAnswer: {
-			"@type": "Answer",
-			text: faq.answer,
+	"@graph": [
+		{
+			"@type": "BreadcrumbList",
+			itemListElement: [
+				{
+					"@type": "ListItem",
+					position: 1,
+					name: "Home",
+					item: "https://screencap.co",
+				},
+				{
+					"@type": "ListItem",
+					position: 2,
+					name: "Free tools",
+					item: "https://screencap.co/tools",
+				},
+				{
+					"@type": "ListItem",
+					position: 3,
+					name: "MOV to MP4",
+					item: pageUrl,
+				},
+			],
 		},
-	})),
+		{
+			"@type": "WebPage",
+			url: pageUrl,
+			name: pageTitle,
+			description: pageDescription,
+			image: heroJpg,
+			author: {
+				"@type": "Person",
+				name: "Chris",
+				worksFor: { "@type": "Organization", name: "Screencap" },
+			},
+			dateModified: "2026-10-24",
+		},
+		{
+			"@type": "WebApplication",
+			name: "Screencap MOV to MP4 Converter",
+			applicationCategory: "MultimediaApplication",
+			operatingSystem: "Any (runs in a web browser)",
+			offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+			url: pageUrl,
+		},
+		{
+			"@type": "FAQPage",
+			mainEntity: faqs.map((faq) => ({
+				"@type": "Question",
+				name: faq.question,
+				acceptedAnswer: { "@type": "Answer", text: faq.answer },
+			})),
+		},
+	],
 };
-
-const howToStructuredData = {
-	"@context": "https://schema.org",
-	"@type": "HowTo",
-	name: "How to Convert MOV to MP4 Online",
-	description:
-		"Convert Apple QuickTime MOV video files to MP4 format for free using Screencap's browser-based converter. No upload required.",
-	step: howToSteps.map((step, index) => ({
-		"@type": "HowToStep",
-		position: index + 1,
-		name: step.name,
-		text: step.text,
-	})),
-	tool: {
-		"@type": "HowToTool",
-		name: "A modern web browser (Chrome, Edge, or Brave recommended)",
-	},
-};
-
-const breadcrumbSchema = createBreadcrumbSchema([
-	{ name: "Home", url: "https://screencap.co" },
-	{ name: "Tools", url: "https://screencap.co/tools" },
-	{
-		name: "MOV to MP4 Converter",
-		url: "https://screencap.co/tools/convert/mov-to-mp4",
-	},
-]);
 
 export default function MOVToMP4Page() {
 	const pageContent: ToolPageContent = {
-		title: "MOV to MP4 Converter",
+		title: "MOV to MP4 converter, free and private",
 		description:
-			"Convert Apple QuickTime MOV videos to the universally compatible MP4 format directly in your browser, free, private, and no installation required",
-		featuresTitle: "Why Use This MOV to MP4 Converter",
+			"To convert MOV to MP4, drop your .mov file into the converter above, press Convert and download the MP4. It runs in your browser, so your video is never uploaded. It is free, needs no sign-up and adds no watermark. Files up to 500 MB work best in Chrome or Edge on a computer.",
+		privacyBadge: "Your file never leaves your device",
+		byline: "By Chris, Screencap Team",
+		updated: "24 October 2026",
+		heroImage: {
+			src: "/assets/img/tools-mov-to-mp4-hero-1520.webp",
+			alt: heroAlt,
+		},
+		sections: [
+			{
+				title: "How do I convert MOV to MP4?",
+				body: "<p>Use the converter above. <strong>Drop your .mov file in, press Convert, then download the MP4.</strong> The video is re-encoded to H.264 inside an MP4 file, and the resolution stays as it was.</p><ol><li>Open this page in Chrome or Edge on a computer.</li><li>Drag in your MOV file, or click to browse. The limit is 500 MB.</li><li>Press Convert and wait for the progress bar to finish.</li><li>Download the MP4.</li></ol><p>There is no sign-up and no watermark.</p>",
+			},
+			{
+				title: "How do I convert MOV to MP4 on a Mac?",
+				body: "<p>You can do it in the browser, or with the apps already on your Mac. QuickTime Player has <strong>File &gt; Export As</strong>, and iMovie can export a finished video. Both give you resolution choices, but check the file extension they write, because they do not always produce a .mp4.</p><p>If you want a file that ends in .mp4 without installing anything, open this page in Chrome or Edge and use the converter above. Screen recordings made with QuickTime are MOV files too, so the same steps apply.</p>",
+				image: {
+					src: "/assets/img/tools-mov-to-mp4-fig-1-1520.webp",
+					alt: "a laptop with a film strip going into a folder and a play button coming out",
+				},
+			},
+			{
+				title: "How do I convert MOV to MP4 on Windows?",
+				body: "<p>Open this page in Chrome or Edge and use the converter above. It needs no app and no account, so it works on any Windows computer with a current browser. The result is an H.264 MP4, the format most Windows players, editors and websites accept.</p>",
+			},
+			{
+				title: "Why won't my MOV file play?",
+				body: "<p>MOV is Apple's QuickTime container. MP4 is a related, open format that nearly every player accepts. <strong>The usual problem is the codec inside the file, not the .mov extension.</strong> An iPhone video, for example, may use HEVC, which some players cannot decode.</p><p>Converting to an H.264 MP4 gives you a file that most players, phones and upload forms open without fuss.</p>",
+			},
+			{
+				title: "Does converting MOV to MP4 lose quality?",
+				body: "<p>A little can, because this is a re-encode and not a lossless rewrap. The converter decodes your video and writes it again as H.264. <strong>The resolution is kept</strong>, so a 1080p MOV comes out as a 1080p MP4.</p><p>If you need a perfect copy of the original, keep the MOV as well and use the MP4 for sharing.</p>",
+			},
+			{
+				title: "Can I convert iPhone videos from MOV to MP4?",
+				body: "<p>Yes, where your browser can decode them. iPhones save video as MOV, often with HEVC. Chrome and Edge can decode HEVC on many computers, but not all, so a file that will not open here may need another route.</p><p>Move the video to your computer first, then drop it into the converter above.</p>",
+			},
+			{
+				title: "Is it private to convert MOV to MP4 here?",
+				body: "<p>Yes. <strong>The conversion runs in your browser, and the file is not uploaded to Screencap or anyone else.</strong> That makes it fine for work videos and personal clips.</p><p>Many online converters upload your file to their servers, so check how a site handles your video before you use it.</p>",
+				image: {
+					src: "/assets/img/tools-mov-to-mp4-fig-2-1520.webp",
+					alt: "a padlock on a laptop, the file stays on your computer",
+				},
+			},
+		],
+		featuresTitle: "What this MOV to MP4 converter does",
 		featuresDescription:
-			"A fast, free, and private way to convert MOV files to MP4, entirely in your browser with no uploads.",
+			"A free MOV to MP4 converter that works on your own computer.",
 		features: [
 			{
-				title: "100% Browser-Based",
+				title: "Runs in your browser",
 				description:
-					"The entire conversion runs locally in your browser. No server uploads, no processing queues, your files stay on your device at all times.",
+					"The file stays on your device. Nothing is uploaded to Screencap.",
 			},
 			{
-				title: "Works with iPhone & Mac Recordings",
+				title: "Free, no sign-up",
 				description:
-					"Convert MOV files from iPhones, iPads, and macOS screen recordings to universally compatible MP4. Handles H.264 QuickTime files, and HEVC where your browser supports decoding it.",
+					"Convert as many .mov files as you like, with no account and no watermark.",
 			},
 			{
-				title: "Universal MP4 Output",
+				title: "H.264 MP4 output",
 				description:
-					"The output is a standard H.264 MP4 file that plays on Windows, Android, smart TVs, and every video hosting platform including YouTube, Vimeo, and Google Drive.",
+					"The video is re-encoded to H.264 in an MP4 file, at the original resolution.",
 			},
 			{
-				title: "Complete Privacy",
+				title: "Mac and Windows",
 				description:
-					"Your video files never leave your device. Unlike other online converters that upload your content to remote servers, all processing happens client-side.",
-			},
-			{
-				title: "No Sign-Up or Installation",
-				description:
-					"No software downloads, browser extensions, or accounts required. Just open the page and start converting, works instantly in Chrome, Edge, and Brave.",
-			},
-			{
-				title: "Unlimited Free Conversions",
-				description:
-					"Convert as many MOV files to MP4 as you need with no daily limits, no watermarks, and no hidden fees.",
+					"Works in Chrome or Edge on a computer, so there is no app to install.",
 			},
 		],
 		faqs,
 		cta: {
-			title: "Record your screen, share a link",
+			title: "Record straight to MP4",
 			description:
-				"Screencap is a free screen recorder for Mac. Record, get a share link instantly, and turn on end-to-end encryption so only people with the link can watch. No time limits. Screencap records straight to MP4, so there is nothing to convert.",
-			buttonText: "Download Screencap free",
-			buttonHref: "/download",
-			secondaryButtonText: "Sign up free",
-			secondaryButtonHref: "/signup",
+				"Screencap records straight to MP4, so there is nothing to convert. Record your screen, then share a link that plays in any browser.",
+			buttonText: "Sign up free",
+			buttonHref: "/signup?from=tool-mov-to-mp4",
+			secondaryButtonText: "Download for Mac",
+			secondaryButtonHref: "/download",
 		},
 	};
 
@@ -206,21 +215,8 @@ export default function MOVToMP4Page() {
 		<>
 			<script
 				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(breadcrumbSchema),
-				}}
-			/>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(faqStructuredData),
-				}}
-			/>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(howToStructuredData),
-				}}
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }}
 			/>
 			<ToolsPageTemplate
 				content={pageContent}
