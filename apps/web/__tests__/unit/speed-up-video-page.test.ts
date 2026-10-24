@@ -4,30 +4,31 @@ import { describe, expect, it } from "vitest";
 import { createFAQSchema, createHowToSchema } from "@/utils/web-schema";
 
 const pageSource = readFileSync(
-	join(process.cwd(), "app/(site)/tools/video-speed-controller/page.tsx"),
+	join(process.cwd(), "app/(site)/tools/speed-up-video/page.tsx"),
 	"utf-8",
 );
 
-describe("Video Speed Controller page metadata", () => {
-	it("contains canonical URL", () => {
-		expect(pageSource).toContain(
-			'canonical: "https://cap.so/tools/video-speed-controller"',
-		);
+describe("Speed up video page metadata", () => {
+	it("contains canonical URL pointing at screencap.co", () => {
+		expect(pageSource).toContain('const pageUrl = "https://screencap.co/tools/speed-up-video"');
+		expect(pageSource).toContain("alternates: { canonical: pageUrl }");
 	});
 
-	it("uses the dynamic OG image", () => {
-		expect(pageSource).toContain("ogImageUrl(");
+	it("never references cap.so", () => {
+		expect(pageSource).not.toMatch(/https?:\/\/(www\.)?cap\.so/);
+	});
+
+	it("uses a Screencap-hosted OG image", () => {
+		expect(pageSource).toContain("https://screencap.co/assets/img/");
 		expect(pageSource).not.toContain("og.png");
 	});
 
 	it("contains OG url field", () => {
-		expect(pageSource).toContain(
-			'url: "https://cap.so/tools/video-speed-controller"',
-		);
+		expect(pageSource).toContain("url: pageUrl");
 	});
 
 	it("contains OG siteName field", () => {
-		expect(pageSource).toContain('siteName: "Cap"');
+		expect(pageSource).toContain('siteName: "Screencap"');
 	});
 
 	it("contains OG locale field", () => {
@@ -35,25 +36,29 @@ describe("Video Speed Controller page metadata", () => {
 	});
 });
 
-describe("Video Speed Controller page structured data", () => {
+describe("Speed up video page structured data", () => {
+	it("contains BreadcrumbList Home > Free tools > speed page", () => {
+		expect(pageSource).toContain('"@type": "BreadcrumbList"');
+		expect(pageSource).toContain('name: "Home"');
+		expect(pageSource).toContain('name: "Free tools"');
+		expect(pageSource).toContain("https://screencap.co/tools");
+	});
+
 	it("contains FAQPage JSON-LD", () => {
 		expect(pageSource).toContain('"@type": "FAQPage"');
 	});
 
-	it("contains HowTo JSON-LD", () => {
-		expect(pageSource).toContain('"@type": "HowTo"');
+	it("does not emit HowTo JSON-LD", () => {
+		expect(pageSource).not.toContain('"@type": "HowTo"');
 	});
 
-	it("contains at least 6 FAQ questions", () => {
+	it("contains at least 5 FAQ questions", () => {
 		const matches = pageSource.match(/question:/g);
 		expect(matches).not.toBeNull();
-		expect(matches?.length).toBeGreaterThanOrEqual(6);
-	});
-
-	it("contains HowTo steps", () => {
-		expect(pageSource).toContain('"@type": "HowToStep"');
+		expect(matches?.length).toBeGreaterThanOrEqual(5);
 	});
 });
+
 
 describe("Video Speed Controller FAQ schema validity", () => {
 	const faqs = [

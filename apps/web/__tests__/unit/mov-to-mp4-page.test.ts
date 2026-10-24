@@ -9,25 +9,26 @@ const pageSource = readFileSync(
 );
 
 describe("MOV to MP4 page metadata", () => {
-	it("contains canonical URL", () => {
-		expect(pageSource).toContain(
-			'canonical: "https://cap.so/tools/convert/mov-to-mp4"',
-		);
+	it("contains canonical URL pointing at screencap.co", () => {
+		expect(pageSource).toContain('const pageUrl = "https://screencap.co/tools/convert/mov-to-mp4"');
+		expect(pageSource).toContain("alternates: { canonical: pageUrl }");
 	});
 
-	it("uses the dynamic OG image", () => {
-		expect(pageSource).toContain("ogImageUrl(");
+	it("never references cap.so", () => {
+		expect(pageSource).not.toMatch(/https?:\/\/(www\.)?cap\.so/);
+	});
+
+	it("uses a Screencap-hosted OG image", () => {
+		expect(pageSource).toContain("https://screencap.co/assets/img/");
 		expect(pageSource).not.toContain("og.png");
 	});
 
 	it("contains OG url field", () => {
-		expect(pageSource).toContain(
-			'url: "https://cap.so/tools/convert/mov-to-mp4"',
-		);
+		expect(pageSource).toContain("url: pageUrl");
 	});
 
 	it("contains OG siteName field", () => {
-		expect(pageSource).toContain('siteName: "Cap"');
+		expect(pageSource).toContain('siteName: "Screencap"');
 	});
 
 	it("contains OG locale field", () => {
@@ -36,22 +37,26 @@ describe("MOV to MP4 page metadata", () => {
 });
 
 describe("MOV to MP4 page structured data", () => {
+	it("contains BreadcrumbList Home > Free tools > page", () => {
+		expect(pageSource).toContain('"@type": "BreadcrumbList"');
+		expect(pageSource).toContain('name: "Home"');
+		expect(pageSource).toContain('name: "Free tools"');
+		expect(pageSource).toContain("https://screencap.co/tools");
+		expect(pageSource).not.toContain('name: "Convert"');
+	});
+
 	it("contains FAQPage JSON-LD", () => {
 		expect(pageSource).toContain('"@type": "FAQPage"');
 	});
 
-	it("contains HowTo JSON-LD", () => {
-		expect(pageSource).toContain('"@type": "HowTo"');
+	it("does not emit HowTo JSON-LD", () => {
+		expect(pageSource).not.toContain('"@type": "HowTo"');
 	});
 
-	it("contains at least 6 FAQ questions", () => {
+	it("contains at least 5 FAQ questions", () => {
 		const matches = pageSource.match(/question:/g);
 		expect(matches).not.toBeNull();
-		expect(matches?.length).toBeGreaterThanOrEqual(6);
-	});
-
-	it("contains HowTo steps", () => {
-		expect(pageSource).toContain('"@type": "HowToStep"');
+		expect(matches?.length).toBeGreaterThanOrEqual(5);
 	});
 });
 

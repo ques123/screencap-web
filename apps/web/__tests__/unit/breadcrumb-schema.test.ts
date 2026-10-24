@@ -92,22 +92,19 @@ function readPage(routePath: string): string {
 	return readFileSync(join(appDir, routePath), "utf-8");
 }
 
-const toolPages: Array<{ file: string; breadcrumbItems: string[] }> = [
+const toolPages: Array<{
+	file: string;
+	breadcrumbItems: string[];
+	base?: string;
+}> = [
 	{
 		file: "(site)/tools/page.tsx",
-		breadcrumbItems: ["https://cap.so/tools"],
+		base: "https://screencap.co",
+		breadcrumbItems: ["https://screencap.co/tools"],
 	},
 	{
 		file: "(site)/tools/convert/page.tsx",
 		breadcrumbItems: ["https://cap.so/tools", "https://cap.so/tools/convert"],
-	},
-	{
-		file: "(site)/tools/convert/mov-to-mp4/page.tsx",
-		breadcrumbItems: ["https://cap.so/tools/convert/mov-to-mp4"],
-	},
-	{
-		file: "(site)/tools/convert/mp4-to-gif/page.tsx",
-		breadcrumbItems: ["https://cap.so/tools/convert/mp4-to-gif"],
 	},
 	{
 		file: "(site)/tools/convert/webm-to-mp4/page.tsx",
@@ -130,10 +127,6 @@ const toolPages: Array<{ file: string; breadcrumbItems: string[] }> = [
 		breadcrumbItems: ["https://cap.so/tools/convert/mp4-to-webm"],
 	},
 	{
-		file: "(site)/tools/video-speed-controller/page.tsx",
-		breadcrumbItems: ["https://cap.so/tools/video-speed-controller"],
-	},
-	{
 		file: "(site)/tools/loom-downloader/page.tsx",
 		breadcrumbItems: ["https://cap.so/tools/loom-downloader"],
 	},
@@ -144,7 +137,7 @@ const toolPages: Array<{ file: string; breadcrumbItems: string[] }> = [
 ];
 
 describe("Breadcrumb structured data in tools pages", () => {
-	for (const { file, breadcrumbItems } of toolPages) {
+	for (const { file, breadcrumbItems, base = "https://cap.so" } of toolPages) {
 		it(`${file} calls createBreadcrumbSchema`, () => {
 			const content = readPage(file);
 			expect(content).toContain("createBreadcrumbSchema");
@@ -152,7 +145,7 @@ describe("Breadcrumb structured data in tools pages", () => {
 
 		it(`${file} contains Home breadcrumb`, () => {
 			const content = readPage(file);
-			expect(content).toContain("https://cap.so");
+			expect(content).toContain(base);
 		});
 
 		for (const url of breadcrumbItems) {
@@ -161,6 +154,27 @@ describe("Breadcrumb structured data in tools pages", () => {
 				expect(content).toContain(url);
 			});
 		}
+	}
+
+	// Rebranded pages build the BreadcrumbList inline: Home > Free tools > page.
+	const screencapPages = [
+		["(site)/tools/convert/mov-to-mp4/page.tsx", "/tools/convert/mov-to-mp4"],
+		["(site)/tools/convert/mp4-to-gif/page.tsx", "/tools/convert/mp4-to-gif"],
+		["(site)/tools/convert/gif-to-mp4/page.tsx", "/tools/convert/gif-to-mp4"],
+		["(site)/tools/speed-up-video/page.tsx", "/tools/speed-up-video"],
+	] as const;
+
+	for (const [file, route] of screencapPages) {
+		it(`${file} has a Screencap Home > Free tools > page BreadcrumbList`, () => {
+			const content = readPage(file);
+			expect(content).toContain('"@type": "BreadcrumbList"');
+			expect(content).toContain("https://screencap.co/");
+			expect(content).toContain('name: "Free tools"');
+			expect(content).toContain('"https://screencap.co/tools"');
+			expect(content).toContain(`https://screencap.co${route}`);
+			expect(content).not.toContain('name: "Convert"');
+			expect(content).not.toMatch(/https?:\/\/(www\.)?cap\.so/);
+		});
 	}
 
 	it("dynamic [conversionPath] route generates breadcrumb from path param", () => {

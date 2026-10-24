@@ -63,7 +63,7 @@ const expectedCanonicals: Array<{ file: string; canonical: string }> = [
 	},
 	{
 		file: "(site)/tools/page.tsx",
-		canonical: "https://cap.so/tools",
+		canonical: "https://screencap.co/tools",
 	},
 	{
 		file: "(site)/tools/convert/page.tsx",
@@ -74,8 +74,8 @@ const expectedCanonicals: Array<{ file: string; canonical: string }> = [
 		canonical: "https://cap.so/tools/trim",
 	},
 	{
-		file: "(site)/tools/video-speed-controller/page.tsx",
-		canonical: "https://cap.so/tools/video-speed-controller",
+		file: "(site)/tools/speed-up-video/page.tsx",
+		canonical: "https://screencap.co/tools/speed-up-video",
 	},
 	{
 		file: "(site)/tools/convert/webm-to-mp4/page.tsx",
@@ -91,11 +91,15 @@ const expectedCanonicals: Array<{ file: string; canonical: string }> = [
 	},
 	{
 		file: "(site)/tools/convert/mov-to-mp4/page.tsx",
-		canonical: "https://cap.so/tools/convert/mov-to-mp4",
+		canonical: "https://screencap.co/tools/convert/mov-to-mp4",
 	},
 	{
 		file: "(site)/tools/convert/mp4-to-gif/page.tsx",
-		canonical: "https://cap.so/tools/convert/mp4-to-gif",
+		canonical: "https://screencap.co/tools/convert/mp4-to-gif",
+	},
+	{
+		file: "(site)/tools/convert/gif-to-mp4/page.tsx",
+		canonical: "https://screencap.co/tools/convert/gif-to-mp4",
 	},
 	{
 		file: "(site)/tools/convert/mp4-to-mp3/page.tsx",
@@ -122,10 +126,14 @@ describe("Canonical URLs", () => {
 			// Pages either declare the absolute canonical directly or pass the
 			// relative path to buildMarketingMetadata (resolved against
 			// metadataBase at runtime — same output).
-			const relativePath = canonical.replace("https://cap.so", "");
+			// Rebranded pages declare `const pageUrl = "<abs>"` and use
+			// `canonical: pageUrl`.
+			const relativePath = canonical.replace(/^https:\/\/(screencap\.co|cap\.so)/, "");
 			const hasCanonical =
 				content.includes(`canonical: "${canonical}"`) ||
-				content.includes(`path: "${relativePath}"`);
+				content.includes(`path: "${relativePath}"`) ||
+				(content.includes(`const pageUrl = "${canonical}"`) &&
+					content.includes("canonical: pageUrl"));
 			expect(hasCanonical).toBe(true);
 		});
 	}
