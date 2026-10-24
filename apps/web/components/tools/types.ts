@@ -1,4 +1,28 @@
+export interface ToolImage {
+	src: string;
+	alt: string;
+}
+
+export interface ToolRelatedLink {
+	title: string;
+	href: string;
+	description?: string;
+}
+
+export interface ToolExtraSection {
+	title: string;
+	body: string;
+	image?: ToolImage;
+}
+
 export interface ToolPageContent {
+	byline?: string;
+	updated?: string;
+	privacyBadge?: string;
+	heroImage?: ToolImage;
+	relatedTools?: ToolRelatedLink[];
+	relatedTitle?: string;
+	sections?: ToolExtraSection[];
 	slug?: string;
 	title: string;
 	description: string;

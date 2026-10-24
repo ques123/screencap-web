@@ -1,8 +1,11 @@
 "use client";
 
-import { Button } from "@cap/ui";
 import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/app/utils/analytics";
+import {
+	TOOL_NEXT_STEP_LINES,
+	ToolNextStepPrompt,
+} from "@/components/tools/ToolNextStepPrompt";
 
 const SPEED_OPTIONS = [
 	{ value: 0.25, label: "0.25x (Very Slow)" },
@@ -486,12 +489,12 @@ export const SpeedController = () => {
 
 	return (
 		<div className="w-full">
-			<h2 className="text-2xl font-semibold text-center mb-6">
+			<h2 className="sc-display mb-6 text-center text-[28px] leading-[1.05] tracking-[-0.03em]">
 				{selectedSpeed < 1 ? "Slow Down" : "Speed Up"} Your Video
 			</h2>
 
 			<div className="mb-6">
-				<label className="block text-sm font-medium text-gray-700 mb-2">
+				<label className="mb-2 block text-center text-sm font-semibold text-[#0B2440]">
 					Select Speed
 				</label>
 				<div className="flex flex-wrap gap-2 justify-center">
@@ -499,10 +502,11 @@ export const SpeedController = () => {
 						<button
 							key={option.value}
 							onClick={() => setSelectedSpeed(option.value)}
-							className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+							type="button"
+							className={`rounded-full border-2 border-[#0B2440] px-3.5 py-2 text-sm font-bold transition-colors ${
 								selectedSpeed === option.value
-									? "bg-blue-600 text-white"
-									: "bg-gray-200 text-gray-800 hover:bg-gray-300"
+									? "bg-[#0B2440] text-white"
+									: "bg-white text-[#0B2440] hover:bg-[#DCEBFA]"
 							}`}
 						>
 							{option.label}
@@ -512,10 +516,10 @@ export const SpeedController = () => {
 			</div>
 
 			<div
-				className={`border-2 border-dashed rounded-lg p-8 mb-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+				className={`mb-6 flex cursor-pointer flex-col items-center justify-center rounded-[18px] border-[3px] border-dashed p-6 transition-colors sm:p-8 ${
 					isDragging
-						? "border-blue-500 bg-blue-50"
-						: "border-gray-300 hover:border-blue-400"
+						? "border-[#1E66B8] bg-[#DCEBFA]"
+						: "border-[#0B2440]/40 bg-[#EAF3FC] hover:border-[#1E66B8]"
 				}`}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
@@ -535,7 +539,7 @@ export const SpeedController = () => {
 					{!file ? (
 						<>
 							<svg
-								className="mx-auto h-12 w-12 text-gray-400 mb-3"
+								className="mx-auto mb-3 h-12 w-12 text-[#1E66B8]"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -547,17 +551,17 @@ export const SpeedController = () => {
 									d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
 								/>
 							</svg>
-							<p className="text-lg font-medium text-gray-700">
+							<p className="sc-display text-xl tracking-normal [overflow-wrap:anywhere]">
 								Drag and drop your video file here
 							</p>
-							<p className="text-sm text-gray-500 mt-1">
+							<p className="mt-1 text-sm text-[#45627F]">
 								or click to browse (max 500MB)
 							</p>
 						</>
 					) : (
 						<>
 							<svg
-								className="mx-auto h-12 w-12 text-green-500 mb-3"
+								className="mx-auto mb-3 h-12 w-12 text-[#1E66B8]"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -569,12 +573,14 @@ export const SpeedController = () => {
 									d="M5 13l4 4L19 7"
 								/>
 							</svg>
-							<p className="text-lg font-medium text-gray-700">{file.name}</p>
-							<p className="text-sm text-gray-500 mt-1">
+							<p className="sc-display text-xl tracking-normal [overflow-wrap:anywhere]">
+								{file.name}
+							</p>
+							<p className="mt-1 text-sm text-[#45627F]">
 								{(file.size / (1024 * 1024)).toFixed(2)} MB
 							</p>
 							{videoInfo && (
-								<div className="mt-3 text-sm text-gray-600">
+								<div className="mt-3 text-sm text-[#45627F]">
 									<p>Duration: {formatDuration(videoInfo.duration)}</p>
 									<p>Resolution: {videoInfo.dimensions}</p>
 									<p className="mt-2 font-medium">
@@ -588,19 +594,19 @@ export const SpeedController = () => {
 			</div>
 
 			{error && (
-				<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+				<div className="mb-6 rounded-[14px] border-[3px] border-[#FF4A2E] bg-[#FFF1EE] p-4 font-medium text-[#B3200A]">
 					{error}
 				</div>
 			)}
 
 			{isProcessing && (
 				<div className="mb-6">
-					<p className="text-center text-gray-700 mb-2">
+					<p className="mb-2 text-center font-semibold text-[#0B2440]">
 						Processing... {progress}%
 					</p>
-					<div className="w-full bg-gray-200 rounded-full h-2">
+					<div className="h-3 w-full overflow-hidden rounded-full border-2 border-[#0B2440] bg-white">
 						<div
-							className="bg-blue-600 h-2 rounded-full transition-all"
+							className="h-full bg-[#1E66B8] transition-all"
 							style={{ width: `${progress}%` }}
 						></div>
 					</div>
@@ -608,55 +614,59 @@ export const SpeedController = () => {
 			)}
 
 			{outputUrl && (
-				<div className="mb-6 p-5 bg-green-50 border border-green-200 rounded-lg">
-					<p className="text-green-700 font-medium mb-3">
+				<div className="mb-6 rounded-[18px] border-[3px] border-[#0B2440] bg-[#EAF3FC] p-4 sm:p-5">
+					<p className="sc-display mb-3 text-xl tracking-normal">
 						Video {selectedSpeed < 1 ? "slowed down" : "sped up"} successfully!
 					</p>
 					<video
 						ref={videoPreviewRef}
 						src={outputUrl}
 						controls
-						className="w-full rounded-lg mb-4 bg-black"
+						className="mb-4 w-full rounded-[14px] bg-black"
 						style={{ maxHeight: "400px" }}
 					></video>
-					<div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-						<Button
-							variant="primary"
+					<div className="flex flex-col gap-4 sm:flex-row">
+						<button
+							type="button"
 							onClick={handleDownload}
-							className="w-full"
+							className="sc-btn sc-btn-accent w-full text-white"
 						>
 							Download {selectedSpeed}x Video
-						</Button>
+						</button>
 					</div>
+					<ToolNextStepPrompt
+						tool="video-speed-controller"
+						line={TOOL_NEXT_STEP_LINES["video-speed-controller"]}
+					/>
 				</div>
 			)}
 
-			<div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+			<div className="flex flex-col gap-4 sm:flex-row">
 				{file && !isProcessing && !outputUrl && (
-					<Button
-						variant="primary"
+					<button
+						type="button"
 						onClick={processVideo}
 						disabled={isProcessing}
-						className="w-full"
+						className="sc-btn sc-btn-accent w-full text-white"
 					>
 						{selectedSpeed < 1 ? "Slow Down" : "Speed Up"} Video (
 						{selectedSpeed}x)
-					</Button>
+					</button>
 				)}
 
 				{(file || outputUrl) && (
-					<Button
-						variant="white"
+					<button
+						type="button"
 						onClick={resetController}
 						disabled={isProcessing}
-						className="w-full"
+						className="sc-btn sc-btn-light w-full text-[#0B2440]"
 					>
 						{outputUrl ? "Process Another Video" : "Reset"}
-					</Button>
+					</button>
 				)}
 			</div>
 
-			<div className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500 text-center">
+			<div className="mt-8 border-t border-[#D3E3F3] pt-6 text-center text-sm text-[#45627F]">
 				<p>
 					This tool works entirely in your browser. Your videos are never
 					uploaded to any server.
@@ -666,7 +676,7 @@ export const SpeedController = () => {
 					efficient video processing.
 				</p>
 				{isSafari && (
-					<div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-700">
+					<div className="mt-3 p-3 rounded-[14px] border-2 border-[#FFD84D] bg-[#FFF9DB] text-[#6B5200]">
 						<p>
 							<strong>Safari Compatibility Notice:</strong> Safari has limited
 							support for some video processing features. For best results,

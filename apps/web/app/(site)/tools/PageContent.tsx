@@ -1,5 +1,6 @@
 "use client";
 
+import { buildEnv } from "@cap/env";
 import { Button } from "@cap/ui";
 import Link from "next/link";
 
@@ -33,7 +34,7 @@ const toolCategories: ToolCategory[] = [
 	},
 ];
 
-export function PageContent() {
+function CapToolsHub() {
 	return (
 		<>
 			<div className="relative overflow-hidden pt-24 md:pt-[180px]">
@@ -127,4 +128,97 @@ export function PageContent() {
 			</div>
 		</>
 	);
+}
+
+function ScreencapToolsHub() {
+	return (
+		<main className="pb-20 sm:pb-24">
+			<div
+				className="relative mx-[clamp(20px,5vw,48px)] mt-6 overflow-hidden rounded-[28px] bg-[#BFDDF5] bg-cover bg-[position:center_75%]"
+				style={{
+					backgroundImage:
+						"linear-gradient(180deg, rgba(234,243,252,.3) 0%, rgba(234,243,252,0) 35%, rgba(234,243,252,.35) 100%), url('/sky/peaks-sea.webp')",
+				}}
+			>
+				<div className="mx-auto max-w-[1240px] px-5 py-12 sm:px-10 sm:py-16 md:py-20">
+					<h1 className="sc-display m-0 max-w-[18ch] text-[clamp(40px,6vw,76px)] leading-[0.95]">
+						Try our free tools
+					</h1>
+					<p className="mt-5 mb-0 inline-block max-w-[62ch] rounded-[14px] bg-white/85 px-[18px] py-2.5 text-[17px] leading-normal text-[#0F2A4A] sm:text-[19px]">
+						Powerful browser-based utilities that run directly on your device.
+						No uploads, no installations, maximum privacy.
+					</p>
+				</div>
+			</div>
+			<div className="mx-auto max-w-[1240px] px-[clamp(16px,5vw,48px)]">
+				<div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{toolCategories.map((category) => (
+						<Link
+							key={category.href}
+							href={category.href}
+							className="sc-card group block p-6 no-underline transition-transform hover:-translate-y-1 sm:p-7"
+						>
+							<span className="mb-5 flex h-14 w-14 items-center justify-center rounded-[16px] border-[3px] border-[#0B2440] bg-[#FFD84D] shadow-[0_4px_0_#0B2440]">
+								<svg
+									className="h-7 w-7 text-[#0B2440]"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									strokeWidth={1.75}
+									aria-hidden="true"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d={category.icon}
+									/>
+								</svg>
+							</span>
+							<h2 className="sc-display m-0 mb-2 text-[24px] leading-[1.05] tracking-[-0.03em]">
+								{category.title}
+							</h2>
+							<p className="m-0 text-[15px] leading-relaxed text-[#1B3A5C]">
+								{category.description}
+							</p>
+						</Link>
+					))}
+				</div>
+				<section className="mt-14 rounded-[28px] bg-[#0B2440] p-6 text-center sm:mt-20 sm:p-12">
+					<h2 className="sc-display m-0 mb-3 text-[clamp(28px,4vw,44px)] leading-[0.98] !text-white">
+						Record your screen, share a link
+					</h2>
+					<p className="mx-auto mt-0 mb-8 max-w-[56ch] text-[17px] leading-relaxed text-[#DCEBFA]">
+						Screencap is a free screen recorder for Mac. Record, get a share
+						link instantly, and turn on end-to-end encryption so only people
+						with the link can watch. No time limits.
+					</p>
+					<div className="flex flex-col items-stretch justify-center gap-5 sm:flex-row sm:items-center">
+						<a
+							href="/signup"
+							data-umami-event="signup-click"
+							data-umami-event-where="tools-hub"
+							className="sc-btn sc-btn-accent !border-white !shadow-[0_6px_0_#05121F] text-white no-underline"
+						>
+							Sign up free
+						</a>
+						<a
+							href="/download"
+							data-umami-event="download-click"
+							data-umami-event-where="tools-hub"
+							className="sc-btn sc-btn-light !shadow-[0_6px_0_#05121F] text-[#0B2440] no-underline"
+						>
+							Download Screencap free
+						</a>
+					</div>
+				</section>
+			</div>
+		</main>
+	);
+}
+
+export function PageContent() {
+	if (buildEnv.NEXT_PUBLIC_IS_CAP !== "true") {
+		return <ScreencapToolsHub />;
+	}
+	return <CapToolsHub />;
 }
