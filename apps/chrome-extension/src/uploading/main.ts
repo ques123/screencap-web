@@ -97,18 +97,18 @@ const syncTabTitle = () => {
 	if (key === lastTitleKey) return;
 	lastTitleKey = key;
 	if (mode === "completed") {
-		document.title = "Ready - Cap";
+		document.title = "Ready - Screencap";
 		return;
 	}
 	if (mode === "error") {
-		document.title = "Upload needs attention - Cap";
+		document.title = "Upload needs attention - Screencap";
 		return;
 	}
 	if (mode === "waiting") {
-		document.title = "Uploading - Cap";
+		document.title = "Uploading - Screencap";
 		return;
 	}
-	document.title = `Uploading ${percent}% - Cap`;
+	document.title = `Uploading ${percent}% - Screencap`;
 };
 
 const applyPercentDom = () => {
@@ -182,7 +182,7 @@ const renderActiveStatus = (status: ActiveStatus) => {
 		applyStageState(
 			"recording",
 			"Still recording",
-			"Your Cap streams to the cloud while you record.",
+			"Your recording streams to the cloud while you record.",
 		);
 		return;
 	}
@@ -212,7 +212,7 @@ const renderActiveStatus = (status: ActiveStatus) => {
 	setMode("uploading");
 	applyStageState(
 		"uploading",
-		"Uploading your Cap",
+		"Uploading your recording",
 		"We'll take you to it the moment it's ready.",
 	);
 };
@@ -223,7 +223,7 @@ const renderCompleted = (
 	hideErrorActions();
 	targetPercent = 100;
 	setMode("completed");
-	applyStageState("completed", "Your Cap is ready", "Taking you there now…");
+	applyStageState("completed", "Your recording is ready", "Taking you there now…");
 	metaElement.hidden = true;
 	shareLink.href = status.shareUrl;
 	shareLink.hidden = false;
@@ -437,7 +437,7 @@ const pollStatus = async () => {
 		consecutivePollFailures += 1;
 	}
 	if (consecutivePollFailures >= 10 && mode === "waiting") {
-		detailElement.textContent = "Still trying to reach the Cap extension…";
+		detailElement.textContent = "Still trying to reach the Screencap extension…";
 	}
 };
 

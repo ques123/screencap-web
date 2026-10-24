@@ -36,8 +36,8 @@ const isCapWebOrigin = () => {
 	if (protocol !== "http:" && protocol !== "https:") return false;
 
 	return (
-		hostname === "cap.so" ||
-		hostname.endsWith(".cap.so") ||
+		hostname === "screencap.co" ||
+		hostname.endsWith(".screencap.co") ||
 		hostname === "localhost" ||
 		hostname === "127.0.0.1" ||
 		hostname === "::1"

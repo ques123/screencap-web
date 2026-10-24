@@ -1561,7 +1561,7 @@ function OverlayApp() {
 						<iframe
 							ref={iframeRef}
 							src={PREVIEW_SRC}
-							title="Cap camera preview"
+							title="Screencap camera preview"
 							allow="camera; microphone; autoplay; picture-in-picture"
 							className="cap-extension-camera-iframe"
 							onLoad={handlePreviewLoad}

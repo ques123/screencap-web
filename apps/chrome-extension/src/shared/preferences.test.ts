@@ -12,7 +12,7 @@ const camera: CameraDevice = {
 };
 
 const settings: ExtensionSettings = {
-	apiBaseUrl: "https://cap.so",
+	apiBaseUrl: "https://screencap.co",
 	capture: {
 		recordingMode: "fullscreen",
 		camera: null,

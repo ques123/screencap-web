@@ -39,10 +39,14 @@ const validateExtensionRedirectUri = (redirectUri: string) =>
 			0,
 			-CHROMIUM_IDENTITY_HOST_SUFFIX.length,
 		);
-		const configuredExtensionId = serverEnv().CAP_CHROME_EXTENSION_ID;
+		// Comma-separated so the Web Store id and a pinned dev-key id can both sign in.
+		const configuredExtensionIds = (serverEnv().CAP_CHROME_EXTENSION_ID ?? "")
+			.split(",")
+			.map((id) => id.trim())
+			.filter(Boolean);
 
-		if (configuredExtensionId) {
-			if (extensionId !== configuredExtensionId) {
+		if (configuredExtensionIds.length > 0) {
+			if (!configuredExtensionIds.includes(extensionId)) {
 				return yield* new HttpApiError.BadRequest();
 			}
 			return url;

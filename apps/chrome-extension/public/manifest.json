@@ -1,10 +1,11 @@
 {
 	"manifest_version": 3,
-	"name": "Cap - Screen Recorder & Screen Capture",
-	"short_name": "Cap",
+	"name": "Screencap - Screen Recorder & Screen Capture",
+	"short_name": "Screencap",
 	"description": "Free, open source screen recorder. Capture your screen, tab, camera & mic in Chrome and share a video link the moment you stop.",
 	"version": "1.0.4",
-	"homepage_url": "https://cap.so",
+	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjFEsA/wq1oPgxW81GGtQ1OYZnhLgxJDkUmoaTgaEaSkdoE4TvKkS0ojFM8XtxqO5XGntIsBkuiTl4z5Shd8vXjf2+xEyHig9D7ihHLngLwhEJoZStMvdMLXW6bsh1fOxtExsKQLliNXGLM8r0TCz7Kf7yRi4TGH+I0v8VfgFktigUyyQ0r9Qeqrji7d6e80T1lCp5UcBR3UL2PsWgL4OORVAqdH/1MeCIpR8U15mEtaWhK3cTxSZjVQ12l7IEcPS0r6SkK7pUe/OksvVd92aqacThiF2ZoyZd5ZUi81oBl+4iEI2DlpHPWhyC5zGtrvGTfyeh9ML4J8TbwiHj/XI1QIDAQAB",
+	"homepage_url": "https://screencap.co",
 	"minimum_chrome_version": "116",
 	"icons": {
 		"16": "icons/icon-16.png",
@@ -13,7 +14,7 @@
 		"128": "icons/icon-128.png"
 	},
 	"action": {
-		"default_title": "Record your screen with Cap",
+		"default_title": "Record your screen with Screencap",
 		"default_icon": {
 			"16": "icons/icon-16.png",
 			"32": "icons/icon-32.png",

@@ -125,7 +125,9 @@ function createServerEnv() {
 			CAP_CHROME_EXTENSION_ID: z
 				.string()
 				.optional()
-				.describe("Chrome Web Store extension id allowed to receive auth keys"),
+				.describe(
+					"Comma-separated Chrome extension ids allowed to receive auth keys",
+				),
 			CAP_ALLOWED_SIGNUP_DOMAINS: z
 				.string()
 				.optional()

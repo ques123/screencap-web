@@ -1459,7 +1459,7 @@ const runFailedUploadRetry = async (
 
 	const [settings, auth] = await Promise.all([loadSettings(), loadAuth()]);
 	if (!auth) {
-		throw new Error("Sign in to Cap to retry this upload.");
+		throw new Error("Sign in to Screencap to retry this upload.");
 	}
 
 	const typedVideoId = failed.videoId as VideoId;

@@ -550,7 +550,7 @@ test("dismissing or closing the panel also closes the idle camera preview", asyn
 		const panelFrame = frameWithUrl(targetPage, "popup.html");
 		if (!panelFrame) throw new Error("panel frame missing");
 		await panelFrame
-			.locator('button[aria-label="Close Cap and hide all recorder UI"]')
+			.locator('button[aria-label="Close Screencap and hide all recorder UI"]')
 			.click();
 
 		await expect

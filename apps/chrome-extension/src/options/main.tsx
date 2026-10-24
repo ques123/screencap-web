@@ -4,7 +4,7 @@ import {
 } from "@cap/recorder-core";
 import { useCallback, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { CapBrand, DoodleBoilFilter } from "../shared/cap-brand";
+import { ScreencapBrand, DoodleBoilFilter } from "../shared/screencap-brand";
 import { formatRecordedDuration } from "../shared/format-duration";
 import { mountPageNav } from "../shared/page-nav";
 import { sendServiceWorkerMessage } from "../shared/runtime";
@@ -369,7 +369,7 @@ function App() {
 		<>
 			<main className="stage">
 				<header className="brand">
-					<CapBrand />
+					<ScreencapBrand />
 				</header>
 				<svg className="doodle" viewBox="0 0 120 104" aria-hidden="true">
 					<defs>
@@ -409,14 +409,14 @@ function App() {
 				</svg>
 				<h1>Recorder options</h1>
 				<p className="lede">
-					Tune where Cap uploads and how your camera shows up by default.
+					Tune where Screencap uploads and how your camera shows up by default.
 				</p>
 
 				<div className="sheet">
 					<section className="card card-1">
 						<h2>Connection</h2>
 						<label className="field">
-							<span>Cap URL</span>
+							<span>Screencap URL</span>
 							<input
 								type="url"
 								value={settings.apiBaseUrl}

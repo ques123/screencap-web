@@ -33,7 +33,7 @@ describe("extension message contracts", () => {
 		const message = {
 			target: "recording-status",
 			type: "recording-status-changed",
-			status: { phase: "completed", videoId: "v", shareUrl: "https://cap.so" },
+			status: { phase: "completed", videoId: "v", shareUrl: "https://screencap.co" },
 		};
 		expect(isRecordingStatusBroadcast(message)).toBe(true);
 		expect(isServiceWorkerRequest(message)).toBe(false);

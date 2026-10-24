@@ -1,5 +1,5 @@
 import { type CSSProperties, useId } from "react";
-import { CapBrand, DoodleBoilFilter } from "../../shared/cap-brand";
+import { ScreencapBrand, DoodleBoilFilter } from "../../shared/screencap-brand";
 
 interface SignInViewProps {
 	authPending: boolean;
@@ -15,7 +15,7 @@ export const SignInView = ({
 	const boilId = useId();
 	return (
 		<div className="cap-signin">
-			<CapBrand className="cap-signin-brand cap-fade-up" />
+			<ScreencapBrand className="cap-signin-brand cap-fade-up" />
 			<svg
 				className="cap-signin-doodle cap-fade-up cap-fade-up-1"
 				viewBox="0 0 120 104"
@@ -55,7 +55,7 @@ export const SignInView = ({
 			</h1>
 			<p className="cap-signin-lede cap-fade-up cap-fade-up-3">
 				{authPending
-					? "Complete sign-in in the Cap window. This panel updates automatically."
+					? "Complete sign-in in the Screencap window. This panel updates automatically."
 					: "Record your tab, screen or camera. Your video uploads while you record."}
 			</p>
 			{authPending ? (
@@ -63,7 +63,7 @@ export const SignInView = ({
 					<svg viewBox="0 0 24 24" aria-hidden="true">
 						<circle pathLength={1} cx="12" cy="12" r="9" />
 					</svg>
-					Waiting for the Cap sign-in window…
+					Waiting for the Screencap sign-in window…
 				</p>
 			) : null}
 			<button
@@ -76,7 +76,7 @@ export const SignInView = ({
 				disabled={busy}
 				onClick={onSignIn}
 			>
-				{authPending ? "Open the sign-in window again" : "Sign in to Cap"}
+				{authPending ? "Open the sign-in window again" : "Sign in to Screencap"}
 			</button>
 			<p
 				className={

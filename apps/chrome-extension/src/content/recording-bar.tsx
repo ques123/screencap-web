@@ -545,7 +545,7 @@ export function RecordingBarOverlay({
 						isDragging && "is-dragging",
 					)}
 					role="toolbar"
-					aria-label="Cap recording controls"
+					aria-label="Screencap recording controls"
 					style={{
 						left: `${position?.x ?? EDGE_PADDING}px`,
 						top: position ? `${position.y}px` : "50%",
@@ -569,7 +569,7 @@ export function RecordingBarOverlay({
 									className="cap-extension-control-bar-dot is-ready"
 									aria-hidden
 								/>
-								Cap
+								Screencap
 							</span>
 						</div>
 					</div>
