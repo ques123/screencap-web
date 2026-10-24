@@ -8,9 +8,9 @@ export const TOOL_NEXT_STEP_LINES: Record<string, string> = {
 	"mov-to-mp4":
 		"Screencap records straight to MP4, so there is nothing to convert.",
 	"speed-up-video":
-		"Record with Screencap and share a link; viewers can watch at the speed they like.",
+		"Recording a walkthrough? Screencap gives you a share link the moment you stop.",
 	"gif-to-mp4":
-		"Record your screen and share a link that plays instantly, instead of a heavy GIF.",
+		"Need to show something on screen? Record it with Screencap and share a link.",
 };
 
 interface ToolNextStepPromptProps {
