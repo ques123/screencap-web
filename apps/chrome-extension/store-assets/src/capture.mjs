@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ext = path.resolve(here, "../../dist");
 const out = path.join(here, "captures");
-const id = "ocihliidncmdnmfgbncklfgcddldamie"; // fixed by the manifest "key"
+const id = "gngdjomhdmmaijkihncegknjpnepfonc"; // fixed by the manifest "key"
 const work = await mkdtemp(tmpdir() + "/sc-store-");
 const VIEW = { width: 1160, height: 560 }; // page area inside the browser frame
 

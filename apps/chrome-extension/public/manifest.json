@@ -4,7 +4,7 @@
 	"short_name": "Screencap",
 	"description": "Free, open source screen recorder. Capture your screen, tab, camera & mic in Chrome and share a video link the moment you stop.",
 	"version": "1.1.0",
-	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjFEsA/wq1oPgxW81GGtQ1OYZnhLgxJDkUmoaTgaEaSkdoE4TvKkS0ojFM8XtxqO5XGntIsBkuiTl4z5Shd8vXjf2+xEyHig9D7ihHLngLwhEJoZStMvdMLXW6bsh1fOxtExsKQLliNXGLM8r0TCz7Kf7yRi4TGH+I0v8VfgFktigUyyQ0r9Qeqrji7d6e80T1lCp5UcBR3UL2PsWgL4OORVAqdH/1MeCIpR8U15mEtaWhK3cTxSZjVQ12l7IEcPS0r6SkK7pUe/OksvVd92aqacThiF2ZoyZd5ZUi81oBl+4iEI2DlpHPWhyC5zGtrvGTfyeh9ML4J8TbwiHj/XI1QIDAQAB",
+	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3pkGZV8eKUAA2DBZWKRkcDFoN0/HwZnsF1VtWYSPClxbaXcvVyNwxQIdQFI3N6A4MmOd3u9uu2mzwsbXdLeRQrvYFFb/H0bhOCyBs6tcTwYNdPz5fx5g3h9txd3UIl+hcNJvLv2LGw0431Rs022fSMNSoyZP2B9rB/OwB6aDSBUUqFN5283ix5L73+ujejSNI1NmGTX8Qq8DqDpsP8Ur11pW7Zut3XarlR3SbYdBDT21tZMSgrYVbAXPxjT480Vgrb/ZrQe8w2EX0B6Ld4MXzJfTZXxf3YGEVaxxLfAIOdX++gbpmiiOpRXQChAf2ji5eoz5iILzkHSDrmKCFz/fXwIDAQAB",
 	"homepage_url": "https://screencap.co",
 	"minimum_chrome_version": "127",
 	"icons": {
