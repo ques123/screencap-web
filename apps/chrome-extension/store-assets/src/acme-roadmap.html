@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Acme roadmap</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#2b2f36;background:#fff;display:flex;height:100vh;overflow:hidden}
+aside{width:210px;background:#f6f6f4;border-right:1px solid #e8e8e4;padding:18px 14px;flex:none}
+.ws{display:flex;align-items:center;gap:10px;font-weight:600;margin-bottom:18px}
+.ws i{width:24px;height:24px;border-radius:6px;background:#6b7cff;display:block}
+aside a{display:block;padding:6px 8px;border-radius:6px;color:#5b616b;margin-bottom:2px}
+aside a.on{background:#ebebe7;color:#222;font-weight:600}
+aside h6{margin:18px 8px 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#9a9fa7}
+main{flex:1;padding:34px 56px;overflow:hidden}
+.crumb{color:#9a9fa7;font-size:13px;margin-bottom:10px}
+h1{font-size:32px;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:#6b717b;margin-bottom:22px}
+.chips{display:flex;gap:8px;margin-bottom:22px}
+.chip{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.g{background:#e3f4e8;color:#1d7a43}.y{background:#fdf2d4;color:#8a6410}.b{background:#e4ecff;color:#2f4fb5}.r{background:#fde4e0;color:#b23a2a}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:12px;color:#9a9fa7;font-weight:600;padding:8px 10px;border-bottom:1px solid #e8e8e4}
+td{padding:11px 10px;border-bottom:1px solid #f0f0ec}
+td b{font-weight:600}
+.bar{height:8px;border-radius:4px;background:#eceae4;width:140px;overflow:hidden}
+.bar span{display:block;height:100%;background:#6b7cff;border-radius:4px}
+</style></head><body>
+<aside><div class="ws"><i></i>Acme</div>
+<a>Home</a><a>Inbox</a><a class="on">Roadmap</a><a>Docs</a><h6>Teams</h6><a>Design</a><a>Platform</a><a>Growth</a><a>Support</a></aside>
+<main>
+<div class="crumb">Acme / Planning / Roadmap</div>
+<h1>Q4 product roadmap</h1>
+<div class="sub">What we are shipping between October and December.</div>
+<div class="chips"><span class="chip g">On track</span><span class="chip b">7 initiatives</span><span class="chip y">2 at risk</span></div>
+<table>
+<tr><th>Initiative</th><th>Team</th><th>Status</th><th>Progress</th><th>Target</th></tr>
+<tr><td><b>Onboarding revamp</b></td><td>Design</td><td><span class="chip g">On track</span></td><td><div class="bar"><span style="width:72%"></span></div></td><td>Oct 31</td></tr>
+<tr><td><b>Usage dashboard</b></td><td>Growth</td><td><span class="chip y">At risk</span></td><td><div class="bar"><span style="width:41%"></span></div></td><td>Nov 14</td></tr>
+<tr><td><b>Single sign-on</b></td><td>Platform</td><td><span class="chip g">On track</span></td><td><div class="bar"><span style="width:88%"></span></div></td><td>Nov 7</td></tr>
+<tr><td><b>Help center refresh</b></td><td>Support</td><td><span class="chip b">Planned</span></td><td><div class="bar"><span style="width:12%"></span></div></td><td>Dec 2</td></tr>
+<tr><td><b>Mobile app beta</b></td><td>Platform</td><td><span class="chip y">At risk</span></td><td><div class="bar"><span style="width:35%"></span></div></td><td>Dec 12</td></tr>
+<tr><td><b>Billing cleanup</b></td><td>Growth</td><td><span class="chip g">On track</span></td><td><div class="bar"><span style="width:63%"></span></div></td><td>Nov 21</td></tr>
+</table></main></body></html>

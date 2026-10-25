@@ -54,8 +54,6 @@ SCREENCAP EVERYWHERE
 
 The extension is part of Screencap: record from Chrome and manage your recordings from your library at screencap.co. Recordings stay connected to your Screencap account wherever you capture them.
 
-Screencap is free to get started.
-
 Open source on GitHub: https://github.com/ques123/screencap-web
 
 ## SEO Positioning
@@ -78,66 +76,95 @@ Review-safety notes:
 
 - Keep every claim true for the submitted build (system audio is "where Chrome supports it").
 - Do not mention competitor names in metadata fields other than the single description mention.
-- Do not claim "unlimited free": the free tier may have limits.
+- Do not talk about plans or pricing in any store field.
 
 ## Icons
 
-`public/icons/` is generated from the brand mark `apps/web/public/logos/logo-solo.svg`:
+Toolbar and store icons live in `public/icons/` (16, 32, 48, 128 with padding, 256). The 128px icon is the store listing icon.
 
-- icon-16/32/48: full-bleed, used for toolbar and favicon contexts.
-- icon-128: 96x96 artwork centered with 16px transparent padding, per Chrome Web Store icon guidelines (this is the store listing icon).
-- icon-256: same padded treatment at 2x.
+## Graphics assets
 
-Regenerate with rsvg-convert:
+All in `store-assets/` (PNG, 24-bit, no alpha). Sources and the regenerate command are in `store-assets/src/README.md`. Screenshots show the real extension UI captured from `dist/` on a made-up "Acme" page with a placeholder camera feed; no real people, emails or third-party logos.
 
-```sh
-cd apps/chrome-extension/public/icons
-for s in 16 32 48; do rsvg-convert -w $s -h $s ../../../web/public/logos/logo-solo.svg -o icon-$s.png; done
-rsvg-convert -w 96 -h 96 --page-width 128 --page-height 128 --top 16 --left 16 ../../../web/public/logos/logo-solo.svg -o icon-128.png
-rsvg-convert -w 192 -h 192 --page-width 256 --page-height 256 --top 32 --left 32 ../../../web/public/logos/logo-solo.svg -o icon-256.png
-```
+| Asset | Size | File | Shows |
+|---|---|---|---|
+| Screenshot 1 | 1280x800 | `store-assets/screenshot-1-record.png` | "Record in one click": the toolbar dropdown under the toolbar icon |
+| Screenshot 2 | 1280x800 | `store-assets/screenshot-2-modes.png` | "Tab, window, screen or camera": the mode list open |
+| Screenshot 3 | 1280x800 | `store-assets/screenshot-3-camera-mic.png` | "Camera and mic, your way": in-page "Ready to record" bar with the camera bubble |
+| Screenshot 4 | 1280x800 | `store-assets/screenshot-4-recording.png` | "A small bar, nothing in the way": timer pill and camera bubble while recording |
+| Screenshot 5 | 1280x800 | `store-assets/screenshot-5-link-ready.png` | "Your link is ready the moment you stop": the "Your recording is ready" page |
+| Small promo tile | 440x280 | `store-assets/promo-small-440x280.png` | Sticker logo, "Screen recorder" on the sky photo (required) |
+| Marquee | 1400x560 | `store-assets/promo-marquee-1400x560.png` | Logo, headline and the dropdown UI (optional, needed for featuring) |
 
-## Promotional Images
+---
 
-Store sources live in `store-assets/`. PNGs are full-bleed with square corners, as the store requires.
+## Privacy tab
 
-- promo-small.png: 440x280 small promo tile (required).
-- promo-marquee.png: 1400x560 marquee tile (optional, needed for feature placement).
+### Single purpose
 
-The SVG sources use the Geist fonts bundled in `public/fonts`. Regenerate with a fontconfig file that points at that directory:
+> Record the user's screen, a window, the current tab or their camera, with microphone and system audio, and upload the recording to the user's Screencap account so a share link is ready when they stop.
 
-```sh
-cat > /tmp/screencap-fonts.conf <<'EOF'
-<?xml version="1.0"?>
-<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-<fontconfig>
-  <dir>/path/to/screencap-web/apps/chrome-extension/public/fonts</dir>
-  <dir>/System/Library/Fonts</dir>
-  <cachedir>/tmp/screencap-fc-cache</cachedir>
-</fontconfig>
-EOF
-cd apps/chrome-extension/store-assets
-FONTCONFIG_FILE=/tmp/screencap-fonts.conf rsvg-convert -w 440 -h 280 promo-small.svg -o promo-small.png
-FONTCONFIG_FILE=/tmp/screencap-fonts.conf rsvg-convert -w 1400 -h 560 promo-marquee.svg -o promo-marquee.png
-```
+### Permission justifications
 
-## Screenshot Plan
+One per permission in `public/manifest.json` (version 1.0.4). Paste each into the matching field.
 
-Use 1280x800 PNG screenshots, full bleed, square corners, no padding. Capture against a real page, not a blank tab.
+| Permission | Justification |
+|---|---|
+| `activeTab` | Lets the extension act on the tab the user is looking at when they click the toolbar icon or start a recording, for example to show the recording controls on that tab and to pick it as the tab to record. It is only used after a user gesture. |
+| `identity` | Sign-in. The extension calls `chrome.identity.launchWebAuthFlow` to open the Screencap sign-in page at screencap.co in an isolated auth window and receive the result, so the user's password is never handled by the extension. |
+| `offscreen` | Recording, encoding and uploading run in an offscreen document, because a Manifest V3 service worker cannot hold a media stream or use MediaRecorder and is shut down when idle. This keeps a recording going when the toolbar popup is closed. |
+| `scripting` | Injects the in-page recording overlay (recording bar, countdown, camera bubble) into tabs that were already open before the extension was installed or updated, which the manifest content script does not reach. Nothing is injected except the extension's own overlay script. |
+| `storage` | Keeps the sign-in token, the selected recording mode, camera and microphone, overlay preferences and the current recording state, so settings persist and a recording survives the service worker restarting. |
+| `tabCapture` | Records the current browser tab (the "Current tab" mode) with its audio, through `chrome.tabCapture.getMediaStreamId`. Only used when the user picks that mode and starts a recording. |
+| Host permissions (`http://*/*`, `https://*/*`, `file:///*`) | Needed to show the recording bar, countdown and camera bubble on whichever page the user chooses to record, and to inject them into tabs that are already open. The extension also talks to its own backend at https://screencap.co for sign-in and upload. The extension does not read, scrape or send page content, and it does not ask for any other host. |
+| Content script on all pages (`content-bootstrap.js`) | A tiny script that waits for a message from the extension and, only when the user starts or opens a recording, loads the overlay (recording bar, countdown, camera bubble) onto the page being recorded. It has to be present on any page the user might record. It reads no page content. |
 
-1. In-page recorder panel open with the recording mode selector (tab / screen / camera) visible.
-2. Recording setup showing microphone and camera selectors plus the system audio toggle.
-3. Recording in progress with the floating recording bar and webcam overlay on a real page.
-4. Upload/completion state with the share-link handoff.
-5. The Screencap share page (player, transcript/chapters) after a recording is available.
+### Remote code
 
-## Review Notes: Permission Justifications
+No. All JavaScript that runs is inside the extension package. No eval, no remotely hosted scripts. The extension only exchanges data (sign-in, recording upload) with https://screencap.co.
 
-- activeTab and scripting: show the recording controls overlay on the page the user is recording.
-- tabCapture: record the current browser tab when the user selects tab recording.
-- offscreen: run capture, encoding, and upload outside the recorder panel so recordings survive closing it.
-- storage: remember account session, selected devices, and recording preferences.
-- identity: sign the user in to their Screencap account.
-- host permissions: inject the recording overlay and camera preview on pages the user chooses to record.
+### Data usage disclosures
 
-Submission checklist: icon present (128px padded), summary under 132 chars, at least one 1280x800 screenshot, small promo tile uploaded, privacy policy URL set, permission justifications filled in.
+Declare exactly this. It must match the privacy policy at https://screencap.co/privacy.
+
+| Chrome Web Store category | Collected? | Why |
+|---|---|---|
+| Personally identifiable information | Yes | The email address and name of the user's Screencap account, returned by screencap.co after sign-in so the extension knows who is signed in. |
+| Health information | No | |
+| Financial and payment information | No | |
+| Authentication information | Yes | A sign-in token (API key) issued by screencap.co after sign-in, stored in `chrome.storage.local` and sent to screencap.co to authorise uploads. The extension never sees the user's password. |
+| Personal communications | No | |
+| Location | No | |
+| Web history | No | The extension does not read or send URLs or titles of visited pages. Tab titles are compared locally to match a tab being captured and are not transmitted. |
+| User activity | No | No analytics, tracking or telemetry code is in the extension. |
+| Website content | Yes | Only what the user chooses to record: the screen, window or tab video plus microphone, system and tab audio and optional camera video, uploaded to the user's Screencap account. Nothing is captured until the user starts a recording. |
+
+Use of data: app functionality only (sign-in and creating the recording the user asked for). Not advertising, not personalization, not sold.
+
+### Certifications (tick all three)
+
+- I do not sell or transfer user data to third parties, outside of the approved use cases. (Recordings are stored with Screencap's storage providers to deliver the service.)
+- I do not use or transfer user data for purposes that are unrelated to the item's single purpose.
+- I do not use or transfer user data to determine creditworthiness or for lending purposes.
+
+### Privacy policy URL
+
+https://screencap.co/privacy
+
+---
+
+## Before submitting
+
+- [ ] Version in `public/manifest.json` is higher than any version already uploaded
+- [ ] Store zip built with `bun run package:store` (manifest at the archive root)
+- [ ] https://screencap.co/privacy is live and says what the data table above says (account email, sign-in token, uploaded recordings)
+- [ ] Verify the "open source" claim: the GitHub link in the description (`ques123/screencap-web`) must be public, otherwise drop that line and the word "open source" from the summary and the manifest description
+- [ ] Verify "system audio (where Chrome supports it)" still matches the build
+- [ ] 128px store icon uploaded; 5 screenshots 1280x800; small promo tile 440x280; marquee 1400x560
+- [ ] Listing text contains no em dashes, plan or pricing talk, or competitor names other than the single description mention
+- [ ] Support URL and website URL set to https://screencap.co
+- [ ] Single purpose, all permission justifications and the data table pasted from the Privacy tab section above
+- [ ] The three certifications ticked
+- [ ] Developer account email verified, and screencap.co verified in Search Console under the same Google account if you want the publisher line to show the domain
+- [ ] A test account for reviewers (sign-in needs a Screencap account): add credentials in the dashboard's test instructions field, or state that sign-up is open
+- [ ] After approval: add the listing URL to the website's install buttons
