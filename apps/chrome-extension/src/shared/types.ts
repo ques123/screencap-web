@@ -377,6 +377,8 @@ export type ServiceWorkerRequest =
 	| {
 			target: "service-worker";
 			type: "open-recorder-panel";
+			/** Skip the native action popup and show the in-page panel. */
+			inPage?: boolean;
 	  }
 	| {
 			target: "service-worker";

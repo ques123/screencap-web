@@ -505,6 +505,7 @@ test("dismissing or closing the panel also closes the idle camera preview", asyn
 		await sendServiceWorkerMessage(messengerPage, {
 			target: "service-worker",
 			type: "open-recorder-panel",
+			inPage: true,
 		});
 
 		await expect
@@ -535,6 +536,7 @@ test("dismissing or closing the panel also closes the idle camera preview", asyn
 		await sendServiceWorkerMessage(messengerPage, {
 			target: "service-worker",
 			type: "open-recorder-panel",
+			inPage: true,
 		});
 		await expect
 			.poll(() => frameWithUrl(targetPage, "popup.html") !== null, {
@@ -593,6 +595,7 @@ test("an abandoned recording start clears without leaving controls behind", asyn
 		await sendServiceWorkerMessage(messengerPage, {
 			target: "service-worker",
 			type: "open-recorder-panel",
+			inPage: true,
 		});
 		await expect
 			.poll(() => frameWithUrl(targetPage, "popup.html") !== null, {
@@ -793,6 +796,7 @@ test("camera preview recovers when ICE gathering never reports completion", asyn
 		await sendServiceWorkerMessage(messengerPage, {
 			target: "service-worker",
 			type: "open-recorder-panel",
+			inPage: true,
 		});
 
 		await expect
@@ -868,6 +872,7 @@ test("recording controls stay stable and the camera resizes directly", async () 
 		await sendServiceWorkerMessage(messengerPage, {
 			target: "service-worker",
 			type: "open-recorder-panel",
+			inPage: true,
 		});
 		await expect
 			.poll(() => frameWithUrl(targetPage, "popup.html") !== null, {

@@ -564,3 +564,11 @@ body {
 .popup-window .cap-sky {
 	min-height: 100vh;
 }
+
+/* Native action popup: fixed width, height follows the content (Chrome caps
+   it at 800x600). No viewport-height tricks here. */
+body.action-popup {
+	width: 360px;
+	margin: 0;
+	overflow-x: hidden;
+}

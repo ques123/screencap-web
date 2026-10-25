@@ -18,6 +18,7 @@ import {
 	loadMediaAccessState,
 	loadSettings,
 	MEDIA_ACCESS_KEY,
+	RECORDING_STATE_KEY,
 	type MediaAccessState,
 	saveSettings,
 	updateMediaAccessState,
@@ -54,6 +55,9 @@ type ActiveRecordingStatus = Extract<
 
 const PANEL_TOKEN = decodeURIComponent(window.location.hash.slice(1));
 const IS_EMBEDDED = PANEL_TOKEN.length > 0 && window.parent !== window;
+// The toolbar icon's native dropdown (action-popup.html). Chrome closes it
+// when focus leaves, so nothing here may be required for a recording to start.
+const IS_ACTION_POPUP = document.body.classList.contains("action-popup");
 const DEFAULT_MEDIA_ACCESS: MediaAccessState = {
 	camera: false,
 	microphone: false,
@@ -224,6 +228,33 @@ function App() {
 			active: true,
 		});
 	};
+
+	// While the action popup is open the service worker shows the idle camera
+	// preview, and uses this port's disconnect to tear it down again.
+	useEffect(() => {
+		if (!IS_ACTION_POPUP) return;
+		const port = chrome.runtime.connect({ name: "cap-action-popup" });
+		return () => port.disconnect();
+	}, []);
+
+	// Keep the status (including a persisted start error) live while open.
+	useEffect(() => {
+		if (!IS_ACTION_POPUP) return;
+		const apply = (value: unknown) => {
+			const next = (value as { status?: RecordingStatus } | undefined)?.status;
+			if (next) setStatus(next);
+		};
+		const handle = (
+			changes: Record<string, chrome.storage.StorageChange>,
+			areaName: string,
+		) => {
+			if (areaName === "session" && changes[RECORDING_STATE_KEY]) {
+				apply(changes[RECORDING_STATE_KEY].newValue);
+			}
+		};
+		chrome.storage.onChanged.addListener(handle);
+		return () => chrome.storage.onChanged.removeListener(handle);
+	}, []);
 
 	useEffect(() => {
 		if (!IS_EMBEDDED) return;
@@ -488,6 +519,7 @@ function App() {
 			}
 			if (response.status) setStatus(response.status);
 			postPanelMessage({ type: "dismiss" });
+			if (IS_ACTION_POPUP) window.close();
 		});
 
 	const stop = () =>
@@ -593,7 +625,8 @@ function App() {
 		<main className="flex w-full justify-center">
 			<div
 				className={clsx(
-					"cap-sky relative flex justify-center flex-col w-full p-[1rem] pt-[3.25rem] gap-[0.75rem] text-[0.875rem] font-[400] text-[--text-primary] min-h-[440px]",
+					"cap-sky relative flex justify-center flex-col w-full p-[1rem] gap-[0.75rem] text-[0.875rem] font-[400] text-[--text-primary]",
+					IS_ACTION_POPUP ? "pt-[1rem]" : "pt-[3.25rem] min-h-[440px]",
 				)}
 			>
 				{auth && (
@@ -608,6 +641,7 @@ function App() {
 					// Screencap has no plans, so no Free/Pro badge.
 					showPlan={false}
 					minimal={signedOut}
+					hideWindowControls={IS_ACTION_POPUP}
 					onClose={closePanel}
 					onUpgradeClick={handleUpgradeClick}
 				/>

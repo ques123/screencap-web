@@ -9,6 +9,7 @@ import {
 	isRecordingStatusBroadcast,
 	isServiceWorkerRequest,
 } from "../shared/messages";
+import { shouldKeepErrorOnPopupClose } from "../shared/popup-lifecycle";
 import { rememberRecordingMode } from "../shared/preferences";
 import {
 	clearAuth,
@@ -63,6 +64,12 @@ import type {
 // a window. The standalone fallback therefore loads a privileged twin that is
 // not in web_accessible_resources.
 const POPUP_URL = "popup-window.html";
+// The toolbar icon's native dropdown (manifest action.default_popup).
+const ACTION_POPUP_URL = "action-popup.html";
+const ACTION_POPUP_PORT = "cap-action-popup";
+// A popup closed faster than this did not give the user time to read a
+// surfaced failure, so the failure is kept for the next open.
+const ACTION_POPUP_MIN_ACK_MS = 1500;
 const OFFSCREEN_URL = "offscreen.html";
 const AUTH_TIMEOUT_MS = 10 * 60 * 1000;
 const OFFSCREEN_MESSAGE_ATTEMPTS = 3;
@@ -210,7 +217,8 @@ const createOffscreenDocument = () =>
 			{
 				url: OFFSCREEN_URL,
 				reasons: ["USER_MEDIA", "DISPLAY_MEDIA", "BLOBS", "AUDIO_PLAYBACK"],
-				justification: "Record and upload Screencap videos from an extension page.",
+				justification:
+					"Record and upload Screencap videos from an extension page.",
 			},
 			() => {
 				const error = chrome.runtime.lastError;
@@ -533,11 +541,12 @@ const setActionTitle = (title: string) =>
 const updateActionForStatus = (nextStatus: RecordingStatus) => {
 	const isCapturing = isCapturingRecordingStatus(nextStatus);
 	return Promise.all([
-		// The recorder renders inside the page, so the action never opens a popup.
-		setActionPopup(""),
+		setActionPopup(ACTION_POPUP_URL),
 		setActionBadgeText(isCapturing ? "REC" : ""),
 		setActionTitle(
-			isCapturing ? "Stop Screencap recording" : "Record your screen with Screencap",
+			isCapturing
+				? "Screencap is recording (click for controls)"
+				: "Record your screen with Screencap",
 		),
 	]).then(() => undefined);
 };
@@ -565,16 +574,36 @@ const setRecordingStatus = (nextStatus: RecordingStatus) => {
 	}).catch(() => undefined);
 };
 
+const actionPopupPorts = new Set<chrome.runtime.Port>();
+
+const openActionPopup = async () => {
+	try {
+		await (
+			chrome.action as unknown as { openPopup: () => Promise<void> }
+		).openPopup();
+		return true;
+	} catch {
+		return false;
+	}
+};
+
 const syncPanelForStatus = (status: RecordingStatus) => {
 	if (status.phase === "error") {
-		// Reopen the panel everywhere so the failure is actually visible; only
-		// the tab on screen renders it.
-		void updateSharedUiState((current) => ({
-			...current,
-			panelOpen: true,
-			readyBarDismissed: false,
-			updatedAt: Date.now(),
-		})).catch(() => undefined);
+		// The failure is persisted in the shared recording state, so the action
+		// popup shows it whenever it opens. Open it now; only when Chrome
+		// refuses (no focused window) fall back to the in-page panel.
+		if (actionPopupPorts.size > 0) return;
+		void openActionPopup()
+			.then((opened) => {
+				if (opened) return;
+				return updateSharedUiState((current) => ({
+					...current,
+					panelOpen: true,
+					readyBarDismissed: false,
+					updatedAt: Date.now(),
+				})).then(() => undefined);
+			})
+			.catch(() => undefined);
 		return;
 	}
 	if (status.phase !== "idle") {
@@ -722,7 +751,17 @@ const getRecorderPanelTabs = async (actionTab?: chrome.tabs.Tab) => {
 	});
 };
 
-const openRecorderPanel = async (actionTab?: chrome.tabs.Tab) => {
+const openRecorderPanel = async (
+	actionTab?: chrome.tabs.Tab,
+	inPage = false,
+) => {
+	// The recorder lives in the toolbar icon's native popup. The in-page panel
+	// and standalone window below are only fallbacks for when Chrome refuses
+	// to open it programmatically (or when a caller explicitly asks for it).
+	if (!inPage) {
+		if (actionPopupPorts.size > 0) return;
+		if (await openActionPopup()) return;
+	}
 	// Clicking the action toggles the recorder UI. When it is already open,
 	// close it through the same path as the panel's own close button so the
 	// camera preview is torn down too — a blind panel-toggle would hide the
@@ -1627,7 +1666,7 @@ const handleRequest = async (
 	}
 
 	if (message.type === "open-recorder-panel") {
-		await openRecorderPanel(sender.tab);
+		await openRecorderPanel(sender.tab, message.inPage === true);
 		return { ok: true };
 	}
 
@@ -1835,16 +1874,39 @@ chrome.runtime.onInstalled.addListener((details) => {
 	}
 });
 
-chrome.action.onClicked.addListener((tab) => {
-	void syncRecordingStatus()
-		.catch(() => recordingStatus)
-		.then((currentStatus) => {
-			if (isCapturingRecordingStatus(currentStatus)) {
-				return stopRecordingAndOpenDestination().then(() => undefined);
-			}
-			return openRecorderPanel(tab);
-		})
-		.catch(() => undefined);
+// The toolbar icon opens the native action popup (manifest default_popup),
+// which connects a port while it is alive. Its lifetime drives the idle
+// camera preview: shown on open, torn down on close unless a capture started.
+chrome.runtime.onConnect.addListener((port) => {
+	if (port.name !== ACTION_POPUP_PORT) return;
+	if (port.sender?.id !== chrome.runtime.id || port.sender.tab) {
+		port.disconnect();
+		return;
+	}
+	const openedAt = Date.now();
+	actionPopupPorts.add(port);
+	void (async () => {
+		const [tab, currentStatus] = await Promise.all([
+			getActiveTab(),
+			syncRecordingStatus().catch(() => recordingStatus),
+		]);
+		if (!tab || !canInjectIntoTab(tab)) return;
+		await showPreviewForRecorderOpen(tab, currentStatus);
+	})().catch(() => undefined);
+
+	port.onDisconnect.addListener(() => {
+		actionPopupPorts.delete(port);
+		if (actionPopupPorts.size > 0) return;
+		if (
+			!shouldKeepErrorOnPopupClose(
+				recordingStatus,
+				Date.now() - openedAt,
+				ACTION_POPUP_MIN_ACK_MS,
+			)
+		) {
+			void closeAllExtensionUi().catch(() => undefined);
+		}
+	});
 });
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
