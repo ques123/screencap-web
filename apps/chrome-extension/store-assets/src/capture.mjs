@@ -2,7 +2,7 @@
 // signed-in state mocked) into captures/*.png. Run: node capture.mjs
 // Needs: bun run build (dist/), Playwright from the monorepo, ffmpeg.
 import { chromium } from "/Users/admin/Code/screencap/screencap-web-chrome-ext/node_modules/@playwright/test/index.mjs";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile, copyFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import http from "node:http";
@@ -27,6 +27,7 @@ const VIEW = { width: 1160, height: 560 }; // page area inside the browser frame
 }
 
 const avatarUrl = "data:image/png;base64," + (await readFile(work + "/avatar.png")).toString("base64");
+await copyFile(work + "/avatar.png", out + "/avatar.png");
 const html = await readFile(path.join(here, "acme-roadmap.html"), "utf8");
 const srv = http.createServer((q, r) => { r.setHeader("content-type", "text/html"); r.end(html); }).listen(0);
 const origin = `http://127.0.0.1:${srv.address().port}`;
@@ -60,6 +61,21 @@ try {
 		const hgt = await p.evaluate(() => document.documentElement.scrollHeight);
 		await p.setViewportSize({ width: 360, height: hgt });
 	}, 600);
+	await popup("popup-camera", async (p) => {
+		await p.getByRole("button", { name: /No Camera/ }).first().click();
+		await p.waitForTimeout(700);
+		await p.screenshot({ path: work + "/cam-picker.png" });
+		const opts = p.locator("[role=option], [role=dialog] button");
+		console.log("camera options:", await opts.allInnerTexts());
+		await opts.nth(2).click();
+		await p.waitForTimeout(900);
+		// Chrome's fake device has a test name; show a typical built-in camera name instead.
+		await p.evaluate(() => {
+			for (const el of document.querySelectorAll("span.truncate")) {
+				if (el.children.length === 0 && /y4m|fake|device|\/var\//i.test(el.textContent) && !/No Camera/i.test(el.textContent)) el.textContent = "FaceTime HD Camera";
+			}
+		});
+	}, 420);
 	await popup("popup-modes", async (p) => {
 		await p.setViewportSize({ width: 360, height: 400 });
 		await p.getByRole("combobox").first().click();
