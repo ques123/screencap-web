@@ -16,6 +16,10 @@ import { db } from "../index.ts";
 import { screencapToolEvents, screencapUserAdmin, users } from "../schema.ts";
 import { getSettings, getSettingsSync } from "../screencap-settings.ts";
 import {
+	recordSignupSource,
+	SIGNUP_SOURCE_COOKIE,
+} from "../screencap-sources.ts";
+import {
 	isBlockedAccountEmail,
 	isEmailAllowedForSignup,
 	isEmailBlockedFromSignup,
@@ -31,12 +35,7 @@ import { ssoLoginErrorPath } from "./sso-state.ts";
 
 export const maxDuration = 120;
 
-const TOOL_SLUGS = [
-	"mp4-to-gif",
-	"gif-to-mp4",
-	"mov-to-mp4",
-	"speed-up-video",
-];
+const TOOL_SLUGS = ["mp4-to-gif", "gif-to-mp4", "mov-to-mp4", "speed-up-video"];
 
 // Reads Cloudflare's CF-IPCountry header for the current request. "XX"/"T1"
 // (unknown/Tor) and anything unreadable count as allowed. The blocked list
@@ -251,10 +250,18 @@ export const authOptions = (ssoContext?: SsoAuthContext): NextAuthOptions => {
 			},
 		},
 		events: {
-			async createUser() {
+			async createUser({ user }) {
 				try {
 					const { cookies } = await import("next/headers");
 					const jar = await cookies();
+					try {
+						await recordSignupSource(
+							user.id,
+							jar.get(SIGNUP_SOURCE_COOKIE)?.value,
+						);
+					} catch (error) {
+						console.warn("[signup-source] not recorded", error);
+					}
 					const slug = jar.get("sc_tool")?.value;
 					if (!slug) return;
 					jar.set("sc_tool", "", { path: "/", maxAge: 0 });

@@ -10,6 +10,7 @@ import {
 	formatDuration,
 	formatNumber,
 	RecordedWithText,
+	SourceChip,
 } from "../../_components/format";
 import { RecordingActions } from "../../_components/RecordingActions";
 import { UserControls } from "./UserControls";
@@ -71,6 +72,54 @@ export default async function AdminUserPage({
 						{u.blockedAt ? ` on ${absoluteDate(u.blockedAt)}` : ""}
 						{u.blockReason ? `: ${u.blockReason}` : "."}
 					</p>
+				)}
+			</Card>
+
+			<Card className="space-y-3">
+				<CardTitle>Signed up from</CardTitle>
+				{u.source.fields === null ? (
+					<p className="text-sm text-gray-10">
+						Not tracked: this account was made before Screencap recorded where
+						sign-ups come from (27 October 2026).
+					</p>
+				) : (
+					<>
+						<div>
+							<SourceChip source={u.source} showUntracked />
+						</div>
+						<dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+							{(
+								[
+									["Referrer", u.source.fields.referrerHost],
+									["utm_source", u.source.fields.utmSource],
+									["utm_medium", u.source.fields.utmMedium],
+									["utm_campaign", u.source.fields.utmCampaign],
+									["First page", u.source.fields.landingPath],
+								] as const
+							)
+								.filter(([, v]) => v)
+								.map(([k, v]) => (
+									<div key={k}>
+										<dt className="text-gray-10">{k}</dt>
+										<dd className="text-gray-12 break-all">{v}</dd>
+									</div>
+								))}
+							{u.source.fields.firstSeenAt && (
+								<div>
+									<dt className="text-gray-10">First visit</dt>
+									<dd className="text-gray-12">
+										<DateText value={u.source.fields.firstSeenAt} />
+									</dd>
+								</div>
+							)}
+						</dl>
+						{u.source.kind === "direct" && (
+							<p className="text-xs text-gray-10">
+								No referrer or campaign tags on the first visit: typed in,
+								bookmarked, or a link from an app that hides the referrer.
+							</p>
+						)}
+					</>
 				)}
 			</Card>
 

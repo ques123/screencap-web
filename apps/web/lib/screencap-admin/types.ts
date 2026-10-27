@@ -1,3 +1,4 @@
+import type { SignupSourceFields } from "@cap/database/screencap-sources";
 export type ActionInput = {
 	adminEmail: string;
 	reason?: string;
@@ -43,6 +44,28 @@ export type AdminUserRow = {
 	blocked: boolean;
 	proRevoked: boolean;
 	apps: string[];
+	source: SignupSource;
+};
+
+export type SignupSourceKind =
+	| "ai"
+	| "search"
+	| "ads"
+	| "social"
+	| "store"
+	| "share"
+	| "other"
+	| "direct"
+	| "untracked";
+
+export type SignupSource = {
+	/** "ChatGPT", "Google", "Share link", "Direct", a raw host... */
+	label: string;
+	kind: SignupSourceKind;
+	/** Raw utm_source / referrer host when it adds to the label. */
+	detail: string | null;
+	/** Stored first-touch fields; null = signed up before tracking (2026-10-27). */
+	fields: SignupSourceFields | null;
 };
 
 export type RecordedWith = {

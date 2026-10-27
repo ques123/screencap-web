@@ -66,6 +66,7 @@
 		"./schema": "./schema.ts",
 		"./screencap-settings": "./screencap-settings.ts",
 		"./screencap-clients": "./screencap-clients.ts",
+		"./screencap-sources": "./screencap-sources.ts",
 		"./video-sharing-default": "./video-sharing-default.ts",
 		"./loops/*": "./loops/*.ts",
 		"./crypto": "./crypto.ts",

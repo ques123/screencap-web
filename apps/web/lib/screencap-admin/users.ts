@@ -15,8 +15,14 @@ import { appsForUsers, getUserClients } from "./clients";
 import { sendRemovalNotice } from "./notices";
 import { listRecordings, removeRecordingInternal } from "./recordings";
 import { getSettings } from "./settings";
+import {
+	classifySignupSource,
+	getUserSource,
+	sourcesForUsers,
+} from "./sources";
 import type {
 	ActionInput,
+	SignupSource,
 	ActionResult,
 	AdminUserDetail,
 	AdminUserRow,
@@ -81,7 +87,11 @@ type UserSelectRow = {
 	lastActiveAt: Date | string | null;
 };
 
-function toRow(r: UserSelectRow, apps: string[] = []): AdminUserRow {
+function toRow(
+	r: UserSelectRow,
+	apps: string[] = [],
+	source: SignupSource = classifySignupSource(null),
+): AdminUserRow {
 	return {
 		id: String(r.id),
 		email: r.email,
@@ -93,6 +103,7 @@ function toRow(r: UserSelectRow, apps: string[] = []): AdminUserRow {
 		blocked: r.blockedAt !== null,
 		proRevoked: r.stripeSubscriptionStatus === REVOKED,
 		apps,
+		source,
 	};
 }
 
@@ -125,10 +136,18 @@ export async function listUsers(opts: {
 			.from(users)
 			.where(where),
 	]);
-	const apps = await appsForUsers(rows.map((r) => String(r.id)));
+	const ids = rows.map((r) => String(r.id));
+	const [apps, sources] = await Promise.all([
+		appsForUsers(ids),
+		sourcesForUsers(ids),
+	]);
 	return {
 		rows: rows.map((r) =>
-			toRow(r as unknown as UserSelectRow, apps.get(String(r.id))),
+			toRow(
+				r as unknown as UserSelectRow,
+				apps.get(String(r.id)),
+				sources.get(String(r.id)),
+			),
 		),
 		total: tot?.n ?? 0,
 	};
@@ -149,10 +168,11 @@ export async function getUserDetail(
 		.from(screencapUserAdmin)
 		.where(eq(screencapUserAdmin.userId, userId as UserId))
 		.limit(1);
-	const [recent, settings, clients] = await Promise.all([
+	const [recent, settings, clients, source] = await Promise.all([
 		listRecordings({ ownerId: userId, limit: 50 }),
 		getSettings(),
 		getUserClients(userId),
+		getUserSource(userId),
 	]);
 	const storageOverride = admin?.storageHoursOverride ?? null;
 	const recordingOverride = admin?.recordingMinutesOverride ?? null;
@@ -162,6 +182,7 @@ export async function getUserDetail(
 			clients.installed.map((c) =>
 				[c.label, c.version].filter(Boolean).join(" "),
 			),
+			source,
 		),
 		blockedAt: admin?.blockedAt ?? null,
 		blockReason: admin?.blockReason ?? null,

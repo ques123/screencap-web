@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listUsers } from "@/lib/screencap-admin";
+import { listUsers, signupSourceSummary } from "@/lib/screencap-admin";
 import {
 	Chip,
 	DateText,
@@ -7,6 +7,7 @@ import {
 	formatDuration,
 	formatNumber,
 	pageParam,
+	SourceChip,
 	strParam,
 } from "../_components/format";
 import { Pager, SearchBar } from "../_components/Pager";
@@ -23,11 +24,14 @@ export default async function AdminUsersPage({
 	const sp = await searchParams;
 	const q = strParam(sp.q);
 	const page = pageParam(sp.page);
-	const { rows, total } = await listUsers({
-		q: q || undefined,
-		limit: PAGE_SIZE,
-		offset: (page - 1) * PAGE_SIZE,
-	});
+	const [{ rows, total }, sources] = await Promise.all([
+		listUsers({
+			q: q || undefined,
+			limit: PAGE_SIZE,
+			offset: (page - 1) * PAGE_SIZE,
+		}),
+		signupSourceSummary(30),
+	]);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -36,6 +40,17 @@ export default async function AdminUsersPage({
 				q={q}
 				placeholder="Search by email, name or user id"
 			/>
+			{sources.length > 0 && (
+				<div className="flex flex-wrap gap-1.5 items-center text-xs text-gray-10">
+					<span className="mr-1">Sign-ups in the last 30 days:</span>
+					{sources.map((s) => (
+						<span key={s.label} className="inline-flex items-center gap-1">
+							<SourceChip source={s} showUntracked />
+							<span className="text-gray-11">{formatNumber(s.count)}</span>
+						</span>
+					))}
+				</div>
+			)}
 			{rows.length === 0 ? (
 				<EmptyState>
 					{q ? `No users match "${q}".` : "No users yet."}
@@ -63,6 +78,7 @@ export default async function AdminUsersPage({
 									)}
 									{u.blocked && <Chip tone="red">Blocked</Chip>}
 									{u.proRevoked && <Chip tone="amber">Pro revoked</Chip>}
+									<SourceChip source={u.source} />
 									{u.apps.map((app) => (
 										<Chip key={app} tone="green">
 											{app}

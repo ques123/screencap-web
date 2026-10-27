@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
-import type { RecordedWith } from "@/lib/screencap-admin/types";
+import type {
+	RecordedWith,
+	SignupSourceKind,
+} from "@/lib/screencap-admin/types";
 
 export function formatDuration(seconds: number | null | undefined): string {
 	const s = Math.max(0, Math.round(seconds ?? 0));
@@ -83,6 +86,34 @@ export function Chip({
 			className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-md whitespace-nowrap ${chipTones[tone]}`}
 		>
 			{children}
+		</span>
+	);
+}
+
+const sourceTones: Record<SignupSourceKind, keyof typeof chipTones> = {
+	ai: "blue",
+	search: "green",
+	ads: "amber",
+	social: "amber",
+	store: "green",
+	share: "blue",
+	other: "gray",
+	direct: "gray",
+	untracked: "gray",
+};
+
+/** Where a user signed up from, e.g. "via ChatGPT". Hidden for accounts made before tracking. */
+export function SourceChip({
+	source,
+	showUntracked = false,
+}: {
+	source: { label: string; kind: SignupSourceKind; detail?: string | null };
+	showUntracked?: boolean;
+}) {
+	if (source.kind === "untracked" && !showUntracked) return null;
+	return (
+		<span title={source.detail ?? undefined}>
+			<Chip tone={sourceTones[source.kind]}>via {source.label}</Chip>
 		</span>
 	);
 }

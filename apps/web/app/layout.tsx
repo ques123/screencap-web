@@ -1,4 +1,5 @@
 import "@/app/globals.css";
+import { SIGNUP_SOURCE_SNIPPET } from "@cap/database/screencap-sources";
 import { buildEnv } from "@cap/env";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import { GeistSans } from "geist/font/sans";
@@ -90,6 +91,9 @@ export default function RootLayout({ children }: PropsWithChildren) {
 				/>
 				<Script id="matomo" strategy="afterInteractive">
 					{MATOMO_SNIPPET}
+				</Script>
+				<Script id="signup-source" strategy="afterInteractive">
+					{SIGNUP_SOURCE_SNIPPET}
 				</Script>
 				{buildEnv.NEXT_PUBLIC_OPENPANEL_CLIENT_ID ? (
 					<OpenPanelComponent

@@ -18,6 +18,13 @@ and the Mac app.
   stays a 404. On Screencap builds `app/(site)/layout.tsx` wraps them in a header and footer matching
   the static site (`ScreencapHeader`/`ScreencapFooter`, fonts in `app/(site)/fonts`), and the
   converter hides its format pickers so it never links to a disabled route.
+- Web: the admin panel shows where each user signed up from (`screencap_user_sources`, migration 0056):
+  `SIGNUP_SOURCE_SNIPPET` (`@cap/database/screencap-sources`, run in the root layout and copied to the
+  deploy repo's `site/assets/ref.js`; keep both in step) sets a first-touch `sc_ref` cookie on the first
+  visit with an outside referrer, utm/ad-click params or a `/s/` share link; NextAuth `events.createUser`
+  saves it (no cookie = "Direct"). Labels (ChatGPT, Google, Share link...) are computed at read time in
+  `lib/screencap-admin/sources.ts`, so the rules can change without a backfill. Accounts made before
+  2026-10-27 show "Not tracked".
 - Web: the admin panel shows which apps each user has (`screencap_user_clients`: Mac app version
   from the `X-Cap-Desktop-Version` header on authenticated API calls, plus signed-in extension/mobile
   keys) and what made each recording (`screencap_video_clients`: Mac app version + Instant/Studio,

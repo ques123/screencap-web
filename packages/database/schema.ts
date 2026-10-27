@@ -1056,6 +1056,20 @@ export const screencapVideoClients = mysqlTable("screencap_video_clients", {
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Where each account came from: the first outside referrer / utm tags the browser saw before
+// signing up (sc_ref cookie, set by the landing page and the app). One row per account made since
+// 2026-10-27; older accounts have none.
+export const screencapUserSources = mysqlTable("screencap_user_sources", {
+	userId: nanoId("user_id").notNull().primaryKey().$type<User.UserId>(),
+	referrerHost: varchar("referrer_host", { length: 255 }),
+	utmSource: varchar("utm_source", { length: 100 }),
+	utmMedium: varchar("utm_medium", { length: 100 }),
+	utmCampaign: varchar("utm_campaign", { length: 100 }),
+	landingPath: varchar("landing_path", { length: 255 }),
+	firstSeenAt: timestamp("first_seen_at"),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const storageIntegrations = mysqlTable(
 	"storage_integrations",
 	{
