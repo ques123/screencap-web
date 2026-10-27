@@ -11,6 +11,7 @@ import {
 	videos,
 	videoUploads,
 } from "@cap/database/schema";
+import { userHasDesktopApp } from "@cap/database/screencap-clients";
 import {
 	Database,
 	ImageUploads,
@@ -335,6 +336,7 @@ export default async function CapsPage(props: PageProps<"/dashboard/caps">) {
 			folders={foldersData}
 			count={totalCount}
 			analyticsEnabled
+			hasMacApp={await userHasDesktopApp(userId).catch(() => false)}
 		/>
 	);
 }

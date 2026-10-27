@@ -18,6 +18,11 @@ and the Mac app.
   stays a 404. On Screencap builds `app/(site)/layout.tsx` wraps them in a header and footer matching
   the static site (`ScreencapHeader`/`ScreencapFooter`, fonts in `app/(site)/fonts`), and the
   converter hides its format pickers so it never links to a disabled route.
+- Web: the dashboard's toolbar and empty state point people at the apps they don't have yet:
+  `ChromeRecorderButton` shows "Record with extension" when the Screencap extension is installed (it stamps
+  `data-cap-chrome-extension-installed` on screencap.co pages), "Add to Chrome" in Chrome without it, nothing
+  elsewhere; `MacAppButton` (Macs only) shows "Open Mac app" once the app has signed in to the account
+  (`userHasDesktopApp`: `screencap_user_clients` or a desktop auth key), "Get the Mac app" otherwise.
 - Web: the admin panel shows where each user signed up from (`screencap_user_sources`, migration 0056):
   `SIGNUP_SOURCE_SNIPPET` (`@cap/database/screencap-sources`, run in the root layout and copied to the
   deploy repo's `site/assets/ref.js`; keep both in step) sets a first-touch `sc_ref` cookie on the first

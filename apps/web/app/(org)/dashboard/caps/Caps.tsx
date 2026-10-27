@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChromeRecorderButton } from "@/components/ChromeRecorderButton";
+import { MacAppButton } from "@/components/MacAppButton";
 import { CHROME_EXTENSION_BUTTON_CLASS } from "@/lib/chrome-extension";
 import { useEffectMutation, useRpcClient } from "@/lib/EffectRuntime";
 import { useVideosAnalyticsQuery } from "@/lib/Queries/Analytics";
@@ -72,11 +73,13 @@ export const Caps = ({
 	count,
 	analyticsEnabled,
 	folders,
+	hasMacApp = false,
 }: {
 	data: VideoData;
 	count: number;
 	folders: FolderDataType[];
 	analyticsEnabled: boolean;
+	hasMacApp?: boolean;
 }) => {
 	const router = useRouter();
 	const params = useSearchParams();
@@ -249,7 +252,8 @@ export const Caps = ({
 		[data, isUploading, uploadingCapId],
 	);
 
-	if (count === 0 && folders.length === 0) return <EmptyCapState />;
+	if (count === 0 && folders.length === 0)
+		return <EmptyCapState hasMacApp={hasMacApp} />;
 
 	return (
 		<div className="flex relative flex-col w-full h-full">
@@ -270,6 +274,10 @@ export const Caps = ({
 				<UploadCapButton size="sm" />
 				<WebRecorderDialog />
 				<ChromeRecorderButton
+					className={`${CHROME_EXTENSION_BUTTON_CLASS} font-medium`}
+				/>
+				<MacAppButton
+					hasMacApp={hasMacApp}
 					className={`${CHROME_EXTENSION_BUTTON_CLASS} font-medium`}
 				/>
 			</div>

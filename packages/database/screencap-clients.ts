@@ -1,6 +1,7 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "./index.ts";
 import {
+	authApiKeys,
 	type ScreencapClient,
 	screencapUserClients,
 	screencapVideoClients,
@@ -122,4 +123,27 @@ export async function copyVideoClient(fromVideoId: string, toVideoId: string) {
 	} catch (error) {
 		console.error("[screencap-clients] copyVideoClient failed", error);
 	}
+}
+
+/** True once the Mac app has signed in to this account (any device, any version). */
+export async function userHasDesktopApp(userId: string): Promise<boolean> {
+	const id = userId as typeof screencapUserClients.$inferSelect.userId;
+	const [seen, key] = await Promise.all([
+		db()
+			.select({ one: sql<number>`1` })
+			.from(screencapUserClients)
+			.where(
+				and(
+					eq(screencapUserClients.userId, id),
+					eq(screencapUserClients.client, "desktop"),
+				),
+			)
+			.limit(1),
+		db()
+			.select({ one: sql<number>`1` })
+			.from(authApiKeys)
+			.where(and(eq(authApiKeys.userId, id), eq(authApiKeys.source, "desktop")))
+			.limit(1),
+	]);
+	return seen.length > 0 || key.length > 0;
 }

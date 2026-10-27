@@ -5,6 +5,7 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useCapChromeExtension } from "hooks/useCapChromeExtension";
 import { ChromeRecorderButton } from "@/components/ChromeRecorderButton";
+import { MacAppButton } from "@/components/MacAppButton";
 import { CHROME_EXTENSION_BUTTON_CLASS } from "@/lib/chrome-extension";
 import { useRive } from "@/lib/rive";
 import { useTheme } from "../../Contexts";
@@ -13,9 +14,14 @@ import { WebRecorderDialog } from "./web-recorder-dialog/web-recorder-dialog";
 
 interface EmptyCapStateProps {
 	userName?: string;
+	/** The Mac app has signed in to this account. */
+	hasMacApp?: boolean;
 }
 
-export const EmptyCapState: React.FC<EmptyCapStateProps> = ({ userName }) => {
+export const EmptyCapState: React.FC<EmptyCapStateProps> = ({
+	userName,
+	hasMacApp = false,
+}) => {
 	const { theme } = useTheme();
 	const { isChromeBrowser, isInstalled } = useCapChromeExtension();
 	const showChromeButton = isChromeBrowser || isInstalled;
@@ -39,14 +45,18 @@ export const EmptyCapState: React.FC<EmptyCapStateProps> = ({ userName }) => {
 					</p>
 				</div>
 				<div className="flex flex-wrap gap-3 justify-center items-center mt-4">
-					<Button
-						href="/download"
-						className="flex relative gap-2 justify-center items-center"
-						variant="primary"
-					>
-						<FontAwesomeIcon className="size-3.5" icon={faDownload} />
-						Download the desktop app
-					</Button>
+					{hasMacApp ? (
+						<MacAppButton hasMacApp variant="primary" size="md" />
+					) : (
+						<Button
+							href="/download"
+							className="flex relative gap-2 justify-center items-center"
+							variant="primary"
+						>
+							<FontAwesomeIcon className="size-3.5" icon={faDownload} />
+							Download the desktop app
+						</Button>
+					)}
 					<p className="text-sm text-gray-10">or</p>
 					<WebRecorderDialog />
 					{showChromeButton && (
