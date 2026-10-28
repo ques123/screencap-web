@@ -152,6 +152,6 @@ export const config = {
 	matcher: [
 		// Static files in public/ (icons, og.png, theme-script.js, sounds...) skip the proxy:
 		// on self-hosted builds it otherwise redirects every one of them to /login.
-		"/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpe?g|gif|svg|ico|webp|webmanifest|xml|txt|js|css|mp3|mp4|webm|woff2?|riv|wasm)$).*)",
+		"/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpe?g|gif|svg|ico|webp|webmanifest|xml|txt|js|css|mp3|ogg|wav|m4a|mp4|webm|woff2?|riv|wasm)$).*)",
 	],
 };
