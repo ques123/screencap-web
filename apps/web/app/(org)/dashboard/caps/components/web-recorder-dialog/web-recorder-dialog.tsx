@@ -351,10 +351,25 @@ export const WebRecorderDialog = ({
 		<>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
 				<DialogTrigger asChild>
-					<Button variant="blue" size="sm" className="flex items-center gap-2">
-						<MonitorIcon className="size-3.5" />
-						{isGuest ? "Start recording" : "Record in Browser"}
-					</Button>
+					{isGuest ? (
+						// /record: the Screencap brand button (navy, chunky shadow) with the red record dot.
+						<button type="button" className="sc-btn sc-btn-dark -rotate-1">
+							<span
+								aria-hidden
+								className="size-3.5 rounded-full bg-[#FF4A2E] shadow-[inset_-1px_-2px_0_rgba(0,0,0,0.15)]"
+							/>
+							Start recording
+						</button>
+					) : (
+						<Button
+							variant="blue"
+							size="sm"
+							className="flex items-center gap-2"
+						>
+							<MonitorIcon className="size-3.5" />
+							Record in Browser
+						</Button>
+					)}
 				</DialogTrigger>
 				<DialogContent
 					ref={dialogContentRef}
