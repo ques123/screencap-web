@@ -1356,9 +1356,12 @@ export const useWebRecorder = ({
 			setUploadStatus(undefined);
 			updatePhase("completed");
 			toast.success("Recording uploaded. Your share link is ready.");
-			// The guest page navigates to the share page itself.
-			if (!guestRef.current) openShareUrl(creation.shareUrl);
-			router.refresh();
+			// The guest page navigates to the share page itself, and a refresh there would
+			// re-run /record's server redirect for the now signed-in user.
+			if (!guestRef.current) {
+				openShareUrl(creation.shareUrl);
+				router.refresh();
+			}
 		} catch (error) {
 			if (generation !== setupGenerationRef.current) return;
 			console.error("Failed to upload recording", error);

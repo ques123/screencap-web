@@ -9,7 +9,6 @@ import {
 import { Button } from "@cap/ui";
 import { useStore } from "@tanstack/react-store";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	clearGuestRecordingMeta,
@@ -83,10 +82,7 @@ const UploadProgress = () => {
 	);
 };
 
-export function GuestRecordClient({ signedIn }: { signedIn: boolean }) {
-	const router = useRouter();
-	// Captured once: later router.refresh() calls re-render the server page as signed in.
-	const [wasSignedIn] = useState(signedIn);
+export function GuestRecordClient() {
 	const [supported, setSupported] = useState<boolean | null>(null);
 	const [recoveryChecked, setRecoveryChecked] = useState(false);
 	const [recoverableId, setRecoverableId] = useState<string | null>(null);
@@ -101,15 +97,10 @@ export function GuestRecordClient({ signedIn }: { signedIn: boolean }) {
 	const completedHandledRef = useRef(false);
 
 	useEffect(() => {
-		if (wasSignedIn) router.replace("/dashboard/caps/record");
-	}, [wasSignedIn, router]);
-
-	useEffect(() => {
 		setSupported(typeof navigator.mediaDevices?.getDisplayMedia === "function");
 	}, []);
 
 	useEffect(() => {
-		if (wasSignedIn) return;
 		let cancelled = false;
 		const check = async () => {
 			try {
@@ -130,7 +121,7 @@ export function GuestRecordClient({ signedIn }: { signedIn: boolean }) {
 		return () => {
 			cancelled = true;
 		};
-	}, [wasSignedIn]);
+	}, []);
 
 	const handleAwaitingAuth = useCallback(() => setStage("signin"), []);
 
@@ -261,8 +252,6 @@ export function GuestRecordClient({ signedIn }: { signedIn: boolean }) {
 		setRecoverableId(null);
 		controllerRef.current?.openRecorder();
 	}, [recoverableId]);
-
-	if (wasSignedIn) return null;
 
 	return (
 		<main className="mx-auto flex min-h-[70vh] max-w-xl flex-col items-center gap-5 px-6 py-24 text-center">

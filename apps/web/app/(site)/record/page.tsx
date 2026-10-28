@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@cap/database/auth/session";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { GuestRecordClient } from "./GuestRecordClient";
 
 export const metadata: Metadata = {
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function RecordPage() {
-	const user = await getCurrentUser();
-	return <GuestRecordClient signedIn={Boolean(user)} />;
+	// Server-side, so signed-in users never see the empty guest page flash before the redirect.
+	// Safe because the guest recorder never calls router.refresh() on this page (see useWebRecorder).
+	if (await getCurrentUser()) redirect("/dashboard/caps/record");
+	return <GuestRecordClient />;
 }
