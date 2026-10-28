@@ -12,13 +12,7 @@ export function ScreencapFooter() {
 					>
 						Dharma Loop LLC
 					</a>{" "}
-					product · &copy; 2026 ·{" "}
-					<a
-						href="mailto:email@screencap.co"
-						className="text-[#45627F] no-underline hover:text-[#1E66B8] hover:underline"
-					>
-						email@screencap.co
-					</a>
+					product · &copy; 2026
 				</span>
 				<nav
 					aria-label="Footer"
