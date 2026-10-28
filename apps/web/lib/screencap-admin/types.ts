@@ -155,3 +155,51 @@ export type AdminReportRow = {
 	/** True when this report carries the reporter's decryption key. */
 	keyIncluded: boolean;
 };
+
+// ── Stats tab (/dashboard/admin/stats) ─────────────────────────────────────────
+// Days are Bangkok calendar days (UTC+7), as "YYYY-MM-DD". Internal accounts (admin emails plus the
+// internalEmails setting) are left out unless includeInternal: their sign-ups, their recordings, views
+// on their recordings, and views they made while signed in.
+
+export type StatsRange = "7d" | "30d" | "90d" | "all";
+
+export type StatsTotals = {
+	signups: number;
+	recordings: number;
+	/** Recordings whose first view by someone other than the owner falls in the period ("shared"). */
+	shared: number;
+	/** Rows in video_views (page loads; owner views and bots are already left out at write time). */
+	views: number;
+	/** Distinct video_views.sessionId values (all session-less viewers count as one). */
+	viewers: number;
+};
+
+export type StatsDay = StatsTotals & { day: string };
+
+export type StatsPlatform = "mac" | "browser" | "extension" | "upload" | "other";
+
+export type AdminStats = {
+	range: StatsRange;
+	includeInternal: boolean;
+	/** First and last day shown (inclusive). For "all", `from` is the first sign-up day. */
+	from: string;
+	to: string;
+	totals: StatsTotals;
+	/** The same-length period just before `from`; null for "all". */
+	previous: StatsTotals | null;
+	/** One entry per day from `from` to `to`, zero-filled. */
+	daily: StatsDay[];
+	/** People who signed up in the period, and how many of them went on (at any time) to each step. */
+	funnel: { signedUp: number; recorded: number; shared: number };
+	/** Recordings made in the period, by where they were made. */
+	platforms: Record<StatsPlatform, number>;
+	/** Sign-ups in the period by source label (classifySignupSource), biggest first. */
+	sources: { label: string; kind: SignupSourceKind; count: number }[];
+	/** Per-day sign-up counts for the top 5 source labels, everything else under "Other". */
+	sourcesDaily: { day: string; counts: Record<string, number> }[];
+	/** How many accounts are being treated as internal (whether or not they are excluded). */
+	internalAccounts: number;
+	/** Data floors, for the caveat line: first video_views row day, and the day sign-up sources began. */
+	viewsSince: string | null;
+	sourcesSince: string;
+};
