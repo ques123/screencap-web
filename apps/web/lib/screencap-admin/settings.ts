@@ -70,6 +70,13 @@ export function validateSettingsPatch(
 			(v) => v.toLowerCase(),
 			(v) => (v.includes("@") ? EMAIL_RE.test(v) : DOMAIN_RE.test(v)),
 		);
+	if (patch.internalEmails !== undefined)
+		out.internalEmails = cleanList(
+			"Internal emails",
+			patch.internalEmails,
+			(v) => v.toLowerCase(),
+			(v) => EMAIL_RE.test(v),
+		);
 	if (patch.blockedCountries !== undefined)
 		out.blockedCountries = cleanList(
 			"Blocked countries",

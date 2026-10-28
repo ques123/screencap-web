@@ -36,6 +36,15 @@ and the Mac app.
   web recorder or upload with browser and OS). Written by `@cap/database/screencap-clients`
   (migration `0055_screencap_clients`); recordings older than that are guessed from `videos.source`
   and marked "(guessed)". Read side: `lib/screencap-admin/clients.ts`.
+- Web: admin Stats tab (`/dashboard/admin/stats`, `lib/screencap-admin/analytics.ts`, `adminStats(range, includeInternal)`).
+  Days are Bangkok days (UTC+7; DB timestamps are UTC); 7d/30d/90d = today plus the days before, compared with the
+  same-length window right before; "all" starts at the first sign-up day. Internal accounts = `SCREENCAP_ADMIN_EMAILS`
+  plus the `internalEmails` setting (matched case-insensitively on `users.email`); unless included, their sign-ups,
+  recordings, views of their recordings (`video_views.ownerId`) and views they made while signed in are left out.
+  Views = `video_views` rows, viewers = distinct `sessionId`. Shared = recordings whose first `video_views` row falls
+  in the period (owner views are never written). Funnel = people who signed up in the period who ever recorded / ever
+  got a recording viewed. Platforms come from `screencap_video_clients` (falling back to `videos.source` type for older
+  recordings). Sign-up sources reuse `classifySignupSource` (tracked since 2026-10-27).
 - Web: admin Tools tab (`/dashboard/admin/tools`, `lib/screencap-admin/tools.ts`) shows whether the
   free tools are used, work and bring sign-ups: views, funnel, daily chart, failures by browser and
   error, referrers, countries, file sizes. Events come from `toolEvent()` in

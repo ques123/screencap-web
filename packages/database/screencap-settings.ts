@@ -6,6 +6,8 @@ export type ScreencapSettings = {
 	signupMode: "open" | "allowlist";
 	allowedDomains: string[];
 	blockedEmails: string[];
+	/** Accounts (besides the admins) treated as internal in the admin Stats tab. */
+	internalEmails: string[];
 	blockedCountries: string[];
 	maxRecordingMinutes: number | null;
 	maxStorageHours: number | null;
@@ -17,6 +19,7 @@ export const SETTING_KEYS: ScreencapSettingKey[] = [
 	"signupMode",
 	"allowedDomains",
 	"blockedEmails",
+	"internalEmails",
 	"blockedCountries",
 	"maxRecordingMinutes",
 	"maxStorageHours",
@@ -57,6 +60,7 @@ export function settingsFromEnv(env: SettingsEnv): ScreencapSettings {
 		signupMode: allowedDomains.length > 0 ? "allowlist" : "open",
 		allowedDomains,
 		blockedEmails: splitList(env.CAP_BLOCKED_SIGNUP_DOMAINS),
+		internalEmails: [],
 		blockedCountries: splitList(env.SCREENCAP_SIGNUP_BLOCKED_COUNTRIES).map(
 			(c) => c.toUpperCase(),
 		),
@@ -95,6 +99,8 @@ export function mergeSettings(
 	if (allowed) out.allowedDomains = allowed;
 	const blockedEmails = stringList(rows.blockedEmails);
 	if (blockedEmails) out.blockedEmails = blockedEmails;
+	const internalEmails = stringList(rows.internalEmails);
+	if (internalEmails) out.internalEmails = internalEmails;
 	const countries = stringList(rows.blockedCountries, true);
 	if (countries) out.blockedCountries = countries;
 	const rec = numberOrNull(rows.maxRecordingMinutes);

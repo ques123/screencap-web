@@ -22,6 +22,7 @@ describe("settings env fallback", () => {
 			signupMode: "open",
 			allowedDomains: [],
 			blockedEmails: [],
+			internalEmails: [],
 			blockedCountries: [],
 			maxRecordingMinutes: null,
 			maxStorageHours: null,
