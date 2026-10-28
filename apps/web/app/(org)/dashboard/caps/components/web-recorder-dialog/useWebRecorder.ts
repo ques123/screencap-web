@@ -122,7 +122,7 @@ const createRecordingDownloadName = (
 ) => {
 	const timestamp = new Date(createdAt).toISOString().replace(/[:.]/g, "-");
 	const extension = getFileExtensionFromMime(mime);
-	return `cap-recording-${timestamp}.${extension}`;
+	return `screencap-recording-${timestamp}.${extension}`;
 };
 
 const triggerBrowserDownload = (url: string, fileName: string) => {
