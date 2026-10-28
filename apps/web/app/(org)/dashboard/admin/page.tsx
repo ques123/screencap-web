@@ -72,7 +72,12 @@ export default async function AdminOverviewPage() {
 					value={formatNumber(s.blockedUsers)}
 					href="/dashboard/admin/users"
 				/>
-				<Stat label="Views, last 7 days" value={formatNumber(s.views7d)} />
+				<Stat
+					label="Views, last 7 days"
+					value={formatNumber(s.views7d)}
+					hint="See stats"
+					href="/dashboard/admin/stats?range=7d"
+				/>
 				<Stat
 					label="Users"
 					value={formatNumber(s.users)}

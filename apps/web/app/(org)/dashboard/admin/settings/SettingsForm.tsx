@@ -50,6 +50,9 @@ export function SettingsForm({
 	const [blockedEmails, setBlockedEmails] = useState(
 		settings.blockedEmails.join("\n"),
 	);
+	const [internalEmails, setInternalEmails] = useState(
+		settings.internalEmails.join("\n"),
+	);
 	const [countries, setCountries] = useState(
 		settings.blockedCountries.join(", "),
 	);
@@ -80,6 +83,7 @@ export function SettingsForm({
 				signupMode: mode,
 				allowedDomains: list(domains),
 				blockedEmails: list(blockedEmails),
+				internalEmails: list(internalEmails),
 				blockedCountries: list(countries).map((c) => c.toUpperCase()),
 				maxRecordingMinutes: m,
 				maxStorageHours: h,
@@ -184,6 +188,25 @@ export function SettingsForm({
 						value={countries}
 						onChange={(e) => setCountries(e.target.value)}
 					/>
+				</div>
+			</Card>
+
+			<Card className="space-y-4">
+				<CardTitle>Internal accounts</CardTitle>
+				<div className="space-y-1">
+					<label htmlFor={`${id}-ie`} className="text-sm text-gray-11">
+						Internal emails (one per line)
+					</label>
+					<textarea
+						id={`${id}-ie`}
+						rows={3}
+						className={areaCls}
+						value={internalEmails}
+						onChange={(e) => setInternalEmails(e.target.value)}
+					/>
+					<p className="text-xs text-gray-10">
+						Left out of Stats. Admin emails are always treated as internal.
+					</p>
 				</div>
 			</Card>
 
