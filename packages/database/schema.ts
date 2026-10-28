@@ -1070,6 +1070,26 @@ export const screencapUserSources = mysqlTable("screencap_user_sources", {
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Guest recording (/record) funnel: one row per step of one recording attempt (started, stopped,
+// entered email, verified, uploaded, downloaded, blocked). Anonymous until the person verifies; then
+// user_id is set. Read by the admin Stats tab ("Recording without an account").
+export const screencapGuestEvents = mysqlTable(
+	"screencap_guest_events",
+	{
+		id: bigint("id", { mode: "number", unsigned: true })
+			.autoincrement()
+			.primaryKey(),
+		attemptId: varchar("attempt_id", { length: 36 }).notNull(),
+		event: varchar("event", { length: 24 }).notNull(),
+		userId: nanoIdNullable("user_id").$type<User.UserId>(),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(table) => [
+		index("guest_event_created_idx").on(table.event, table.createdAt),
+		index("guest_attempt_idx").on(table.attemptId),
+	],
+);
+
 export const storageIntegrations = mysqlTable(
 	"storage_integrations",
 	{

@@ -168,3 +168,57 @@ describe("platformFor", () => {
 		expect(platformFor(null, null)).toBe("other");
 	});
 });
+
+describe("guest recording funnel", () => {
+	it("counts each attempt once per step and finds people who left", async () => {
+		const { guestFunnelFrom } = await import("@/lib/screencap-admin/analytics");
+		const rows = [
+			{ attemptId: "a", event: "start", userId: null },
+			{ attemptId: "a", event: "stop", userId: null },
+			{ attemptId: "a", event: "emailSubmitted", userId: null },
+			{ attemptId: "a", event: "verified", userId: "u1" },
+			{ attemptId: "a", event: "uploaded", userId: "u1" },
+			{ attemptId: "b", event: "start", userId: null },
+			{ attemptId: "b", event: "stop", userId: null },
+			{ attemptId: "b", event: "stop", userId: null },
+			{ attemptId: "c", event: "start", userId: null },
+			{ attemptId: "c", event: "stop", userId: null },
+			{ attemptId: "c", event: "blocked", userId: null },
+			{ attemptId: "c", event: "downloaded", userId: null },
+			{ attemptId: "d", event: "stop", userId: null },
+		];
+		expect(guestFunnelFrom(rows)).toEqual({
+			started: 3,
+			stopped: 3,
+			emailed: 1,
+			verified: 1,
+			uploaded: 1,
+			downloaded: 1,
+			blocked: 1,
+			leftWithoutSigningUp: 1,
+		});
+		expect(guestFunnelFrom(rows, ["u1"]).started).toBe(2);
+	});
+
+	it("labels guest browser recordings separately", async () => {
+		const { platformFor } = await import("@/lib/screencap-admin/analytics");
+		expect(platformFor("web-recorder", "webMP4", "guest")).toBe("guest");
+		expect(platformFor("web-recorder", "webMP4", "Chrome on macOS")).toBe(
+			"browser",
+		);
+	});
+});
+
+describe("guest event validation", () => {
+	it("accepts known steps with a uuid and rejects the rest", async () => {
+		const { parseGuestEvent } = await import("@/lib/guest-events");
+		const id = "3f2b8c1e-1d2a-4c5b-9e8f-0a1b2c3d4e5f";
+		expect(parseGuestEvent({ attemptId: id, event: "start" })).toEqual({
+			attemptId: id,
+			event: "start",
+		});
+		expect(parseGuestEvent({ attemptId: id, event: "drop table" })).toBeNull();
+		expect(parseGuestEvent({ attemptId: "x", event: "start" })).toBeNull();
+		expect(parseGuestEvent(null)).toBeNull();
+	});
+});

@@ -121,13 +121,14 @@ function Bars({
 
 const platformLabels: Record<StatsPlatform, string> = {
 	mac: "Mac app",
-	browser: "Browser",
+	browser: "Browser, signed in",
+	guest: "Browser, no account",
 	extension: "Chrome extension",
 	upload: "Uploads",
 	other: "Other",
 };
 
-const alwaysShown: StatsPlatform[] = ["mac", "browser", "extension"];
+const alwaysShown: StatsPlatform[] = ["mac", "browser", "guest", "extension"];
 
 export default async function AdminStatsPage({
 	searchParams,
@@ -257,6 +258,73 @@ export default async function AdminStatsPage({
 					)}
 				</Card>
 			</div>
+
+			<Card className="space-y-4">
+				<div className="space-y-1">
+					<CardTitle>Recording without an account</CardTitle>
+					<CardDescription>
+						People who started a recording on /record in this period, and how
+						far they got. Signing up is entering the emailed code.
+					</CardDescription>
+				</div>
+				{s.guest.started === 0 ? (
+					<EmptyState>
+						{s.guestSince
+							? "Nobody recorded without an account in this period."
+							: "Counting starts with the first recording on /record."}
+					</EmptyState>
+				) : (
+					<div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+						<Bars
+							of={s.guest.started}
+							rows={[
+								{ label: "Started recording", count: s.guest.started },
+								{ label: "Finished recording", count: s.guest.stopped },
+								{ label: "Entered their email", count: s.guest.emailed },
+								{
+									label: "Signed up (entered the code)",
+									count: s.guest.verified,
+								},
+								{ label: "Got their link", count: s.guest.uploaded },
+							]}
+						/>
+						<dl className="grid gap-3 content-start text-sm">
+							{[
+								{
+									label: "Left without signing up",
+									value: s.guest.leftWithoutSigningUp,
+									hint: "Finished a recording, never entered the code",
+								},
+								{
+									label: "Downloaded instead",
+									value: s.guest.downloaded,
+								},
+								{
+									label: "Blocked from signing up",
+									value: s.guest.blocked,
+								},
+							].map((d) => (
+								<div
+									key={d.label}
+									className="rounded-lg border border-gray-4 bg-gray-2 px-3 py-2"
+								>
+									<dt className="text-gray-10">{d.label}</dt>
+									<dd className="text-lg font-medium text-gray-12">
+										{formatNumber(d.value)}
+										{s.guest.stopped > 0 && (
+											<span className="ml-1 text-xs font-normal text-gray-10">
+												{Math.round((d.value / s.guest.stopped) * 100)}% of
+												finished
+											</span>
+										)}
+									</dd>
+									{d.hint && <p className="text-xs text-gray-10">{d.hint}</p>}
+								</div>
+							))}
+						</dl>
+					</div>
+				)}
+			</Card>
 
 			<Card className="space-y-4">
 				<div className="space-y-1">

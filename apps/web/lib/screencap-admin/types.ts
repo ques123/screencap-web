@@ -176,7 +176,29 @@ export type StatsTotals = {
 
 export type StatsDay = StatsTotals & { day: string };
 
-export type StatsPlatform = "mac" | "browser" | "extension" | "upload" | "other";
+export type StatsPlatform =
+	| "mac"
+	| "browser"
+	| "guest"
+	| "extension"
+	| "upload"
+	| "other";
+
+/**
+ * Recording in the browser without an account (/record): recording attempts started in the period and
+ * how far each got (any time after). leftWithoutSigningUp = stopped but never verified, blocked or
+ * uploaded (closed the tab, or downloaded instead).
+ */
+export type GuestFunnel = {
+	started: number;
+	stopped: number;
+	emailed: number;
+	verified: number;
+	uploaded: number;
+	downloaded: number;
+	blocked: number;
+	leftWithoutSigningUp: number;
+};
 
 export type AdminStats = {
 	range: StatsRange;
@@ -191,6 +213,10 @@ export type AdminStats = {
 	daily: StatsDay[];
 	/** People who signed up in the period, and how many of them went on (at any time) to each step. */
 	funnel: { signedUp: number; recorded: number; shared: number };
+	/** Recording without an account (/record), from screencap_guest_events. */
+	guest: GuestFunnel;
+	/** Day the guest funnel counting began (first screencap_guest_events row), or null. */
+	guestSince: string | null;
 	/** Recordings made in the period, by where they were made. */
 	platforms: Record<StatsPlatform, number>;
 	/** Sign-ups in the period by source label (classifySignupSource), biggest first. */

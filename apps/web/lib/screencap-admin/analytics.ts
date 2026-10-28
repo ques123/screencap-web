@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@cap/database";
 import {
+	screencapGuestEvents,
 	screencapVideoClients,
 	users,
 	videos,
@@ -25,6 +26,7 @@ import { adminEmails } from "./access";
 import { sourcesForUsers } from "./sources";
 import type {
 	AdminStats,
+	GuestFunnel,
 	SignupSourceKind,
 	StatsDay,
 	StatsPlatform,
@@ -166,7 +168,7 @@ export function bucketSourcesDaily(
 }
 
 export function emptyPlatforms(): Record<StatsPlatform, number> {
-	return { mac: 0, browser: 0, extension: 0, upload: 0, other: 0 };
+	return { mac: 0, browser: 0, guest: 0, extension: 0, upload: 0, other: 0 };
 }
 
 /**
@@ -176,13 +178,14 @@ export function emptyPlatforms(): Record<StatsPlatform, number> {
 export function platformFor(
 	client: string | null | undefined,
 	sourceType: string | null | undefined,
+	detail?: string | null,
 ): StatsPlatform {
 	if (client) {
 		switch (client) {
 			case "desktop":
 				return "mac";
 			case "web-recorder":
-				return "browser";
+				return detail === "guest" ? "guest" : "browser";
 			case "extension":
 				return "extension";
 			case "web-upload":
@@ -201,6 +204,52 @@ export function platformFor(
 		default:
 			return "other";
 	}
+}
+
+/** Turns guest event rows (attempt, step, user) into the funnel, leaving out attempts by excluded users. */
+export function guestFunnelFrom(
+	rows: { attemptId: string; event: string; userId: string | null }[],
+	exclude: readonly string[] = [],
+): GuestFunnel {
+	const steps = new Map<string, Set<string>>();
+	const skip = new Set<string>();
+	for (const r of rows) {
+		if (r.userId && exclude.includes(r.userId)) skip.add(r.attemptId);
+		let set = steps.get(r.attemptId);
+		if (!set) {
+			set = new Set();
+			steps.set(r.attemptId, set);
+		}
+		set.add(r.event);
+	}
+	const f: GuestFunnel = {
+		started: 0,
+		stopped: 0,
+		emailed: 0,
+		verified: 0,
+		uploaded: 0,
+		downloaded: 0,
+		blocked: 0,
+		leftWithoutSigningUp: 0,
+	};
+	for (const [attempt, set] of steps) {
+		if (skip.has(attempt) || !set.has("start")) continue;
+		f.started++;
+		if (set.has("stop")) f.stopped++;
+		if (set.has("emailSubmitted")) f.emailed++;
+		if (set.has("verified")) f.verified++;
+		if (set.has("uploaded")) f.uploaded++;
+		if (set.has("downloaded")) f.downloaded++;
+		if (set.has("blocked")) f.blocked++;
+		if (
+			set.has("stop") &&
+			!set.has("verified") &&
+			!set.has("blocked") &&
+			!set.has("uploaded")
+		)
+			f.leftWithoutSigningUp++;
+	}
+	return f;
 }
 
 // ── Queries ─────────────────────────────────────────────────────────────────────
@@ -355,6 +404,7 @@ export async function adminStats(
 		db()
 			.select({
 				client: screencapVideoClients.client,
+				detail: screencapVideoClients.detail,
 				type: sql<
 					string | null
 				>`JSON_UNQUOTE(JSON_EXTRACT(${videos.source}, '$.type'))`,
@@ -374,6 +424,7 @@ export async function adminStats(
 			)
 			.groupBy(
 				screencapVideoClients.client,
+				screencapVideoClients.detail,
 				sql`JSON_UNQUOTE(JSON_EXTRACT(${videos.source}, '$.type'))`,
 			),
 		db()
@@ -419,7 +470,7 @@ export async function adminStats(
 
 	const platforms = emptyPlatforms();
 	for (const r of platformRows)
-		platforms[platformFor(r.client, r.type)] += Number(r.n);
+		platforms[platformFor(r.client, r.type, r.detail)] += Number(r.n);
 
 	// People who signed up in the period, and how far they got.
 	const cohort = signupRows.filter((r) => r.day >= win.from);
@@ -471,6 +522,38 @@ export async function adminStats(
 		),
 	);
 
+	// Recording without an account: attempts started in the period, and every step they reached.
+	const startedInPeriod = db()
+		.select({ id: screencapGuestEvents.attemptId })
+		.from(screencapGuestEvents)
+		.where(
+			and(
+				sql`${screencapGuestEvents.event} = 'start'`,
+				gte(screencapGuestEvents.createdAt, curStart),
+				lt(screencapGuestEvents.createdAt, spanEnd),
+			),
+		);
+	const [guestRows, [guestFloor]] = await Promise.all([
+		db()
+			.select({
+				attemptId: screencapGuestEvents.attemptId,
+				event: screencapGuestEvents.event,
+				userId: screencapGuestEvents.userId,
+			})
+			.from(screencapGuestEvents)
+			.where(inArray(screencapGuestEvents.attemptId, startedInPeriod)),
+		db()
+			.select({ at: min(screencapGuestEvents.createdAt) })
+			.from(screencapGuestEvents),
+	]);
+	const guest = guestFunnelFrom(
+		guestRows.map((r) => ({
+			...r,
+			userId: r.userId ? String(r.userId) : null,
+		})),
+		exclude.map(String),
+	);
+
 	return {
 		range,
 		includeInternal,
@@ -480,6 +563,8 @@ export async function adminStats(
 		previous,
 		daily,
 		funnel: { signedUp: cohortIds.length, recorded, shared },
+		guest,
+		guestSince: guestFloor?.at ? bangkokDay(new Date(guestFloor.at)) : null,
 		platforms,
 		sources,
 		sourcesDaily,

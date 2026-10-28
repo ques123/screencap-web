@@ -30,6 +30,26 @@ export const GUEST_EVENTS = {
 	downloaded: "guest-record-download",
 } as const;
 
+/** Step names stored in screencap_guest_events (the keys of GUEST_EVENTS). */
+export type GuestEventKey = keyof typeof GUEST_EVENTS;
+export const GUEST_EVENT_KEYS = Object.keys(GUEST_EVENTS) as GuestEventKey[];
+
+const ATTEMPT_KEY = "sc-guest-attempt";
+
+/** One id per recording attempt: a new one at each start, kept across reloads so recovery counts as the same attempt. */
+function guestAttemptId(fresh: boolean): string {
+	try {
+		let id = fresh ? null : window.localStorage.getItem(ATTEMPT_KEY);
+		if (!id) {
+			id = crypto.randomUUID();
+			window.localStorage.setItem(ATTEMPT_KEY, id);
+		}
+		return id;
+	} catch {
+		return crypto.randomUUID();
+	}
+}
+
 export function trackGuestEvent(
 	name: (typeof GUEST_EVENTS)[keyof typeof GUEST_EVENTS],
 ) {
@@ -40,6 +60,19 @@ export function trackGuestEvent(
 		};
 		w.umami?.track(name);
 		w._paq?.push(["trackEvent", "guest-record", name]);
+		// Our own anonymous count for the admin Stats tab (Umami lives on a server the app can't reach).
+		const key = GUEST_EVENT_KEYS.find((k) => GUEST_EVENTS[k] === name);
+		if (key) {
+			void fetch("/api/record/events", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					attemptId: guestAttemptId(key === "start"),
+					event: key,
+				}),
+				keepalive: true,
+			}).catch(() => {});
+		}
 	} catch {
 		// analytics must never break recording
 	}
