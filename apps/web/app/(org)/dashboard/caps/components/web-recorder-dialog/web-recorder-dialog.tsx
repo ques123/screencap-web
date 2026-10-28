@@ -171,10 +171,12 @@ export const WebRecorderDialog = ({
 
 	const micEnabled = selectedMicId !== null;
 
-	// Granting camera or microphone access from the Off pill should switch that device on: the person
-	// just said yes to it, and the browser has already picked a default. Only the moment of granting
-	// is handled here; saved device choices and an explicit "Off" are left alone.
+	// Camera and microphone default to on whenever the browser already lets us use them: once when the
+	// recorder first finds devices (permission granted earlier), and again right after the person grants
+	// access from the Off pill. Saved device choices ("remember devices") and turning one off by hand
+	// are left alone, because each device is only auto-selected once per page load.
 	const autoSelectAfterGrantRef = useRef({ camera: false, mic: false });
+	const autoSelectedOnceRef = useRef({ camera: false, mic: false });
 	const refreshCamerasAfterGrant = useCallback(async () => {
 		autoSelectAfterGrantRef.current.camera = true;
 		await refreshCameras();
@@ -183,6 +185,28 @@ export const WebRecorderDialog = ({
 		autoSelectAfterGrantRef.current.mic = true;
 		await refreshMics();
 	}, [refreshMics]);
+	useEffect(() => {
+		if (!open || rememberDevices) return;
+		const once = autoSelectedOnceRef.current;
+		if (!once.camera && availableCameras.length > 0) {
+			once.camera = true;
+			if (!selectedCameraId)
+				handleCameraChange(availableCameras[0]?.deviceId ?? null);
+		}
+		if (!once.mic && availableMics.length > 0) {
+			once.mic = true;
+			if (!selectedMicId) handleMicChange(availableMics[0]?.deviceId ?? null);
+		}
+	}, [
+		open,
+		rememberDevices,
+		availableCameras,
+		availableMics,
+		selectedCameraId,
+		selectedMicId,
+		handleCameraChange,
+		handleMicChange,
+	]);
 	useEffect(() => {
 		const pending = autoSelectAfterGrantRef.current;
 		if (pending.camera && availableCameras.length > 0) {
