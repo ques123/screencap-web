@@ -30,3 +30,34 @@ export function mapGuestSignInError(
 	if (error === "EmailSignin") return { kind: "wait" };
 	return { kind: "failed" };
 }
+
+/**
+ * Asks next-auth to email a sign-in code, without next-auth's client helper: when a sign-up gate
+ * refuses the email, the server answers with a relative URL ("/login?error=SignupBlocked") that the
+ * helper cannot parse, so the refusal surfaced as a generic failure. Returns the error code, if any.
+ */
+export async function requestGuestCode(
+	email: string,
+): Promise<{ error: string | null }> {
+	const { csrfToken } = (await fetch("/api/auth/csrf").then((r) =>
+		r.json(),
+	)) as { csrfToken: string };
+	const res = await fetch("/api/auth/signin/email", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded",
+			"X-Auth-Return-Redirect": "1",
+		},
+		body: new URLSearchParams({
+			email,
+			csrfToken,
+			callbackUrl: `${location.origin}/record`,
+			json: "true",
+		}),
+	});
+	const data = (await res.json().catch(() => ({}))) as { url?: string };
+	if (!res.ok && !data.url) return { error: "EmailSignin" };
+	return {
+		error: new URL(data.url ?? "/", location.origin).searchParams.get("error"),
+	};
+}

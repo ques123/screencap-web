@@ -10,7 +10,6 @@ import {
 	Input,
 } from "@cap/ui";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import {
 	GUEST_EVENTS,
@@ -18,7 +17,7 @@ import {
 	type GuestSignInBlocked,
 	trackGuestEvent,
 } from "@/lib/guest-record";
-import { mapGuestSignInError } from "@/lib/guest-signin";
+import { mapGuestSignInError, requestGuestCode } from "@/lib/guest-signin";
 
 const COOLDOWN_MS = 30_000;
 const REQUEST_TIMEOUT_MS = 20_000;
@@ -106,10 +105,8 @@ export function GuestSignInDialog({
 		}
 		setBusy(true);
 		try {
-			const res = await withTimeout(
-				signIn("email", { email: normalized, redirect: false }),
-			);
-			if (res?.ok && !res.error) {
+			const res = await withTimeout(requestGuestCode(normalized));
+			if (!res.error) {
 				setEmail(normalized);
 				setSentAt(Date.now());
 				setCode(EMPTY_CODE);
@@ -118,7 +115,7 @@ export function GuestSignInDialog({
 				else trackGuestEvent(GUEST_EVENTS.emailSubmitted);
 				return;
 			}
-			const outcome = mapGuestSignInError(res?.error);
+			const outcome = mapGuestSignInError(res.error);
 			if (outcome.kind === "blocked") block(outcome.message);
 			else if (outcome.kind === "wait")
 				setError("Please wait 30 seconds before requesting a new code.");
