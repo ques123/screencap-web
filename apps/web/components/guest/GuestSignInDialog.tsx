@@ -206,8 +206,8 @@ export function GuestSignInDialog({
 			}}
 		>
 			<DialogContent className="w-[calc(100%-32px)] max-w-[440px] overflow-hidden rounded-2xl bg-gray-1">
-				<div className="px-6 pt-7 pb-6 text-center bg-gradient-to-b from-blue-3 to-gray-1 sm:px-8">
-					<span className="inline-flex gap-1.5 items-center px-2.5 py-1 text-xs font-medium rounded-full text-green-11 bg-green-3">
+				<div className="px-6 pt-7 pb-5 text-center bg-gradient-to-b from-blue-3 to-gray-1 sm:px-8">
+					<span className="inline-flex gap-1.5 items-center px-2.5 py-1 text-xs font-semibold rounded-full text-[#17663f] bg-[#dcf5e6]">
 						<Check className="size-3.5" strokeWidth={3} aria-hidden />
 						Your recording is ready
 					</span>
@@ -271,7 +271,7 @@ export function GuestSignInDialog({
 									size="lg"
 									className="w-full"
 									spinner={busy}
-									disabled={busy || !email.trim()}
+									disabled={busy}
 								>
 									{busy ? "Sending code..." : "Get my link"}
 								</Button>
@@ -338,8 +338,14 @@ export function GuestSignInDialog({
 								size="lg"
 								className="w-full"
 								spinner={busy}
-								disabled={busy || code.some((d) => !d)}
-								onClick={() => void verify(code.join(""))}
+								disabled={busy}
+								onClick={() => {
+									if (code.some((d) => !d)) {
+										setError("Enter all 6 digits of the code.");
+										return;
+									}
+									void verify(code.join(""));
+								}}
 							>
 								{busy ? "Checking..." : "Get my link"}
 							</Button>
