@@ -66,3 +66,43 @@ export async function resolveRecordingOrganisationId(user: {
 		.where(eq(users.id, userId));
 	return organizationId;
 }
+
+/** A display name from an email address: "john.smith+x@…" → "John Smith", "chris22@…" → "Chris". */
+export function nameFromEmail(email: string): string {
+	const local = (email.split("@")[0] ?? "").split("+")[0] ?? "";
+	const words = local
+		.replace(/[0-9]+/g, " ")
+		.split(/[._\-\s]+/)
+		.filter(Boolean)
+		.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+	return (words.join(" ") || local || "Screencap user").slice(0, 255);
+}
+
+/**
+ * People who sign up from /record skip the setup wizard (name, organisation, download): the dashboard
+ * sends anyone without a name to /onboarding/welcome, so give them one from their email and mark the
+ * steps done. They can change the name in settings. Leaves accounts that already have a name alone.
+ */
+export async function skipOnboardingForGuest(user: {
+	id: string;
+	email: string;
+	name: string | null;
+	onboardingSteps: Record<string, boolean | undefined> | null;
+}) {
+	if (user.name) return;
+	await db()
+		.update(users)
+		.set({
+			name: nameFromEmail(user.email),
+			onboardingSteps: {
+				...(user.onboardingSteps ?? {}),
+				welcome: true,
+				organizationSetup: true,
+				customDomain: true,
+				inviteTeam: true,
+				download: true,
+			},
+			onboarding_completed_at: new Date(),
+		})
+		.where(eq(users.id, user.id as User.UserId));
+}

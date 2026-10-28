@@ -177,3 +177,13 @@ describe("mapGuestSignInError", () => {
 		expect(mapGuestSignInError("Configuration").kind).toBe("failed");
 	});
 });
+
+describe("nameFromEmail", () => {
+	it("turns the local part into a readable name", async () => {
+		const { nameFromEmail } = await import("@/lib/guest-bootstrap");
+		expect(nameFromEmail("john.smith+work@example.com")).toBe("John Smith");
+		expect(nameFromEmail("chris22@questio.co.uk")).toBe("Chris");
+		expect(nameFromEmail("ANNA_LEE@x.io")).toBe("Anna Lee");
+		expect(nameFromEmail("1234@x.io")).toBe("1234");
+	});
+});

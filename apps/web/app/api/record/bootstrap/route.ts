@@ -1,6 +1,9 @@
 import { getCurrentUser } from "@cap/database/auth/session";
 import { userIsPro } from "@cap/utils";
-import { resolveRecordingOrganisationId } from "@/lib/guest-bootstrap";
+import {
+	resolveRecordingOrganisationId,
+	skipOnboardingForGuest,
+} from "@/lib/guest-bootstrap";
 import type { GuestBootstrap } from "@/lib/guest-record";
 import { maxRecordingSecondsFor } from "@/lib/screencap-limits";
 
@@ -18,6 +21,13 @@ export async function GET() {
 			{ status: 401, headers: NO_STORE },
 		);
 	}
+
+	await skipOnboardingForGuest({
+		id: String(user.id),
+		email: user.email,
+		name: user.name,
+		onboardingSteps: user.onboardingSteps ?? null,
+	});
 
 	const body: GuestBootstrap = {
 		userId: String(user.id),
