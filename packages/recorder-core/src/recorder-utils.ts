@@ -142,6 +142,8 @@ export const selectRecordingPipelineFromSupport = (
 	isMimeSupported: (candidate: string) => boolean,
 	options?: {
 		preferStreamingUpload?: boolean;
+		/** Record first, upload after Stop (guest recording). Keeps WebM when the browser can make it. */
+		forceBuffered?: boolean;
 	},
 ): RecordingPipeline | null => {
 	const webmCandidates = hasAudio
@@ -157,7 +159,20 @@ export const selectRecordingPipelineFromSupport = (
 		isMimeSupported(candidate),
 	);
 
-	if (supportedWebmMimeType && options?.preferStreamingUpload !== false) {
+	if (options?.forceBuffered && supportedWebmMimeType) {
+		return {
+			mode: "buffered-raw",
+			mimeType: supportedWebmMimeType,
+			fileExtension: "webm",
+			supportsProgressiveUpload: false,
+		};
+	}
+
+	if (
+		supportedWebmMimeType &&
+		!options?.forceBuffered &&
+		options?.preferStreamingUpload !== false
+	) {
 		return {
 			mode: "streaming-webm",
 			mimeType: supportedWebmMimeType,
@@ -191,6 +206,7 @@ export const selectRecordingPipelineFromSupport = (
 
 export const selectRecordingPipeline = (
 	hasAudio: boolean,
+	options?: { forceBuffered?: boolean },
 ): RecordingPipeline | null => {
 	if (typeof MediaRecorder === "undefined") {
 		return null;
@@ -214,6 +230,7 @@ export const selectRecordingPipeline = (
 		hasAudio,
 		(candidate) => MediaRecorder.isTypeSupported(candidate),
 		{
+			forceBuffered: options?.forceBuffered,
 			preferStreamingUpload: shouldPreferStreamingUpload({
 				userAgent,
 				brands,

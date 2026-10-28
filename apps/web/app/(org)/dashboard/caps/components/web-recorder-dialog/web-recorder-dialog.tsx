@@ -11,6 +11,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { MonitorIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { GuestBootstrap } from "@/lib/guest-record";
+import {
+	GUEST_EVENTS,
+	GUEST_MAX_RECORDING_MS,
+	trackGuestEvent,
+} from "@/lib/guest-record";
 import { useDashboardContext } from "../../../Contexts";
 import {
 	CameraPreviewWindow,
@@ -53,8 +59,39 @@ const waitForNextFrame = () =>
 		window.requestAnimationFrame(() => resolve());
 	});
 
-export const WebRecorderDialog = () => {
-	const [open, setOpen] = useState(false);
+/** Handle the guest page uses to drive the recorder once the visitor has recorded something. */
+export type GuestRecorderController = {
+	finishGuestUpload: (bootstrap: GuestBootstrap) => Promise<string>;
+	downloadGuestRecording: () => boolean;
+	adoptRecoveredGuestRecording: ReturnType<
+		typeof useWebRecorder
+	>["adoptRecoveredGuestRecording"];
+	discardGuestRecording: () => Promise<void>;
+	retryUpload: () => Promise<void>;
+	openRecorder: () => void;
+};
+
+export type GuestRecorderProps = {
+	/** Called once Stop has finished and the recording is waiting for the visitor to sign in. */
+	onAwaitingAuth: () => void;
+	controllerRef: { current: GuestRecorderController | null };
+	/** Keep the recorder closed on first render (for example while a recovered recording is offered). */
+	startClosed?: boolean;
+	/** Reports phase changes so the page can react to upload progress and completion. */
+	onPhaseChange?: (state: {
+		phase: string;
+		completedShareUrl: string | null;
+		videoId: string | null;
+	}) => void;
+};
+
+export const WebRecorderDialog = ({
+	guest,
+}: {
+	/** Set on the public /record page (no dashboard, no account). Omit in the dashboard. */
+	guest?: GuestRecorderProps;
+} = {}) => {
+	const [open, setOpen] = useState(Boolean(guest) && !guest?.startClosed);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [howItWorksOpen, setHowItWorksOpen] = useState(false);
 	const [recordingMode, setRecordingMode] =
@@ -97,13 +134,17 @@ export const WebRecorderDialog = () => {
 		});
 	}, []);
 
+	const isGuest = Boolean(guest);
+
 	const handleRecordingStartSound = useCallback(() => {
 		playAudio(startSoundRef.current);
-	}, [playAudio]);
+		if (isGuest) trackGuestEvent(GUEST_EVENTS.start);
+	}, [playAudio, isGuest]);
 
 	const handleRecordingStopSound = useCallback(() => {
 		playAudio(stopSoundRef.current);
-	}, [playAudio]);
+		if (isGuest) trackGuestEvent(GUEST_EVENTS.stop);
+	}, [playAudio, isGuest]);
 
 	const { activeOrganization, user } = useDashboardContext();
 	const organisationId = activeOrganization?.organization.id;
@@ -172,6 +213,11 @@ export const WebRecorderDialog = () => {
 		resetState,
 		dismissRecoveredDownload,
 		recordingLimitMs,
+		finishGuestUpload,
+		downloadGuestRecording,
+		adoptRecoveredGuestRecording,
+		discardGuestRecording,
+		videoId,
 	} = useWebRecorder({
 		organisationId,
 		selectedMicId,
@@ -179,13 +225,42 @@ export const WebRecorderDialog = () => {
 		systemAudioEnabled,
 		recordingMode,
 		selectedCameraId,
-		isProUser: user.isPro,
+		isProUser: user?.isPro ?? false,
 		onRecordingSurfaceDetected: (mode) => {
 			setRecordingMode(mode);
 		},
 		onRecordingStart: handleRecordingStartSound,
 		onRecordingStop: handleRecordingStopSound,
+		guest: guest
+			? {
+					onAwaitingAuth: () => {
+						setOpen(false);
+						setSettingsOpen(false);
+						setHowItWorksOpen(false);
+						guest.onAwaitingAuth();
+					},
+				}
+			: undefined,
 	});
+
+	if (guest) {
+		guest.controllerRef.current = {
+			finishGuestUpload,
+			downloadGuestRecording,
+			adoptRecoveredGuestRecording,
+			discardGuestRecording: async () => {
+				await discardGuestRecording();
+				setRecordingMode("fullscreen");
+			},
+			retryUpload,
+			openRecorder: () => setOpen(true),
+		};
+	}
+
+	const guestOnPhaseChange = guest?.onPhaseChange;
+	useEffect(() => {
+		guestOnPhaseChange?.({ phase, completedShareUrl, videoId });
+	}, [guestOnPhaseChange, phase, completedShareUrl, videoId]);
 
 	useEffect(() => {
 		if (
@@ -278,7 +353,7 @@ export const WebRecorderDialog = () => {
 				<DialogTrigger asChild>
 					<Button variant="blue" size="sm" className="flex items-center gap-2">
 						<MonitorIcon className="size-3.5" />
-						Record in Browser
+						{isGuest ? "Start recording" : "Record in Browser"}
 					</Button>
 				</DialogTrigger>
 				<DialogContent
@@ -315,6 +390,7 @@ export const WebRecorderDialog = () => {
 								<WebRecorderDialogHeader
 									isBusy={isBusy}
 									onClose={handleClose}
+									hidePlan={isGuest}
 								/>
 								<RecordingModeSelector
 									mode={recordingMode}
@@ -377,6 +453,12 @@ export const WebRecorderDialog = () => {
 										onStart={handleStartClick}
 										onStop={handleStopClick}
 									/>
+								)}
+								{isGuest && (
+									<div className="text-center text-xs leading-snug text-gray-10">
+										Free recordings can be up to{" "}
+										{Math.round(GUEST_MAX_RECORDING_MS / 60000)} minutes.
+									</div>
 								)}
 								{!isBrowserSupported && unsupportedReason && (
 									<div className="rounded-md border border-red-6 bg-red-3/70 px-3 py-2 text-xs leading-snug text-red-12">

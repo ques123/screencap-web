@@ -76,6 +76,7 @@ export async function proxy(request: NextRequest) {
 				path.startsWith("/invite") ||
 				path.startsWith("/self-hosting") ||
 				path.startsWith("/download") ||
+				path.startsWith("/record") ||
 				path.startsWith("/verify-otp") ||
 				path.startsWith("/admin") ||
 				path.startsWith("/messenger") ||

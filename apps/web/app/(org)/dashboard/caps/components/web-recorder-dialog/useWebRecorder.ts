@@ -41,8 +41,18 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useEffectMutation, useRpcClient } from "@/lib/EffectRuntime";
+import {
+	GUEST_MAX_RECORDING_MS,
+	type GuestBootstrap,
+} from "@/lib/guest-record";
 import { useUploadingContext } from "../../UploadingContext";
 import { sendProgressUpdate } from "../sendProgressUpdate";
+import {
+	clearGuestRecordingMeta,
+	createGuestSpoolSessionId,
+	type GuestRecordingMeta,
+	writeGuestRecordingMeta,
+} from "./guest-recording";
 import type { RecordingMode } from "./RecordingModeSelector";
 import {
 	loadRecoveredRecordingSpools,
@@ -70,6 +80,11 @@ interface UseWebRecorderOptions {
 	onRecordingSurfaceDetected?: (mode: RecordingMode) => void;
 	onRecordingStart?: () => void;
 	onRecordingStop?: () => void;
+	/**
+	 * Guest mode (public /record page): nothing is created or uploaded while recording. After Stop the
+	 * recording stays local in phase "awaiting-auth" until `finishGuestUpload` is called.
+	 */
+	guest?: { onAwaitingAuth: () => void };
 }
 
 const INSTANT_UPLOAD_REQUEST_INTERVAL_MS = 1000;
@@ -133,7 +148,13 @@ export const useWebRecorder = ({
 	onRecordingSurfaceDetected,
 	onRecordingStart,
 	onRecordingStop,
+	guest,
 }: UseWebRecorderOptions) => {
+	const guestRef = useRef(guest);
+	guestRef.current = guest;
+	const isGuest = guest !== undefined;
+	const guestHasAudioRef = useRef<boolean | undefined>(undefined);
+	const adoptedGuestSpoolIdRef = useRef<string | null>(null);
 	const [phase, setPhase] = useState<RecorderPhase>("idle");
 	const phaseRef = useRef<RecorderPhase>("idle");
 	const [videoId, setVideoId] = useState<VideoId | null>(null);
@@ -348,7 +369,8 @@ export const useWebRecorder = ({
 	}, []);
 
 	useEffect(() => {
-		if (!canUseRecordingSpool()) {
+		// The guest page runs its own recovery prompt for guest recordings.
+		if (isGuest || !canUseRecordingSpool()) {
 			return;
 		}
 
@@ -423,7 +445,7 @@ export const useWebRecorder = ({
 			cancelled = true;
 			window.clearInterval(interval);
 		};
-	}, [dismissRecoveredDownload]);
+	}, [dismissRecoveredDownload, isGuest]);
 
 	const stopRecordingSpoolHeartbeat = useCallback(() => {
 		if (recordingSpoolHeartbeatRef.current === null) return;
@@ -468,13 +490,13 @@ export const useWebRecorder = ({
 	}, [stopRecordingSpoolHeartbeat]);
 
 	const createRecordingSpool = useCallback(
-		async (mimeType: string) => {
+		async (mimeType: string, sessionId?: string) => {
 			if (!canUseRecordingSpool()) {
 				return null;
 			}
 
 			try {
-				const spool = await RecordingSpool.create({ mimeType });
+				const spool = await RecordingSpool.create({ mimeType, sessionId });
 				recordingSpoolDegradingRef.current = false;
 				recordingSpoolWarningShownRef.current = false;
 				recordingSpoolRef.current = spool;
@@ -608,21 +630,24 @@ export const useWebRecorder = ({
 		null,
 	);
 	useEffect(() => {
+		if (isGuest) return;
 		let cancelled = false;
 		fetch("/api/upload/limits")
 			.then((res) => (res.ok ? res.json() : null))
 			.then((data) => {
 				if (cancelled) return;
 				const secs = data?.maxRecordingSeconds;
-				if (typeof secs === "number" && secs > 0) setConfiguredLimitMs(secs * 1000);
+				if (typeof secs === "number" && secs > 0)
+					setConfiguredLimitMs(secs * 1000);
 			})
 			.catch(() => {});
 		return () => {
 			cancelled = true;
 		};
-	}, []);
-	const recordingLimitMs =
-		configuredLimitMs ?? (isProUser ? null : FREE_PLAN_MAX_RECORDING_MS);
+	}, [isGuest]);
+	const recordingLimitMs = isGuest
+		? GUEST_MAX_RECORDING_MS
+		: (configuredLimitMs ?? (isProUser ? null : FREE_PLAN_MAX_RECORDING_MS));
 	const isFreePlan = recordingLimitMs !== null;
 
 	const stopInstantChunkInterval = useCallback(() => {
@@ -897,7 +922,7 @@ export const useWebRecorder = ({
 				mediaRecorderRef.current.state !== "inactive")
 		)
 			return;
-		if (!organisationId) {
+		if (!organisationId && !guestRef.current) {
 			toast.error("Select an organization before recording.");
 			return;
 		}
@@ -1046,7 +1071,10 @@ export const useWebRecorder = ({
 			const hasAudio = mixedStream.getAudioTracks().length > 0;
 			setHasAudioTrack(hasAudio);
 
-			const pipeline = selectRecordingPipeline(hasAudio);
+			guestHasAudioRef.current = hasAudio;
+			const pipeline = guestRef.current
+				? selectRecordingPipeline(hasAudio, { forceBuffered: true })
+				: selectRecordingPipeline(hasAudio);
 			if (!pipeline) {
 				throw new Error("No supported recording pipeline available");
 			}
@@ -1054,7 +1082,10 @@ export const useWebRecorder = ({
 			recordedChunksRef.current = [];
 			totalRecordedBytesRef.current = 0;
 			await disposeRecordingSpool();
-			const spool = await createRecordingSpool(pipeline.mimeType);
+			const spool = await createRecordingSpool(
+				pipeline.mimeType,
+				guestRef.current ? createGuestSpoolSessionId() : undefined,
+			);
 			assertSetupActive();
 			setLocalRecordingStrategy({ mode: spool ? "off" : "full" });
 			automaticUploadRetriesRef.current = 0;
@@ -1063,13 +1094,13 @@ export const useWebRecorder = ({
 			instantUploaderRef.current = null;
 			recordingPipelineRef.current = pipeline;
 
-			{
+			if (!guestRef.current) {
 				const width = dimensionsRef.current.width;
 				const height = dimensionsRef.current.height;
 				const resolution = width && height ? `${width}x${height}` : undefined;
 				const creation = unwrapExitOrThrow(
 					await videoInstantCreate.mutateAsync({
-						orgId: Organisation.OrganisationId.make(organisationId),
+						orgId: Organisation.OrganisationId.make(organisationId ?? ""),
 						folderId: Option.none(),
 						resolution,
 						width,
@@ -1239,6 +1270,19 @@ export const useWebRecorder = ({
 		startInstantChunkInterval,
 	]);
 
+	// A guest recording recovered after a reload has no live spool object; remove its saved copy once
+	// the upload is confirmed. No-op unless a recovered guest recording was adopted.
+	const discardAdoptedGuestSpool = useCallback(async () => {
+		clearGuestRecordingMeta();
+		const id = adoptedGuestSpoolIdRef.current;
+		if (!id) return;
+		adoptedGuestSpoolIdRef.current = null;
+		removeRecoveredRecordingSpoolFromCache(id);
+		await deleteRecoveredRecordingSpool(id).catch((error) => {
+			console.error("Failed to delete recovered guest spool", error);
+		});
+	}, []);
+
 	const uploadStoppedRecording = useCallback(async () => {
 		const recording = stoppedRecordingRef.current;
 		const pipeline = recordingPipelineRef.current;
@@ -1306,12 +1350,14 @@ export const useWebRecorder = ({
 			pendingInstantVideoIdRef.current = null;
 			stoppedRecordingRef.current = null;
 			await disposeRecordingSpool();
+			await discardAdoptedGuestSpool();
 			resetRecorder();
 			replaceErrorDownload(null);
 			setUploadStatus(undefined);
 			updatePhase("completed");
 			toast.success("Recording uploaded. Your share link is ready.");
-			openShareUrl(creation.shareUrl);
+			// The guest page navigates to the share page itself.
+			if (!guestRef.current) openShareUrl(creation.shareUrl);
 			router.refresh();
 		} catch (error) {
 			if (generation !== setupGenerationRef.current) return;
@@ -1338,6 +1384,7 @@ export const useWebRecorder = ({
 		}
 	}, [
 		disposeRecordingSpool,
+		discardAdoptedGuestSpool,
 		openShareUrl,
 		replaceErrorDownload,
 		resetRecorder,
@@ -1346,6 +1393,46 @@ export const useWebRecorder = ({
 		setUploadStatus,
 		updatePhase,
 	]);
+
+	// Guest mode: capture is done. Keep the blob and spool, and wait for the visitor to sign in.
+	const finishGuestCapture = useCallback(
+		async (recording: NonNullable<typeof stoppedRecordingRef.current>) => {
+			const generation = setupGenerationRef.current;
+			const blob = await resolveFailureBlob(recording.blob);
+			if (generation !== setupGenerationRef.current) return;
+			if (!blob?.size) {
+				setCanRetryUpload(false);
+				setUploadStatus(undefined);
+				updatePhase("error");
+				toast.error("Nothing was recorded. Please try again.");
+				return;
+			}
+			recording.blob = blob;
+			recording.totalBytes = blob.size;
+			stopRecordingSpoolHeartbeat();
+			const sessionId = recordingSpoolRef.current?.sessionId;
+			if (sessionId) {
+				writeGuestRecordingMeta({
+					sessionId,
+					durationSeconds: recording.durationSeconds,
+					width: dimensionsRef.current.width,
+					height: dimensionsRef.current.height,
+					finished: true,
+				});
+			}
+			setCanRetryUpload(false);
+			replaceErrorDownload(blob);
+			updatePhase("awaiting-auth");
+			guestRef.current?.onAwaitingAuth();
+		},
+		[
+			replaceErrorDownload,
+			resolveFailureBlob,
+			setUploadStatus,
+			stopRecordingSpoolHeartbeat,
+			updatePhase,
+		],
+	);
 
 	const stopRecording = useCallback(async () => {
 		if (
@@ -1397,6 +1484,10 @@ export const useWebRecorder = ({
 			}
 			stopInFlightRef.current = false;
 		}
+		if (guestRef.current) {
+			await finishGuestCapture(recording);
+			return;
+		}
 		if (!recording.captureFailed) await uploadStoppedRecording();
 	}, [
 		stopInstantChunkInterval,
@@ -1410,6 +1501,7 @@ export const useWebRecorder = ({
 		replaceErrorDownload,
 		setUploadStatus,
 		uploadStoppedRecording,
+		finishGuestCapture,
 		totalRecordedBytesRef,
 	]);
 
@@ -1523,8 +1615,99 @@ export const useWebRecorder = ({
 		updatePhase,
 	]);
 
+	// Guest mode: create the video in the signed-in account, then reuse the normal post-stop upload.
+	const finishGuestUpload = useCallback(
+		async (bootstrap: GuestBootstrap) => {
+			const recording = stoppedRecordingRef.current;
+			const pipeline = recordingPipelineRef.current;
+			if (!recording || !pipeline) throw new Error("No recording to upload");
+			if (!videoCreationRef.current) {
+				const width = dimensionsRef.current.width;
+				const height = dimensionsRef.current.height;
+				const resolution = width && height ? `${width}x${height}` : undefined;
+				const creation = unwrapExitOrThrow(
+					await videoInstantCreate.mutateAsync({
+						orgId: Organisation.OrganisationId.make(bootstrap.organisationId),
+						folderId: Option.none(),
+						resolution,
+						width,
+						height,
+						videoCodec: "h264",
+						audioCodec: guestHasAudioRef.current ? "aac" : undefined,
+						supportsUploadProgress: true,
+					}),
+				) as InstantVideoCreation;
+				videoCreationRef.current = {
+					id: creation.id,
+					shareUrl: creation.shareUrl,
+					upload: creation.upload,
+				};
+				setVideoId(creation.id);
+				pendingInstantVideoIdRef.current = creation.id;
+			}
+			await uploadStoppedRecording();
+			const shareUrl = videoCreationRef.current?.shareUrl;
+			if (phaseRef.current !== "completed" || !shareUrl) {
+				throw new Error("Upload did not finish");
+			}
+			return shareUrl;
+		},
+		[uploadStoppedRecording, videoInstantCreate],
+	);
+
+	const downloadGuestRecording = useCallback(() => {
+		if (!errorDownload) return false;
+		triggerBrowserDownload(errorDownload.url, errorDownload.fileName);
+		return true;
+	}, [errorDownload]);
+
+	// Re-open a finished guest recording found in local storage after a page reload.
+	const adoptRecoveredGuestRecording = useCallback(
+		(
+			recovered: { sessionId: string; blob: Blob; mimeType: string },
+			meta: GuestRecordingMeta | null,
+		) => {
+			if (phaseRef.current !== "idle") return false;
+			const mimeType = recovered.blob.type || recovered.mimeType;
+			dimensionsRef.current = { width: meta?.width, height: meta?.height };
+			guestHasAudioRef.current = undefined;
+			recordingPipelineRef.current = {
+				mode: "buffered-raw",
+				mimeType,
+				fileExtension: mimeType.includes("webm") ? "webm" : "mp4",
+				supportsProgressiveUpload: false,
+			};
+			stoppedRecordingRef.current = {
+				blob: recovered.blob,
+				totalBytes: recovered.blob.size,
+				durationSeconds: meta?.durationSeconds ?? 1,
+				captureFailed: false,
+				completionUncertain: false,
+			};
+			adoptedGuestSpoolIdRef.current = recovered.sessionId;
+			replaceErrorDownload(recovered.blob);
+			updatePhase("awaiting-auth");
+			return true;
+		},
+		[replaceErrorDownload, updatePhase],
+	);
+
+	// Throw the guest recording away (Record again / Discard) and return to idle.
+	const discardGuestRecording = useCallback(async () => {
+		if (phaseRef.current === "uploading") return;
+		const adoptedId = adoptedGuestSpoolIdRef.current;
+		await cleanupRecordingState();
+		clearGuestRecordingMeta();
+		if (adoptedId) {
+			adoptedGuestSpoolIdRef.current = null;
+			removeRecoveredRecordingSpoolFromCache(adoptedId);
+			await deleteRecoveredRecordingSpool(adoptedId).catch(() => {});
+		}
+		updatePhase("idle");
+	}, [cleanupRecordingState, updatePhase]);
+
 	const canStartRecording =
-		Boolean(organisationId) &&
+		(Boolean(organisationId) || isGuest) &&
 		(phase === "idle" || phase === "completed") &&
 		!isSettingUp &&
 		!isRestarting &&
@@ -1573,5 +1756,9 @@ export const useWebRecorder = ({
 		supportsDisplayRecording,
 		supportCheckCompleted,
 		screenCaptureWarning,
+		finishGuestUpload,
+		downloadGuestRecording,
+		adoptRecoveredGuestRecording,
+		discardGuestRecording,
 	};
 };

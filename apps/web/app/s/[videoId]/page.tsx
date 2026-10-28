@@ -80,6 +80,7 @@ import {
 import { optionFromTOrFirst } from "@/utils/effect";
 import { isAiGenerationEnabled } from "@/utils/flags";
 import { isE2eeFlag } from "./_components/e2ee/key-acquisition";
+import { LinkCopiedBanner } from "./_components/LinkCopiedBanner";
 import { PasswordOverlay } from "./_components/PasswordOverlay";
 import { PendingRecordingShare } from "./_components/PendingRecordingShare";
 import { PrivateAccessActions } from "./_components/PrivateAccessActions";
@@ -95,6 +96,14 @@ type ShareVideoSearchParams = {
 
 const isValidVideoIdParam = (videoId: string) =>
 	videoId.length === nanoIdLength && VIDEO_ID_PATTERN.test(videoId);
+
+// Set by the guest recorder (/record) after it uploads a new recording and copies the link.
+const hasNewLinkParam = (searchParams: ShareVideoSearchParams) => {
+	const value = Array.isArray(searchParams.new)
+		? searchParams.new[0]
+		: searchParams.new;
+	return value === "1";
+};
 
 const hasRecordingStoppedParam = (searchParams: ShareVideoSearchParams) => {
 	const recordingStoppedParam = Array.isArray(searchParams.recordingStopped)
@@ -435,6 +444,9 @@ export default async function ShareVideoPage(props: PageProps<"/s/[videoId]">) {
 				<PasswordOverlay isOpen={data.needsPassword} videoId={videoId} />
 				{!data.needsPassword && (
 					<AuthorizedContent video={data.video} searchParams={searchParams} />
+				)}
+				{!data.needsPassword && hasNewLinkParam(searchParams) && (
+					<LinkCopiedBanner />
 				)}
 			</div>
 		)),

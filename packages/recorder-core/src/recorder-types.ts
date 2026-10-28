@@ -8,7 +8,9 @@ export type RecorderPhase =
 	| "converting"
 	| "uploading"
 	| "completed"
-	| "error";
+	| "error"
+	// Guest recording: capture is finished and kept locally while the user signs in.
+	| "awaiting-auth";
 
 export type RecorderErrorEvent = Event & { error?: DOMException };
 
