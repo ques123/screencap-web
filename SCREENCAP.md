@@ -105,3 +105,21 @@ Updating from upstream: `git fetch upstream && git rebase upstream/main`, resolv
 web unit tests (`cd apps/web && bunx vitest run __tests__/unit`), push.
 
 Deployment config lives in a separate private repo (ques123/screencap).
+
+## Guest recording (/record)
+Anyone can record in the browser at `/record` without an account, up to 5 minutes
+(`GUEST_MAX_RECORDING_MS` in `apps/web/lib/guest-record.ts`, the shared contract). Nothing is uploaded
+before sign-in: the recording stays in the tab until the guest presses Stop and verifies an email.
+- Flow: Stop opens `GuestSignInDialog` (`components/guest/`), which uses the normal email one-time-code
+  sign-in (`signIn("email")`, then `/api/auth/callback/email`) without redirecting. New emails get an
+  account plus "My Organization" (auth adapter `createUser`, so `sc_ref` attribution and the sign-up gates
+  all apply); existing emails just sign in. The page then creates the video, uploads, and opens the share
+  page with the link copied.
+- Blocked sign-ups (blocked email or domain, blocked account, allowlist mode, blocked country) show up as
+  next-auth `SignupBlocked`, `SignupCountryBlocked` or `AccessDenied`; `lib/guest-signin.ts` turns them
+  into a plain message for the pop-up (it never says which rule fired).
+- `GET /api/record/bootstrap` (session required, no-store): `{ userId, email, organisationId, isPro,
+  maxRecordingSeconds }`. If an account has no organisation yet (invited or SSO users), it creates one.
+- `POST /api/record/claim { videoId }` (session and ownership required, idempotent): sets
+  `screencap_video_clients.detail = "guest"` on that video so the admin panel can count guest conversions.
+- Funnel events (Umami and Matomo): `guest-record-start|stop|email|verified|blocked|uploaded|download`.
