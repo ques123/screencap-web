@@ -171,6 +171,38 @@ export const WebRecorderDialog = ({
 
 	const micEnabled = selectedMicId !== null;
 
+	// Granting camera or microphone access from the Off pill should switch that device on: the person
+	// just said yes to it, and the browser has already picked a default. Only the moment of granting
+	// is handled here; saved device choices and an explicit "Off" are left alone.
+	const autoSelectAfterGrantRef = useRef({ camera: false, mic: false });
+	const refreshCamerasAfterGrant = useCallback(async () => {
+		autoSelectAfterGrantRef.current.camera = true;
+		await refreshCameras();
+	}, [refreshCameras]);
+	const refreshMicsAfterGrant = useCallback(async () => {
+		autoSelectAfterGrantRef.current.mic = true;
+		await refreshMics();
+	}, [refreshMics]);
+	useEffect(() => {
+		const pending = autoSelectAfterGrantRef.current;
+		if (pending.camera && availableCameras.length > 0) {
+			pending.camera = false;
+			if (!selectedCameraId)
+				handleCameraChange(availableCameras[0]?.deviceId ?? null);
+		}
+		if (pending.mic && availableMics.length > 0) {
+			pending.mic = false;
+			if (!selectedMicId) handleMicChange(availableMics[0]?.deviceId ?? null);
+		}
+	}, [
+		availableCameras,
+		availableMics,
+		selectedCameraId,
+		selectedMicId,
+		handleCameraChange,
+		handleMicChange,
+	]);
+
 	useEffect(() => {
 		if (
 			recordingMode === "camera" &&
@@ -430,7 +462,7 @@ export const WebRecorderDialog = ({
 										}
 									}}
 									onCameraChange={handleCameraChange}
-									onRefreshDevices={refreshCameras}
+									onRefreshDevices={refreshCamerasAfterGrant}
 								/>
 								<MicrophoneSelector
 									selectedMicId={selectedMicId}
@@ -445,7 +477,7 @@ export const WebRecorderDialog = ({
 										}
 									}}
 									onMicChange={handleMicChange}
-									onRefreshDevices={refreshMics}
+									onRefreshDevices={refreshMicsAfterGrant}
 								/>
 								{recordingMode !== "camera" && (
 									<SystemAudioToggle
