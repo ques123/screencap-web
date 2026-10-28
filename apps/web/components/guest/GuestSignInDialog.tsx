@@ -5,10 +5,10 @@ import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
-	DialogHeader,
 	DialogTitle,
 	Input,
 } from "@cap/ui";
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import {
@@ -23,6 +23,11 @@ const COOLDOWN_MS = 30_000;
 const REQUEST_TIMEOUT_MS = 20_000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_CODE = ["", "", "", "", "", ""];
+const PERKS = [
+	"A link that plays in any browser, nothing to download",
+	"No 5-minute limit on your next recordings",
+	"Every recording saved in your own library",
+];
 
 type Props = {
 	open: boolean;
@@ -200,150 +205,182 @@ export function GuestSignInDialog({
 				if (!o && !busy) onCancel();
 			}}
 		>
-			<DialogContent className="p-6">
-				<DialogHeader>
-					<DialogTitle>
-						{step === "email"
-							? "Enter your email to get your link"
-							: "Enter your 6-digit code"}
+			<DialogContent className="w-[calc(100%-32px)] max-w-[440px] overflow-hidden rounded-2xl bg-gray-1">
+				<div className="px-6 pt-7 pb-6 text-center bg-gradient-to-b from-blue-3 to-gray-1 sm:px-8">
+					<span className="inline-flex gap-1.5 items-center px-2.5 py-1 text-xs font-medium rounded-full text-green-11 bg-green-3">
+						<Check className="size-3.5" strokeWidth={3} aria-hidden />
+						Your recording is ready
+					</span>
+					<DialogTitle className="mt-4 text-2xl font-semibold tracking-tight text-gray-12">
+						{step === "email" ? "Get your share link" : "Check your email"}
 					</DialogTitle>
-					<DialogDescription>
-						{step === "email"
-							? "We will email you a code to confirm it is you. No password needed."
-							: `We sent a code to ${email}. It can take a minute to arrive.`}
+					<DialogDescription className="mt-2 text-sm leading-relaxed text-gray-11">
+						{step === "email" ? (
+							"Create your free Screencap account to share it. It takes about 20 seconds."
+						) : (
+							<>
+								Enter the 6-digit code we sent to{" "}
+								<span className="font-medium text-gray-12">{email}</span>.
+							</>
+						)}
 					</DialogDescription>
-				</DialogHeader>
+				</div>
 
-				{step === "email" ? (
-					<form
-						noValidate
-						className="flex flex-col gap-3 mt-4"
-						onSubmit={(e) => {
-							e.preventDefault();
-							void sendCode(false);
-						}}
-					>
-						<label htmlFor={emailId} className="sr-only">
-							Email address
-						</label>
-						<Input
-							id={emailId}
-							type="email"
-							autoComplete="email"
-							inputMode="email"
-							placeholder="you@example.com"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							disabled={busy}
-							autoFocus
-						/>
-						<Button
-							type="submit"
-							variant="primary"
-							className="w-full"
-							spinner={busy}
-							disabled={busy || !email.trim()}
-						>
-							{busy ? "Sending..." : "Send code"}
-						</Button>
-						<p className="text-xs text-center text-gray-9">
-							By continuing you agree to Screencap's{" "}
-							<Link
-								href="/terms"
-								target="_blank"
-								className="font-semibold text-gray-12 hover:text-blue-300"
-							>
-								Terms of Service
-							</Link>{" "}
-							and{" "}
-							<Link
-								href="/privacy"
-								target="_blank"
-								className="font-semibold text-gray-12 hover:text-blue-300"
-							>
-								Privacy Policy
-							</Link>
-							.
-						</p>
-					</form>
-				) : (
-					<div className="flex flex-col gap-3 mt-4">
-						<div className="flex gap-2 justify-between">
-							{code.map((digit, index) => (
-								<input
-									key={index.toString()}
-									ref={(el) => {
-										inputRefs.current[index] = el;
-									}}
-									type="text"
-									inputMode="numeric"
-									pattern="[0-9]*"
-									maxLength={1}
-									autoComplete={index === 0 ? "one-time-code" : "off"}
-									aria-label={`Digit ${index + 1} of 6`}
-									value={digit}
-									disabled={busy}
-									onChange={(e) =>
-										handleChange(index, e.target.value.replace(/\D/g, ""))
-									}
-									onKeyDown={(e) => {
-										if (e.key === "Backspace" && !code[index] && index > 0)
-											inputRefs.current[index - 1]?.focus();
-									}}
-									onPaste={(e) => {
-										e.preventDefault();
-										handleChange(
-											0,
-											e.clipboardData.getData("text").replace(/\D/g, ""),
-										);
-									}}
-									className="flex-1 min-w-0 h-[52px] text-xl font-semibold text-center rounded-lg border transition-all text-gray-12 bg-gray-1 border-gray-5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-								/>
-							))}
-						</div>
-						<Button
-							variant="primary"
-							className="w-full"
-							spinner={busy}
-							disabled={busy || code.some((d) => !d)}
-							onClick={() => void verify(code.join(""))}
-						>
-							{busy ? "Checking..." : "Verify code"}
-						</Button>
-						<div className="flex flex-wrap gap-x-4 gap-y-1 justify-center text-sm">
-							<button
-								type="button"
-								disabled={busy}
-								onClick={() => void sendCode(true)}
-								className="underline text-gray-10 hover:text-gray-12"
-							>
-								Resend code
-							</button>
-							<button
-								type="button"
-								disabled={busy}
-								onClick={() => {
-									setStep("email");
-									setCode(EMPTY_CODE);
-									setError(null);
-									setNotice(null);
+				<div className="px-6 pb-6 sm:px-8">
+					{step === "email" ? (
+						<>
+							<ul className="flex flex-col gap-2.5 p-4 mb-5 text-sm text-left rounded-xl border bg-gray-2 border-gray-4">
+								{PERKS.map((perk) => (
+									<li
+										key={perk}
+										className="flex gap-2.5 items-start text-gray-12"
+									>
+										<span className="flex flex-none justify-center items-center mt-px rounded-full size-5 bg-blue-3 text-blue-11">
+											<Check className="size-3" strokeWidth={3} aria-hidden />
+										</span>
+										{perk}
+									</li>
+								))}
+							</ul>
+							<form
+								noValidate
+								className="flex flex-col gap-3"
+								onSubmit={(e) => {
+									e.preventDefault();
+									void sendCode(false);
 								}}
-								className="underline text-gray-10 hover:text-gray-12"
 							>
-								Use a different email
-							</button>
+								<label htmlFor={emailId} className="sr-only">
+									Email address
+								</label>
+								<Input
+									id={emailId}
+									type="email"
+									autoComplete="email"
+									inputMode="email"
+									placeholder="you@example.com"
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									disabled={busy}
+									autoFocus
+									className="h-12 text-base"
+								/>
+								<Button
+									type="submit"
+									variant="blue"
+									size="lg"
+									className="w-full"
+									spinner={busy}
+									disabled={busy || !email.trim()}
+								>
+									{busy ? "Sending code..." : "Get my link"}
+								</Button>
+								<p className="text-xs leading-relaxed text-center text-gray-10">
+									We'll email you a 6-digit code. No password needed.
+									<br />
+									By continuing you agree to the{" "}
+									<Link
+										href="/terms"
+										target="_blank"
+										className="underline text-gray-11 hover:text-gray-12"
+									>
+										Terms
+									</Link>{" "}
+									and{" "}
+									<Link
+										href="/privacy"
+										target="_blank"
+										className="underline text-gray-11 hover:text-gray-12"
+									>
+										Privacy Policy
+									</Link>
+									.
+								</p>
+							</form>
+						</>
+					) : (
+						<div className="flex flex-col gap-4">
+							<div className="flex gap-2 justify-between">
+								{code.map((digit, index) => (
+									<input
+										key={index.toString()}
+										ref={(el) => {
+											inputRefs.current[index] = el;
+										}}
+										type="text"
+										inputMode="numeric"
+										pattern="[0-9]*"
+										maxLength={1}
+										autoComplete={index === 0 ? "one-time-code" : "off"}
+										aria-label={`Digit ${index + 1} of 6`}
+										value={digit}
+										disabled={busy}
+										onChange={(e) =>
+											handleChange(index, e.target.value.replace(/\D/g, ""))
+										}
+										onKeyDown={(e) => {
+											if (e.key === "Backspace" && !code[index] && index > 0)
+												inputRefs.current[index - 1]?.focus();
+										}}
+										onPaste={(e) => {
+											e.preventDefault();
+											handleChange(
+												0,
+												e.clipboardData.getData("text").replace(/\D/g, ""),
+											);
+										}}
+										className="flex-1 min-w-0 h-14 text-2xl font-semibold text-center rounded-xl border transition-all text-gray-12 bg-gray-1 border-gray-5 focus:outline-none focus:ring-2 focus:ring-blue-9 focus:border-transparent"
+									/>
+								))}
+							</div>
+							<Button
+								variant="blue"
+								size="lg"
+								className="w-full"
+								spinner={busy}
+								disabled={busy || code.some((d) => !d)}
+								onClick={() => void verify(code.join(""))}
+							>
+								{busy ? "Checking..." : "Get my link"}
+							</Button>
+							<div className="flex flex-wrap gap-x-4 gap-y-1 justify-center text-sm">
+								<button
+									type="button"
+									disabled={busy}
+									onClick={() => void sendCode(true)}
+									className="underline text-gray-10 hover:text-gray-12"
+								>
+									Resend code
+								</button>
+								<button
+									type="button"
+									disabled={busy}
+									onClick={() => {
+										setStep("email");
+										setCode(EMPTY_CODE);
+										setError(null);
+										setNotice(null);
+									}}
+									className="underline text-gray-10 hover:text-gray-12"
+								>
+									Use a different email
+								</button>
+							</div>
 						</div>
-					</div>
-				)}
+					)}
 
-				<div aria-live="polite" className="min-h-5 mt-3 text-sm text-center">
-					{error ? (
-						<p role="alert" className="text-red-500">
-							{error}
-						</p>
-					) : notice ? (
-						<p className="text-gray-11">{notice}</p>
-					) : null}
+					<div
+						aria-live="polite"
+						className="mt-3 text-sm text-center empty:hidden"
+					>
+						{error ? (
+							<p role="alert" className="text-red-500">
+								{error}
+							</p>
+						) : notice ? (
+							<p className="text-gray-11">{notice}</p>
+						) : null}
+					</div>
 				</div>
 			</DialogContent>
 		</Dialog>
