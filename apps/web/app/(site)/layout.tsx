@@ -1,6 +1,7 @@
 import { buildEnv } from "@cap/env";
 import "@cap/ui/style";
 import type { PropsWithChildren } from "react";
+import { SupportChat } from "@/app/(org)/dashboard/_components/SupportChat";
 import { formatStarCount, getGitHubStars } from "@/utils/github";
 import { DeferredMessengerWidget } from "../Layout/DeferredMessengerWidget";
 import { Footer } from "./Footer";
@@ -15,6 +16,7 @@ export default async function Layout(props: PropsWithChildren) {
 				<ScreencapHeader />
 				{props.children}
 				<ScreencapFooter />
+				<SupportChat />
 			</div>
 		);
 	}

@@ -1,9 +1,18 @@
+import { ContactUsLink } from "./ContactUsLink";
+
 export function ScreencapFooter() {
 	return (
 		<footer className="border-t border-[#D3E3F3] pt-7 pb-10 text-sm text-[#45627F]">
 			<div className="mx-auto flex max-w-[1240px] flex-wrap justify-between gap-x-6 gap-y-3 px-[clamp(20px,5vw,48px)]">
 				<span>
-					&copy; 2026 Dharma Loop LLC · Screencap ·{" "}
+					Screencap.co is a{" "}
+					<a
+						href="https://dharmaloop.com"
+						className="text-[#45627F] no-underline hover:text-[#1E66B8] hover:underline"
+					>
+						Dharma Loop LLC
+					</a>{" "}
+					product · &copy; 2026 ·{" "}
 					<a
 						href="mailto:email@screencap.co"
 						className="text-[#45627F] no-underline hover:text-[#1E66B8] hover:underline"
@@ -15,6 +24,7 @@ export function ScreencapFooter() {
 					aria-label="Footer"
 					className="flex flex-wrap gap-x-[18px] gap-y-1"
 				>
+					<ContactUsLink className="inline-block py-1.5 text-[#45627F] no-underline hover:text-[#1E66B8] hover:underline" />
 					<a
 						href="/pricing"
 						className="inline-block py-1.5 text-[#45627F] no-underline hover:text-[#1E66B8] hover:underline"

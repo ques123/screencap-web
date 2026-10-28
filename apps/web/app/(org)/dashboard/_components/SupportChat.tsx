@@ -4,7 +4,8 @@ import Script from "next/script";
 import { useEffect } from "react";
 
 // Screencap support chat: TicketDM website "Screencap" (DharmaLoop Support Telegram group, origins
-// limited to screencap.co). Signed-in users are identified so support can find their account.
+// limited to screencap.co). Signed-in users are identified so support can find their account; the
+// public site renders it without a user.
 const TICKETDM_KEY = "pk_live_ibpzj4vc6i65fb4m";
 
 export function SupportChat({
@@ -12,11 +13,12 @@ export function SupportChat({
 	email,
 	name,
 }: {
-	userId: string;
-	email: string;
-	name: string | null;
+	userId?: string;
+	email?: string;
+	name?: string | null;
 }) {
 	useEffect(() => {
+		if (!userId || !email) return;
 		const w = window as unknown as {
 			TicketDM?: {
 				_l?: number;
