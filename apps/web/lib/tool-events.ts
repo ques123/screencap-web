@@ -108,6 +108,20 @@ export function cleanUtm(v: unknown): string | null {
 	return s || null;
 }
 
+// The picked file's name as the browser reports it (no path); control characters dropped.
+export function cleanFileName(v: unknown): string | null {
+	if (typeof v !== "string") return null;
+	const s = Array.from(v)
+		.filter((ch) => {
+			const c = ch.charCodeAt(0);
+			return c >= 0x20 && c !== 0x7f;
+		})
+		.join("")
+		.trim()
+		.slice(0, 255);
+	return s || null;
+}
+
 const BOT_UA =
 	/bot|crawl|spider|slurp|facebookexternalhit|preview|headless|lighthouse|pingdom|uptime|monitor|curl|wget|python-requests|httpx|go-http-client|axios|node-fetch|java\//i;
 
@@ -126,6 +140,7 @@ export type ToolEventInput = {
 	errorClass: string | null;
 	referrerHost: string | null;
 	utmSource: string | null;
+	fileName: string | null;
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -157,6 +172,7 @@ export function parseToolEvent(
 				? hostOf(b.referrer)
 				: hostOf(refererHeader),
 		utmSource: utm,
+		fileName: cleanFileName(b.fileName),
 	};
 }
 

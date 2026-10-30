@@ -1,0 +1,1 @@
+ALTER TABLE `screencap_tool_events` ADD `file_name` varchar(255);

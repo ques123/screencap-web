@@ -3,13 +3,22 @@ import Link from "next/link";
 import {
 	parseToolRange,
 	requireAdmin,
+	TOOL_FILES_LIMIT,
 	TOOL_RANGES,
 	type ToolDay,
+	type ToolFile,
 	type ToolsReport,
+	toolFiles,
 	toolsReport,
 } from "@/lib/screencap-admin";
 import { TOOL_LABELS, TOOL_SLUGS, type ToolSlug } from "@/lib/tool-events";
-import { EmptyState, formatNumber, strParam } from "../_components/format";
+import {
+	Chip,
+	DateText,
+	EmptyState,
+	formatNumber,
+	strParam,
+} from "../_components/format";
 
 export const dynamic = "force-dynamic";
 
@@ -412,13 +421,95 @@ function BarList({
 	);
 }
 
+const REJECTED: Record<string, string> = {
+	invalid_file_type: "Wrong file type",
+	file_too_large: "Too large",
+};
+
+function FileOutcome({ f }: { f: ToolFile }) {
+	if (f.rejected)
+		return <Chip tone="red">{REJECTED[f.rejected] ?? "Rejected"}</Chip>;
+	if (f.downloaded) return <Chip tone="green">Downloaded</Chip>;
+	if (f.converted) return <Chip tone="blue">Converted</Chip>;
+	if (f.failed) return <Chip tone="amber">Failed</Chip>;
+	return <Chip>Picked only</Chip>;
+}
+
+function FilesLog({ files, range }: { files: ToolFile[]; range: number }) {
+	return (
+		<Card className="space-y-3">
+			<div className="space-y-1">
+				<CardTitle>Files</CardTitle>
+				<CardDescription>
+					Names of the files people picked in the last {range} days, newest
+					first
+					{files.length >= TOOL_FILES_LIMIT
+						? ` (latest ${formatNumber(TOOL_FILES_LIMIT)})`
+						: ""}
+					. The file itself never leaves their device.
+				</CardDescription>
+			</div>
+			{files.length === 0 ? (
+				<p className="text-sm text-gray-10">No file names recorded yet.</p>
+			) : (
+				<div className="overflow-x-auto max-h-[32rem]">
+					<table className="w-full text-sm text-left">
+						<thead className="sticky top-0 bg-gray-1">
+							<tr className="border-b border-gray-4 text-gray-10">
+								<th className="py-2 pr-3 font-medium">When</th>
+								<th className="px-3 py-2 font-medium">Tool</th>
+								<th className="px-3 py-2 font-medium">File</th>
+								<th className="px-3 py-2 font-medium">Size</th>
+								<th className="px-3 py-2 font-medium">Outcome</th>
+								<th className="px-3 py-2 font-medium">Browser</th>
+								<th className="py-2 pl-3 font-medium">Country</th>
+							</tr>
+						</thead>
+						<tbody className="divide-y divide-gray-4 text-gray-12">
+							{files.map((f, i) => (
+								<tr key={`${f.at.toISOString()}-${i}`}>
+									<td className="py-2 pr-3 whitespace-nowrap text-gray-11">
+										<DateText value={f.at} />
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap">
+										{TOOL_LABELS[f.tool]}
+									</td>
+									<td
+										className="px-3 py-2 max-w-[22rem] truncate"
+										title={f.fileName}
+									>
+										{f.fileName}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap text-gray-11">
+										{f.sizeBucket ?? "-"}
+									</td>
+									<td className="px-3 py-2">
+										<FileOutcome f={f} />
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap text-gray-11">
+										{[f.browser, f.os].filter(Boolean).join(" on ") || "-"}
+									</td>
+									<td className="py-2 pl-3 text-gray-11">{f.country ?? "-"}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			)}
+		</Card>
+	);
+}
+
 export default async function AdminToolsPage(props: {
 	searchParams: Promise<{ range?: string | string[] }>;
 }) {
 	await requireAdmin();
 	const sp = await props.searchParams;
 	const range = parseToolRange(strParam(sp.range));
-	const report = await toolsReport(range);
+	const [report, files] = await Promise.all([
+		toolsReport(range),
+		toolFiles(range),
+	]);
 	const empty = report.tools.every(
 		(x) => x.views === 0 && x.convertOk === 0 && x.signedUp === 0,
 	);
@@ -487,6 +578,7 @@ export default async function AdminToolsPage(props: {
 							}))}
 						/>
 					</div>
+					<FilesLog files={files} range={range} />
 				</>
 			)}
 		</div>

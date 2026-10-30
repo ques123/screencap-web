@@ -206,6 +206,73 @@ export async function toolsReport(range: ToolRange): Promise<ToolsReport> {
 	};
 }
 
+export type ToolFile = {
+	at: Date;
+	tool: ToolSlug;
+	fileName: string;
+	sizeBucket: string | null;
+	rejected: string | null;
+	converted: boolean;
+	failed: boolean;
+	downloaded: boolean;
+	browser: string | null;
+	os: string | null;
+	country: string | null;
+};
+
+export const TOOL_FILES_LIMIT = 500;
+
+// Newest files people picked (or had rejected) in the tools, with whether that visit went on to convert
+// and download. A file picked twice in one visit shows twice.
+export async function toolFiles(range: ToolRange): Promise<ToolFile[]> {
+	const since = new Date(Date.now() - range * 24 * 3600 * 1000);
+	const later = (step: string) =>
+		sql<number>`EXISTS (SELECT 1 FROM ${t} AS o WHERE o.visit_id = ${t.visitId} AND o.tool = ${t.tool} AND o.step = ${step} AND o.created_at >= ${t.createdAt})`.mapWith(
+			Number,
+		);
+	const rows = await db()
+		.select({
+			at: t.createdAt,
+			tool: t.tool,
+			step: t.step,
+			fileName: t.fileName,
+			sizeBucket: t.sizeBucket,
+			errorClass: t.errorClass,
+			converted: later("convert_ok"),
+			failed: later("convert_failed"),
+			downloaded: later("downloaded"),
+			browser: t.browser,
+			os: t.os,
+			country: t.country,
+		})
+		.from(t)
+		.where(
+			and(
+				gte(t.createdAt, since),
+				isNotNull(t.fileName),
+				inArray(t.step, ["file_selected", "convert_failed"]),
+			),
+		)
+		.orderBy(desc(t.createdAt))
+		.limit(TOOL_FILES_LIMIT);
+	return rows
+		.filter((r) => (TOOL_SLUGS as readonly string[]).includes(r.tool))
+		.map((r) => ({
+			at: r.at,
+			tool: r.tool as ToolSlug,
+			fileName: r.fileName ?? "",
+			sizeBucket: r.sizeBucket,
+			rejected:
+				r.step === "convert_failed" ? (r.errorClass ?? "rejected") : null,
+			converted: r.step === "file_selected" && r.converted === 1,
+			failed: r.step === "file_selected" && r.failed === 1,
+			downloaded: r.step === "file_selected" && r.downloaded === 1,
+			browser: r.browser,
+			os: r.os,
+			country: r.country,
+		}));
+}
+
 export async function purgeToolEvents(opts?: {
 	dryRun?: boolean;
 	now?: Date;

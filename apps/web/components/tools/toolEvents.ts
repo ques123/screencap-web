@@ -8,6 +8,7 @@ export type ToolEventProps = {
 	durationSeconds?: number;
 	outputSizeBytes?: number;
 	errorClass?: string;
+	fileName?: string;
 };
 
 const visitId: string =
@@ -30,6 +31,7 @@ export function toolEvent(
 			durationSeconds: props.durationSeconds,
 			outputSizeBytes: props.outputSizeBytes,
 			errorClass: props.errorClass?.slice(0, 64),
+			fileName: props.fileName?.slice(0, 255),
 			referrer: document.referrer,
 			pageUrl: window.location.href,
 		});
@@ -88,6 +90,7 @@ export function trackLegacyToolEvent(
 	toolEvent(tool, step, {
 		fileSizeBytes: num(props.fileSize),
 		outputSizeBytes: num(props.outputSize),
+		fileName: typeof props.fileName === "string" ? props.fileName : undefined,
 		errorClass:
 			step === "convert_failed"
 				? (fixedError ?? errorClassOf(props.error))

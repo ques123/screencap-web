@@ -9,7 +9,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const MAX_BODY_BYTES = 1024;
+const MAX_BODY_BYTES = 2048;
 const allow = createRateLimiter(120, 60_000);
 
 const noContent = () => new Response(null, { status: 204 });

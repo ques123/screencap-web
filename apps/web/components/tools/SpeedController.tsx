@@ -70,6 +70,7 @@ export const SpeedController = () => {
 			setError("Please select a valid video file.");
 			trackEvent("speed_controller_invalid_file_type", {
 				fileType: selectedFile.type,
+				fileName: selectedFile.name,
 			});
 			return;
 		}
@@ -78,6 +79,7 @@ export const SpeedController = () => {
 			setError("File size exceeds 500MB limit.");
 			trackEvent("speed_controller_file_too_large", {
 				fileSize: selectedFile.size,
+				fileName: selectedFile.name,
 			});
 			return;
 		}
@@ -86,6 +88,7 @@ export const SpeedController = () => {
 		trackEvent("speed_controller_file_selected", {
 			fileSize: selectedFile.size,
 			fileType: selectedFile.type,
+			fileName: selectedFile.name,
 		});
 
 		const videoElement = document.createElement("video");
@@ -645,12 +648,8 @@ export const SpeedController = () => {
 					<ToolNextStepPrompt
 						tool="speed-up-video"
 						onShow={() => toolEvent("speed-up-video", "prompt_shown")}
-						onSignupClick={() =>
-							toolEvent("speed-up-video", "cta_signup")
-						}
-						onDownloadClick={() =>
-							toolEvent("speed-up-video", "cta_download")
-						}
+						onSignupClick={() => toolEvent("speed-up-video", "cta_signup")}
+						onDownloadClick={() => toolEvent("speed-up-video", "cta_download")}
 						line={TOOL_NEXT_STEP_LINES["speed-up-video"]}
 					/>
 				</div>

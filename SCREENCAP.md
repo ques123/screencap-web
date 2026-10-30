@@ -47,9 +47,10 @@ and the Mac app.
   recordings). Sign-up sources reuse `classifySignupSource` (tracked since 2026-10-27).
 - Web: admin Tools tab (`/dashboard/admin/tools`, `lib/screencap-admin/tools.ts`) shows whether the
   free tools are used, work and bring sign-ups: views, funnel, daily chart, failures by browser and
-  error, referrers, countries, file sizes. Events come from `toolEvent()` in
+  error, referrers, countries, file sizes, and a Files log of the names of files picked (with outcome). Events come from `toolEvent()` in
   `components/tools/toolEvents.ts` via `POST /api/tools/events` into `screencap_tool_events`
-  (migration 0054): buckets only, no IP, file name or raw user agent, deleted after 90 days by the
+  (migration 0054; `file_name` added in 0058 for `file_selected` and rejected-file events): buckets
+  plus the picked file's name, no IP or raw user agent, deleted after 90 days by the
   nightly purge. `/signup?from=tool-<slug>` sets a 30-day `sc_tool` cookie and NextAuth
   `events.createUser` records `signed_up`.
 - Web: transcripts and AI titles/summaries/chapters run on each user's own OpenRouter key (BYOK).

@@ -296,6 +296,7 @@ export const MediaFormatConverter = ({
 			trackEvent("media_format_invalid_file_type", {
 				conversion_path: conversionPath,
 				fileType: selectedFile.type,
+				fileName: selectedFile.name,
 			});
 			return;
 		}
@@ -305,6 +306,7 @@ export const MediaFormatConverter = ({
 			trackEvent("media_format_file_too_large", {
 				conversion_path: conversionPath,
 				fileSize: selectedFile.size,
+				fileName: selectedFile.name,
 			});
 			return;
 		}
@@ -313,6 +315,7 @@ export const MediaFormatConverter = ({
 		trackEvent("media_format_file_selected", {
 			conversion_path: conversionPath,
 			fileSize: selectedFile.size,
+			fileName: selectedFile.name,
 		});
 	};
 

@@ -1016,6 +1016,7 @@ export const screencapToolEvents = mysqlTable(
 		country: varchar("country", { length: 2 }),
 		referrerHost: varchar("referrer_host", { length: 128 }),
 		utmSource: varchar("utm_source", { length: 64 }),
+		fileName: varchar("file_name", { length: 255 }),
 	},
 	(table) => [
 		index("tool_events_created_idx").on(table.createdAt),

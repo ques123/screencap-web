@@ -26,7 +26,7 @@ describe("tool events", () => {
 		expect(parseToolEvent(null)).toBeNull();
 	});
 
-	it("keeps only buckets, hosts and trimmed fields", () => {
+	it("keeps buckets, hosts, the file name and trimmed fields", () => {
 		const e = parseToolEvent({
 			tool: "mov-to-mp4",
 			step: "convert_failed",
@@ -44,7 +44,22 @@ describe("tool events", () => {
 			visitId,
 		});
 		expect(e?.errorClass).toHaveLength(64);
-		expect(JSON.stringify(e)).not.toContain("private");
+		expect(e?.fileName).toBe("private.mov");
+		expect(JSON.stringify(e)).not.toContain("secret");
+	});
+
+	it("cleans file names", () => {
+		const name = (fileName: unknown) =>
+			parseToolEvent({ tool: "mov-to-mp4", step: "file_selected", fileName })
+				?.fileName;
+		expect(name("  Screen Recording 2026-10-30.mov ")).toBe(
+			"Screen Recording 2026-10-30.mov",
+		);
+		expect(name("a\nb\u0000c.mov")).toBe("abc.mov");
+		expect(name("x".repeat(400))).toHaveLength(255);
+		expect(name("   ")).toBeNull();
+		expect(name(42)).toBeNull();
+		expect(name(undefined)).toBeNull();
 	});
 
 	it("drops bots and rate limits", () => {

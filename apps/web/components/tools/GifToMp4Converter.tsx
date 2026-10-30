@@ -68,6 +68,7 @@ export const GifToMp4Converter = () => {
 			toolEvent("gif-to-mp4", "convert_failed", {
 				errorClass: "invalid_file_type",
 				fileSizeBytes: selected.size,
+				fileName: selected.name,
 			});
 			return;
 		}
@@ -77,11 +78,15 @@ export const GifToMp4Converter = () => {
 			toolEvent("gif-to-mp4", "convert_failed", {
 				errorClass: "file_too_large",
 				fileSizeBytes: selected.size,
+				fileName: selected.name,
 			});
 			return;
 		}
 		setFile(selected);
-		toolEvent("gif-to-mp4", "file_selected", { fileSizeBytes: selected.size });
+		toolEvent("gif-to-mp4", "file_selected", {
+			fileSizeBytes: selected.size,
+			fileName: selected.name,
+		});
 	};
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
