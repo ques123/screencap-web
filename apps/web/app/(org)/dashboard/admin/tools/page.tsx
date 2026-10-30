@@ -551,8 +551,8 @@ export default async function AdminToolsPage(props: {
 							}))}
 						/>
 						<BarList
-							title="Top referrers"
-							description="Distinct visits."
+							title="Top sources"
+							description="Distinct visits, by utm_source when the link has one (ChatGPT adds it but hides the referrer), else the referrer."
 							unit="visits"
 							rows={report.referrers.map((r) => ({
 								label: r.label,

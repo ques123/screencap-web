@@ -132,12 +132,14 @@ export async function toolsReport(range: ToolRange): Promise<ToolsReport> {
 				.limit(15),
 			d
 				.select({
-					label: sql<string>`COALESCE(${t.referrerHost}, 'Direct or unknown')`,
+					label: sql<string>`COALESCE(${t.utmSource}, ${t.referrerHost}, 'Direct or unknown')`,
 					views: num(sql`COUNT(DISTINCT ${t.visitId})`),
 				})
 				.from(t)
 				.where(and(inRange, eq(t.step, "view")))
-				.groupBy(sql`COALESCE(${t.referrerHost}, 'Direct or unknown')`)
+				.groupBy(
+					sql`COALESCE(${t.utmSource}, ${t.referrerHost}, 'Direct or unknown')`,
+				)
 				.orderBy(desc(num(sql`COUNT(DISTINCT ${t.visitId})`)))
 				.limit(10),
 			d

@@ -47,7 +47,7 @@ and the Mac app.
   recordings). Sign-up sources reuse `classifySignupSource` (tracked since 2026-10-27).
 - Web: admin Tools tab (`/dashboard/admin/tools`, `lib/screencap-admin/tools.ts`) shows whether the
   free tools are used, work and bring sign-ups: views, funnel, daily chart, failures by browser and
-  error, referrers, countries, file sizes, and a Files log of the names of files picked (with outcome). Events come from `toolEvent()` in
+  error, sources (utm_source, else referrer: ChatGPT links carry utm_source=chatgpt.com but no referrer), countries, file sizes, and a Files log of the names of files picked (with outcome). Events come from `toolEvent()` in
   `components/tools/toolEvents.ts` via `POST /api/tools/events` into `screencap_tool_events`
   (migration 0054; `file_name` added in 0058 for `file_selected` and rejected-file events): buckets
   plus the picked file's name, no IP or raw user agent, deleted after 90 days by the
